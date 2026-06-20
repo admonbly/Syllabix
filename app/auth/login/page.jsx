@@ -3,16 +3,19 @@
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { authFunctions } from '@/lib/firebase';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,8 +24,7 @@ export default function LoginPage() {
 
     try {
       await authFunctions.signIn(email, password);
-      // Redirection au dashboard en cas de succès
-      router.push('/dashboard');
+      router.push(redirectTo);
     } catch (err) {
       setError(err.message || 'Erreur de connexion');
     } finally {
@@ -88,10 +90,28 @@ export default function LoginPage() {
           <div className="my-6 border-t border-neutral-200"></div>
 
           <div className="space-y-3 mb-6">
-            <button className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2">
-              <span>🔷</span> Continuer avec Google
+            <button
+              onClick={async () => {
+                setError('');
+                setOauthLoading(true);
+                try {
+                  await authFunctions.signInWithGoogle();
+                  router.push(redirectTo);
+                } catch (err) {
+                  setError(err.message || 'Erreur de connexion Google');
+                } finally {
+                  setOauthLoading(false);
+                }
+              }}
+              disabled={oauthLoading || isLoading}
+              className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <span>🔷</span> {oauthLoading ? 'Connexion...' : 'Continuer avec Google'}
             </button>
-            <button className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2">
+            <button
+              onClick={() => setError('La connexion Facebook n\'est pas encore disponible. Utilisez email ou Google.')}
+              className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2 opacity-60"
+            >
               <span>🔵</span> Continuer avec Facebook
             </button>
           </div>

@@ -7,22 +7,38 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { authFunctions } from '@/lib/firebase';
 
+function calculateAge(dateOfBirth) {
+  const today = new Date();
+  const birth = new Date(dateOfBirth);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('student');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [parentalConsent, setParentalConsent] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const age = dateOfBirth ? calculateAge(dateOfBirth) : null;
+  const needsParentalConsent = age !== null && age >= 13 && age < 15;
+  const tooYoung = age !== null && age < 13;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Validations
     if (!firstName.trim()) {
       setError('Le prénom est requis');
       return;
@@ -30,6 +46,21 @@ export default function SignupPage() {
 
     if (!lastName.trim()) {
       setError('Le nom est requis');
+      return;
+    }
+
+    if (!dateOfBirth) {
+      setError('La date de naissance est requise');
+      return;
+    }
+
+    if (tooYoung) {
+      setError('Vous devez avoir au moins 13 ans pour vous inscrire.');
+      return;
+    }
+
+    if (needsParentalConsent && !parentalConsent) {
+      setError('Le consentement parental est requis pour les moins de 15 ans (RGPD Art. 8).');
       return;
     }
 
@@ -45,10 +76,22 @@ export default function SignupPage() {
 
     setIsLoading(true);
 
+    const roleMap = {
+      student: 'LEARNER',
+      teacher: 'LEARNER',
+      professional: 'PROFESSIONAL',
+      other: 'LEARNER',
+    };
+
     try {
-      await authFunctions.signUp(email, password);
-      // Redirection au dashboard en cas de succès
-      router.push('/dashboard');
+      await authFunctions.signUp(email, password, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        role: roleMap[status] ?? 'LEARNER',
+        dateOfBirth,
+        parentalConsentGiven: needsParentalConsent ? parentalConsent : false,
+      });
+      router.push('/auth/verify-email');
     } catch (err) {
       setError(err.message || 'Erreur lors de l\'inscription');
     } finally {
@@ -102,6 +145,54 @@ export default function SignupPage() {
                 />
               </div>
             </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-primary mb-2">
+                Date de naissance
+              </label>
+              <input
+                type="date"
+                value={dateOfBirth}
+                onChange={(e) => {
+                  setDateOfBirth(e.target.value);
+                  setParentalConsent(false);
+                }}
+                className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors"
+                max={new Date().toISOString().split('T')[0]}
+                required
+                disabled={isLoading}
+              />
+              {tooYoung && (
+                <p className="text-red-600 text-xs mt-2">
+                  Vous devez avoir au moins 13 ans pour vous inscrire.
+                </p>
+              )}
+            </div>
+
+            {needsParentalConsent && (
+              <div className="p-4 bg-yellow-50 border border-yellow-300 rounded-lg">
+                <p className="text-sm font-semibold text-yellow-800 mb-3">
+                  Consentement parental requis (RGPD Art. 8)
+                </p>
+                <p className="text-xs text-yellow-700 mb-3">
+                  Les personnes de moins de 15 ans doivent obtenir le consentement d'un parent
+                  ou tuteur légal avant de créer un compte.
+                </p>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={parentalConsent}
+                    onChange={(e) => setParentalConsent(e.target.checked)}
+                    className="mt-1 h-4 w-4"
+                    disabled={isLoading}
+                  />
+                  <span className="text-sm text-yellow-800">
+                    J'atteste que mon parent ou tuteur légal a donné son consentement pour
+                    la création de ce compte et le traitement de mes données personnelles.
+                  </span>
+                </label>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-semibold text-primary mb-2">
@@ -170,7 +261,7 @@ export default function SignupPage() {
 
             <CTAButton
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || tooYoung}
               className="w-full"
               size="lg"
             >
@@ -187,13 +278,13 @@ export default function SignupPage() {
 
           <p className="text-xs text-neutral-500 text-center mt-6">
             En vous inscrivant, vous acceptez nos{' '}
-            <a href="#" className="text-accent hover:underline">
+            <Link href="/cgu" className="text-accent hover:underline">
               Conditions d'utilisation
-            </a>{' '}
+            </Link>{' '}
             et notre{' '}
-            <a href="#" className="text-accent hover:underline">
+            <Link href="/privacy" className="text-accent hover:underline">
               Politique de confidentialité
-            </a>
+            </Link>
             .
           </p>
         </Card>

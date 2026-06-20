@@ -1,34 +1,119 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
+import { auth, userDB } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
+const MODULES = [
+  { id: 0, name: 'IT (Ordinateur)' },
+  { id: 1, name: 'Internet & Google' },
+  { id: 2, name: 'Email' },
+  { id: 3, name: 'Bureautique' },
+  { id: 4, name: 'Cybersécurité' },
+  { id: 5, name: 'Intelligence Artificielle' },
+  { id: 6, name: 'Employabilité' },
+];
+
+const MIN_PASS_SCORE = 60;
+
+function formatCertDate(isoStr) {
+  if (!isoStr) return '';
+  try {
+    return new Date(isoStr).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  } catch {
+    return isoStr;
+  }
+}
 
 export default function DashboardPage() {
-  // Mock user data
-  const user = {
-    name: 'Amara Traoré',
-    email: 'amara@exemple.com',
-    joinDate: 'Janvier 2024',
-  };
+  const [user, setUser] = useState(null);
+  const [progress, setProgress] = useState([]);
+  const [certificates, setCertificates] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const progress = [
-    { module: 'IT (Ordinateur)', attempts: 3, bestScore: 85, status: '✅ Certifié' },
-    { module: 'Internet & Google', attempts: 2, bestScore: 78, status: '✅ Certifié' },
-    { module: 'Email', attempts: 1, bestScore: 92, status: '✅ Certifié' },
-    { module: 'Bureautique', attempts: 0, bestScore: 0, status: '🔒 Non tenté' },
-    { module: 'Cybersécurité', attempts: 2, bestScore: 71, status: '✅ Certifié' },
-    { module: 'Intelligence Artificielle', attempts: 1, bestScore: 65, status: '✅ Certifié' },
-    { module: 'Employabilité', attempts: 0, bestScore: 0, status: '🔒 Non tenté' },
-  ];
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        setLoading(false);
+        return;
+      }
+      setUser(firebaseUser);
 
-  const certificates = [
-    { module: 'IT (Ordinateur)', level: 'AVANCÉ', date: '15 mars 2024', id: 'CERT-001' },
-    { module: 'Email', level: 'AVANCÉ', date: '12 mars 2024', id: 'CERT-002' },
-    { module: 'Internet & Google', level: 'INTERMÉDIAIRE', date: '10 mars 2024', id: 'CERT-003' },
-  ];
+      try {
+        const [prog, certs] = await Promise.all([
+          userDB.getUserProgress(firebaseUser.uid),
+          userDB.getUserCertificates(firebaseUser.uid),
+        ]);
+        setProgress(prog || []);
+        setCertificates(certs || []);
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+      } finally {
+        setLoading(false);
+      }
+    });
 
-  const completionPercentage = Math.round((3 / 7) * 100);
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
+        <p className="text-lg text-neutral-600">Chargement du tableau de bord...</p>
+      </section>
+    );
+  }
+
+  if (!user) {
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-neutral-600 mb-4">Vous devez être connecté pour accéder au tableau de bord.</p>
+          <Link href="/auth/login" className="text-accent font-semibold hover:underline">
+            Se connecter
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  // Merge module list with actual progress
+  const progressByModule = {};
+  progress.forEach((p) => {
+    const key = String(p.moduleId);
+    if (!progressByModule[key] || p.score > progressByModule[key].score) {
+      progressByModule[key] = p;
+    }
+  });
+
+  const moduleProgress = MODULES.map((mod) => {
+    const p = progressByModule[String(mod.id)];
+    return {
+      module: mod.name,
+      bestScore: p ? p.score : 0,
+      passed: p ? p.score >= MIN_PASS_SCORE : false,
+      attempted: !!p,
+    };
+  });
+
+  const completedCount = moduleProgress.filter((m) => m.passed).length;
+  const attemptedCount = moduleProgress.filter((m) => m.attempted).length;
+  const passRate = attemptedCount > 0
+    ? Math.round((completedCount / attemptedCount) * 100)
+    : 0;
+  const completionPercentage = Math.round((completedCount / MODULES.length) * 100);
+
+  const displayName = user.displayName || user.email;
+  const joinYear = user.metadata?.creationTime
+    ? new Date(user.metadata.creationTime).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
+    : '';
 
   return (
     <section className="py-20 bg-neutral-50 min-h-screen">
@@ -39,15 +124,21 @@ export default function DashboardPage() {
         <Card className="mb-8 flex justify-between items-center">
           <div>
             <p className="text-neutral-600">Bienvenue</p>
-            <p className="text-2xl font-heading font-bold text-primary">{user.name}</p>
-            <p className="text-sm text-neutral-500">Membre depuis {user.joinDate}</p>
+            <p className="text-2xl font-heading font-bold text-primary">{displayName}</p>
+            {joinYear && (
+              <p className="text-sm text-neutral-500">Membre depuis {joinYear}</p>
+            )}
           </div>
-          <Link
-            href="/auth/logout"
+          <button
+            onClick={async () => {
+              const { authFunctions } = await import('@/lib/firebase');
+              await authFunctions.signOut();
+              window.location.href = '/auth/login';
+            }}
             className="px-6 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors"
           >
             Déconnexion
-          </Link>
+          </button>
         </Card>
 
         {/* Stats Row */}
@@ -55,7 +146,7 @@ export default function DashboardPage() {
           <Card variant="accent">
             <div className="text-4xl mb-2">🏆</div>
             <p className="text-neutral-600 text-sm">Modules complétés</p>
-            <p className="text-3xl font-bold text-accent">3/7</p>
+            <p className="text-3xl font-bold text-accent">{completedCount}/{MODULES.length}</p>
           </Card>
           <Card variant="secondary">
             <div className="text-4xl mb-2">📜</div>
@@ -65,12 +156,12 @@ export default function DashboardPage() {
           <Card>
             <div className="text-4xl mb-2">📊</div>
             <p className="text-neutral-600 text-sm">Taux de réussite</p>
-            <p className="text-3xl font-bold text-primary">80%</p>
+            <p className="text-3xl font-bold text-primary">{passRate > 0 ? `${passRate}%` : '-'}</p>
           </Card>
           <Card>
-            <div className="text-4xl mb-2">⏱️</div>
-            <p className="text-neutral-600 text-sm">Temps total</p>
-            <p className="text-3xl font-bold">2h 45m</p>
+            <div className="text-4xl mb-2">📝</div>
+            <p className="text-neutral-600 text-sm">Modules tentés</p>
+            <p className="text-3xl font-bold">{attemptedCount}</p>
           </Card>
         </div>
 
@@ -103,20 +194,20 @@ export default function DashboardPage() {
               <thead>
                 <tr className="border-b-2 border-neutral-200">
                   <th className="text-left py-3 font-heading font-bold text-primary">Module</th>
-                  <th className="text-center py-3 font-heading font-bold text-primary">Tentatives</th>
                   <th className="text-center py-3 font-heading font-bold text-primary">Meilleur score</th>
                   <th className="text-right py-3 font-heading font-bold text-primary">Statut</th>
                 </tr>
               </thead>
               <tbody>
-                {progress.map((item, index) => (
+                {moduleProgress.map((item, index) => (
                   <tr key={index} className="border-b border-neutral-200 hover:bg-neutral-50">
                     <td className="py-4 font-medium text-neutral-700">{item.module}</td>
-                    <td className="text-center py-4 text-neutral-600">{item.attempts}</td>
                     <td className="text-center py-4 font-bold text-primary">
                       {item.bestScore > 0 ? `${item.bestScore}%` : '-'}
                     </td>
-                    <td className="text-right py-4 font-semibold text-accent">{item.status}</td>
+                    <td className="text-right py-4 font-semibold text-accent">
+                      {item.passed ? '✅ Certifié' : item.attempted ? '⚠️ Non réussi' : '🔒 Non tenté'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -125,31 +216,49 @@ export default function DashboardPage() {
         </Card>
 
         {/* Certificates */}
-        <Card className="mb-8">
-          <h3 className="text-xl font-heading font-bold text-primary mb-6">
-            📜 Mes certificats
-          </h3>
+        {certificates.length > 0 && (
+          <Card className="mb-8">
+            <h3 className="text-xl font-heading font-bold text-primary mb-6">
+              📜 Mes certificats
+            </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {certificates.map((cert, index) => (
-              <Card key={index} variant="accent" className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <p className="font-heading font-bold text-primary">{cert.module}</p>
-                    <p className="text-sm text-neutral-600">{cert.date}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {certificates.map((cert) => (
+                <Card key={cert.id} variant="accent" className="p-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="font-heading font-bold text-primary">
+                        {cert.moduleId !== null && cert.moduleId !== undefined
+                          ? MODULES[cert.moduleId]?.name || `Module ${cert.moduleId}`
+                          : 'Certification Globale'}
+                      </p>
+                      <p className="text-sm text-neutral-600">{formatCertDate(cert.issuedAt || cert.createdAt)}</p>
+                    </div>
+                    <span className="px-3 py-1 bg-accent text-white rounded-full text-xs font-bold">
+                      {cert.score >= 80 ? 'AVANCÉ' : cert.score >= 60 ? 'INTERMÉDIAIRE' : 'VALIDÉ'}
+                    </span>
                   </div>
-                  <span className="px-3 py-1 bg-accent text-white rounded-full text-xs font-bold">
-                    {cert.level}
-                  </span>
-                </div>
-                <p className="text-xs text-neutral-500 mb-4">ID: {cert.id}</p>
-                <button className="w-full px-4 py-2 border-2 border-accent text-accent rounded-lg font-semibold hover:bg-accent hover:text-white transition-colors text-sm">
-                  📥 Télécharger
-                </button>
-              </Card>
-            ))}
-          </div>
-        </Card>
+                  <p className="text-xs text-neutral-500 mb-4">ID: {cert.id}</p>
+                  <Link
+                    href={`/certificate/${cert.id}`}
+                    className="block w-full px-4 py-2 border-2 border-accent text-accent rounded-lg font-semibold hover:bg-accent hover:text-white transition-colors text-sm text-center"
+                  >
+                    📥 Voir le certificat
+                  </Link>
+                </Card>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {certificates.length === 0 && completedCount === 0 && (
+          <Card className="mb-8 bg-blue-50 border-l-4 border-blue-400">
+            <p className="text-blue-800 font-semibold mb-2">Vous n'avez pas encore de certificat.</p>
+            <p className="text-blue-700 text-sm">
+              Passez un examen de certification pour obtenir votre premier certificat.
+            </p>
+          </Card>
+        )}
 
         {/* CTA */}
         <div className="text-center">
