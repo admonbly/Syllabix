@@ -226,8 +226,12 @@ function LoginForm() {
                 setError('');
                 setOauthLoading(true);
                 try {
-                  await authFunctions.signInWithGoogle();
-                  redirect(redirectTo);
+                  const { profileComplete } = await authFunctions.signInWithGoogle();
+                  if (!profileComplete) {
+                    window.location.href = `/auth/complete-profile?redirect=${encodeURIComponent(redirectTo)}`;
+                  } else {
+                    redirect(redirectTo);
+                  }
                 } catch (err) {
                   if (!err.message?.includes('popup-closed-by-user')) {
                     setError(err.message || 'Erreur de connexion Google');
@@ -240,6 +244,7 @@ function LoginForm() {
             >
               <span>🔷</span> {oauthLoading ? 'Connexion en cours...' : 'Continuer avec Google'}
             </button>
+
           </div>
 
           <p className="text-sm text-neutral-600 text-center">

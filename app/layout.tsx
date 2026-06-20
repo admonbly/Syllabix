@@ -22,12 +22,15 @@ const dm = DM_Sans({
 export const metadata: Metadata = {
   title: 'Syllabix — Certification des Compétences Numériques en Afrique',
   description: 'Évaluez et certifiez vos compétences numériques avec Syllabix. 7 modules, résultats en moins de 30 minutes.',
-  keywords: ['certification', 'compétences numériques', 'Afrique', 'formation digitale'],
+  keywords: ['certification', 'compétences numériques', 'Afrique', 'formation digitale', 'e-learning', 'Côte d\'Ivoire'],
   openGraph: {
     title: 'Syllabix — Certification des Compétences Numériques',
     description: 'La plateforme de certification des compétences numériques en Afrique',
     type: 'website',
+    locale: 'fr_FR',
   },
+  robots: { index: true, follow: true },
+  authors: [{ name: 'Syllabix' }],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -41,9 +44,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/syllabix-logo-simple.png" />
       </head>
       <body className="antialiased">
+        {/* Lien d'évitement pour accessibilité clavier */}
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-accent focus:text-white focus:rounded-lg focus:font-semibold"
+        >
+          Aller au contenu principal
+        </a>
         <ErrorBoundary>
           <Header />
-          <main className="min-h-screen">{children}</main>
+          <main id="main-content" className="min-h-screen" tabIndex={-1}>{children}</main>
           <Footer />
         </ErrorBoundary>
       </body>
