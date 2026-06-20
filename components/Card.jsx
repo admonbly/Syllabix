@@ -71,7 +71,10 @@ export default function Card({
           'mb-4 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300',
           iconBg[variant]
         )}>
-          <Icon className={clsx('w-6 h-6 transition-colors', iconClr[variant])} strokeWidth={1.75} />
+          {typeof Icon === 'string'
+            ? <span className={clsx('text-2xl leading-none select-none', iconClr[variant])}>{Icon}</span>
+            : <Icon className={clsx('w-6 h-6 transition-colors', iconClr[variant])} strokeWidth={1.75} />
+          }
         </div>
       )}
 

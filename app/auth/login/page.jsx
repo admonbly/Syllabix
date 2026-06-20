@@ -4,10 +4,10 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { authFunctions } from '@/lib/firebase';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
@@ -125,5 +125,17 @@ export default function LoginPage() {
         </Card>
       </div>
     </section>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
+        <p className="text-neutral-500">Chargement...</p>
+      </section>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
