@@ -21,13 +21,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'bg-white/96 backdrop-blur-md shadow-soft border-b border-neutral-100/80'
-          : 'bg-[#1A237E] shadow-md'
-      }`}
-    >
+    <header className="sticky top-0 z-50 bg-white/96 backdrop-blur-md shadow-soft border-b border-neutral-100/80 transition-all duration-300">
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
 
         {/* Logo */}
@@ -35,7 +29,7 @@ export default function Header() {
           <img
             src="/syllabix-logo-with-name.png"
             alt="Syllabix"
-            className={`h-10 w-auto transition-all duration-300 ${!scrolled ? 'brightness-0 invert' : ''}`}
+            className="h-10 w-auto"
           />
         </Link>
 
@@ -45,11 +39,7 @@ export default function Header() {
             <Link
               key={href}
               href={href}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
-                scrolled
-                  ? 'text-neutral-600 hover:text-accent hover:bg-accent/5'
-                  : 'text-white/85 hover:text-white hover:bg-white/10'
-              }`}
+              className="px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150 text-neutral-600 hover:text-accent hover:bg-accent/5"
             >
               {label}
             </Link>
@@ -68,11 +58,7 @@ export default function Header() {
 
           <button
             onClick={() => setOpen(!open)}
-            className={`md:hidden p-2 rounded-xl transition-colors ${
-              scrolled
-                ? 'text-neutral-700 hover:bg-neutral-100'
-                : 'text-white hover:bg-white/15'
-            }`}
+            className="md:hidden p-2 rounded-xl transition-colors text-neutral-700 hover:bg-neutral-100"
             aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
             aria-expanded={open}
           >
