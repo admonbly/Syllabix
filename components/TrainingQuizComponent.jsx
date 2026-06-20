@@ -3,30 +3,117 @@
 import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
-import { getModuleQuestions, getMixedQuestions, calculateScore, randomizeAnswerOptions, EXAM_CONFIG } from '@/lib/examService';
+import {
+  getModuleQuestions, getMixedQuestions, calculateScore,
+  randomizeAnswerOptions, EXAM_CONFIG,
+  getAdaptiveQuestion, updateAdaptiveDifficulty,
+} from '@/lib/examService';
 import { useLanguage } from '@/lib/LanguageContext';
+
+const DIFFICULTY_UI = {
+  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dot: '🟢' },
+  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dot: '🟡' },
+  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dot: '🔴' },
+};
 
 /** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function TrainingQuizComponent({ mode = 'module', moduleId = null }) {
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
   const q = (k) => t(`quiz.${k}`);
-  const [questions,       setQuestions]       = useState([]);
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers,         setAnswers]         = useState({});
-  const [showResults,     setShowResults]     = useState(false);
-  const [loading,         setLoading]         = useState(true);
+
+  const isAdaptive = mode === 'module';
+  const total = EXAM_CONFIG.TRAINING.QUESTIONS_COUNT;
+
+  const [questions,    setQuestions]    = useState([]);
+  const [currentIdx,   setCurrentIdx]   = useState(0);
+  const [answers,      setAnswers]      = useState({});
+  const [showResults,  setShowResults]  = useState(false);
+  const [loading,      setLoading]      = useState(true);
+  const [loadingNext,  setLoadingNext]  = useState(false);
+
+  // Adaptive state
+  const [difficulty,   setDifficulty]   = useState(1);
+  const [streak,       setStreak]       = useState(0);
+  const [wrongStreak,  setWrongStreak]  = useState(0);
+  const [usedIds,      setUsedIds]      = useState([]);
 
   useEffect(() => {
     const load = async () => {
-      const q = mode === 'mixed'
-        ? await getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
-        : await getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
-      setQuestions(q.map(randomizeAnswerOptions));
+      if (isAdaptive) {
+        const first = await getAdaptiveQuestion(moduleId, 1, []);
+        if (first) {
+          setQuestions([first]);
+          setUsedIds([first.id ?? first.text]);
+        }
+      } else {
+        const qs = await getMixedQuestions(total);
+        setQuestions(qs.map(randomizeAnswerOptions));
+      }
       setLoading(false);
     };
     load();
   }, []);
 
+  const handleAnswer = (index) => {
+    if (answers[currentIdx] !== undefined) return;
+
+    const isCorrect = index === questions[currentIdx].correct;
+    setAnswers((prev) => ({ ...prev, [currentIdx]: index }));
+
+    if (!isAdaptive) return;
+
+    const newStreak      = isCorrect ? streak + 1 : 0;
+    const newWrongStreak = isCorrect ? 0 : wrongStreak + 1;
+    const updated = updateAdaptiveDifficulty(difficulty, newStreak, newWrongStreak);
+    setDifficulty(updated.difficulty);
+    setStreak(updated.streak);
+    setWrongStreak(updated.wrongStreak);
+  };
+
+  const goNext = async () => {
+    if (!isAdaptive) {
+      setCurrentIdx((i) => i + 1);
+      return;
+    }
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx((i) => i + 1);
+      return;
+    }
+    setLoadingNext(true);
+    const next = await getAdaptiveQuestion(moduleId, difficulty, usedIds);
+    if (next) {
+      setQuestions((prev) => [...prev, next]);
+      setUsedIds((prev) => [...prev, next.id ?? next.text]);
+      setCurrentIdx((i) => i + 1);
+    }
+    setLoadingNext(false);
+  };
+
+  const restart = async () => {
+    setLoading(true);
+    setQuestions([]);
+    setCurrentIdx(0);
+    setAnswers({});
+    setShowResults(false);
+    setDifficulty(1);
+    setStreak(0);
+    setWrongStreak(0);
+    setUsedIds([]);
+
+    if (isAdaptive) {
+      const first = await getAdaptiveQuestion(moduleId, 1, []);
+      if (first) {
+        setQuestions([first]);
+        setUsedIds([first.id ?? first.text]);
+      }
+    } else {
+      const qs = await getMixedQuestions(total);
+      setQuestions(qs.map(randomizeAnswerOptions));
+    }
+    setLoading(false);
+  };
+
+  // ─── Loading ────────────────────────────────────────────
   if (loading) {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
@@ -43,25 +130,15 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     );
   }
 
-  // ——— Page résultats ———
+  // ─── Résultats ──────────────────────────────────────────
   if (showResults) {
     const scoreData = calculateScore(
-      Object.entries(answers).map(([qIdx, ans]) => ({
-        questionId: questions[qIdx].id,
+      Object.entries(answers).map(([idx, ans]) => ({
+        questionId: questions[idx].id,
         userAnswer: ans,
       })),
       questions
     );
-
-    const restart = async () => {
-      const q = mode === 'mixed'
-        ? await getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
-        : await getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
-      setQuestions(q.map(randomizeAnswerOptions));
-      setCurrentQuestion(0);
-      setAnswers({});
-      setShowResults(false);
-    };
 
     return (
       <section className="py-20 bg-neutral-50 min-h-screen">
@@ -75,28 +152,44 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
           <Card className="mb-6 text-center">
             <p className="text-6xl font-bold text-accent mb-2">{scoreData.percentage}%</p>
             <p className="text-neutral-600">{scoreData.correct} {q('results.score')} {scoreData.total}</p>
+            {isAdaptive && (
+              <div className="mt-3">
+                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${DIFFICULTY_UI[difficulty].cls}`}>
+                  {DIFFICULTY_UI[difficulty].dot}{' '}
+                  {locale === 'fr'
+                    ? `Niveau atteint : ${DIFFICULTY_UI[difficulty].fr}`
+                    : `Level reached: ${DIFFICULTY_UI[difficulty].en}`}
+                </span>
+              </div>
+            )}
           </Card>
 
-          {/* Récap détaillé par question */}
           <Card className="mb-6">
             <h3 className="font-heading font-bold text-primary mb-4">{q('results.title')}</h3>
             <div className="space-y-4">
-              {questions.map((q, idx) => {
+              {questions.map((ques, idx) => {
                 const userAns = answers[idx];
-                const correct = userAns === q.correct;
+                const correct = userAns === ques.correct;
                 return (
                   <div key={idx} className={`p-4 rounded-lg border-l-4 ${correct ? 'border-green-500 bg-green-50' : 'border-red-400 bg-red-50'}`}>
-                    <p className="font-semibold text-sm text-neutral-800 mb-1">
-                      {correct ? '✅' : '❌'} Q{idx + 1} — {q.text}
-                    </p>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className="font-semibold text-sm text-neutral-800">
+                        {correct ? '✅' : '❌'} Q{idx + 1} — {ques.text}
+                      </p>
+                      {isAdaptive && ques.difficulty && (
+                        <span className={`flex-shrink-0 text-[10px] px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[ques.difficulty ?? 1].cls}`}>
+                          {DIFFICULTY_UI[ques.difficulty ?? 1].dot}
+                        </span>
+                      )}
+                    </div>
                     {!correct && (
                       <p className="text-sm text-neutral-600">
-                        {t('quiz.incorrect')} : <span className="text-red-600 font-medium">{userAns !== undefined ? q.options[userAns] : '-'}</span><br />
-                        {t('quiz.correct')} : <span className="text-green-700 font-medium">{q.options[q.correct]}</span>
+                        {t('quiz.incorrect')} : <span className="text-red-600 font-medium">{userAns !== undefined ? ques.options[userAns] : '-'}</span><br />
+                        {t('quiz.correct')} : <span className="text-green-700 font-medium">{ques.options[ques.correct]}</span>
                       </p>
                     )}
-                    {q.explanation && (
-                      <p className="text-xs text-neutral-500 mt-2 italic">💡 {q.explanation}</p>
+                    {ques.explanation && (
+                      <p className="text-xs text-neutral-500 mt-2 italic">💡 {ques.explanation}</p>
                     )}
                   </div>
                 );
@@ -113,12 +206,13 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     );
   }
 
-  // ——— Page question ———
-  const question  = questions[currentQuestion];
-  const answered  = answers[currentQuestion] !== undefined;
-  const isCorrect = answered && answers[currentQuestion] === question.correct;
-  const progress  = Math.round(((currentQuestion + 1) / questions.length) * 100);
-  const allDone   = Object.keys(answers).length === questions.length;
+  // ─── Question ───────────────────────────────────────────
+  const question  = questions[currentIdx];
+  const answered  = answers[currentIdx] !== undefined;
+  const isCorrect = answered && answers[currentIdx] === question.correct;
+  const progress  = Math.round(((currentIdx + 1) / total) * 100);
+  const isLast    = currentIdx === total - 1;
+  const allDone   = Object.keys(answers).length === questions.length && questions.length === total;
 
   return (
     <section className="py-20 bg-neutral-50 min-h-screen">
@@ -129,31 +223,30 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
           <div className="mb-6">
             <div className="flex justify-between items-center mb-2">
               <p className="text-sm font-semibold text-neutral-500">
-                {q('question')} {currentQuestion + 1} / {questions.length}
+                {q('question')} {currentIdx + 1} / {total}
               </p>
-              <p className="text-sm text-secondary font-semibold">
-                {Object.keys(answers).length} {q('of')} {questions.length}
-              </p>
+              <div className="flex items-center gap-2">
+                {isAdaptive && (
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
+                    {DIFFICULTY_UI[difficulty].dot} {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
+                  </span>
+                )}
+                <p className="text-sm text-secondary font-semibold">
+                  {Object.keys(answers).length} {q('of')} {total}
+                </p>
+              </div>
             </div>
             <div className="w-full bg-neutral-200 rounded-full h-2">
-              <div
-                className="bg-accent h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
+              <div className="bg-accent h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
             </div>
           </div>
 
           {/* Question */}
           <p className="text-xl font-semibold text-neutral-800 mb-4 leading-relaxed">{question.text}</p>
 
-          {/* Image contextuelle (si disponible) */}
           {question.imageUrl && (
             <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200">
-              <img
-                src={question.imageUrl}
-                alt="Contexte visuel de la question"
-                className="w-full max-h-64 object-contain bg-neutral-50"
-              />
+              <img src={question.imageUrl} alt="Contexte visuel de la question" className="w-full max-h-64 object-contain bg-neutral-50" />
             </div>
           )}
 
@@ -162,18 +255,14 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
             {question.options.map((option, index) => {
               let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
               if (answered) {
-                if (index === question.correct) {
-                  style = 'border-green-500 bg-green-50 text-green-800';
-                } else if (index === answers[currentQuestion] && !isCorrect) {
-                  style = 'border-red-400 bg-red-50 text-red-800';
-                } else {
-                  style = 'border-neutral-200 opacity-50';
-                }
+                if (index === question.correct) style = 'border-green-500 bg-green-50 text-green-800';
+                else if (index === answers[currentIdx] && !isCorrect) style = 'border-red-400 bg-red-50 text-red-800';
+                else style = 'border-neutral-200 opacity-50';
               }
               return (
                 <button
                   key={index}
-                  onClick={() => !answered && setAnswers({ ...answers, [currentQuestion]: index })}
+                  onClick={() => !answered && handleAnswer(index)}
                   disabled={answered}
                   className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
                 >
@@ -182,65 +271,59 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                   </span>
                   {option}
                   {answered && index === question.correct && <span className="float-right">✅</span>}
-                  {answered && index === answers[currentQuestion] && !isCorrect && index !== question.correct && <span className="float-right">❌</span>}
+                  {answered && index === answers[currentIdx] && !isCorrect && index !== question.correct && <span className="float-right">❌</span>}
                 </button>
               );
             })}
           </div>
 
-          {/* Explication après réponse */}
+          {/* Feedback */}
           {answered && (
             <div className={`p-4 rounded-xl mb-6 ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
               <p className={`font-bold mb-1 ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
-                {isCorrect ? `✅ ${q('correct')} !` : `❌ ${q('incorrect')} — ${q('correct')} : ${question.options[question.correct]}`}
+                {isCorrect
+                  ? `✅ ${q('correct')} !`
+                  : `❌ ${q('incorrect')} — ${q('correct')} : ${question.options[question.correct]}`}
               </p>
               {question.explanation && (
-                <p className="text-sm text-neutral-700 leading-relaxed">
-                  💡 {question.explanation}
-                </p>
+                <p className="text-sm text-neutral-700 leading-relaxed">💡 {question.explanation}</p>
               )}
             </div>
           )}
 
           {/* Navigation */}
-          <div className="flex gap-3 justify-between">
+          <div className="flex gap-3 justify-between items-center">
             <button
-              onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
-              disabled={currentQuestion === 0}
+              onClick={() => setCurrentIdx(Math.max(0, currentIdx - 1))}
+              disabled={currentIdx === 0}
               className="px-5 py-3 bg-neutral-100 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-200 transition-colors disabled:opacity-30"
             >
               {q('previous')}
             </button>
 
-            <div className="flex gap-2">
-              {/* Pastilles de navigation rapide */}
-              {questions.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentQuestion(idx)}
-                  className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
-                    idx === currentQuestion
-                      ? 'bg-accent text-white scale-110'
-                      : answers[idx] !== undefined
-                        ? answers[idx] === questions[idx].correct
-                          ? 'bg-green-500 text-white'
-                          : 'bg-red-400 text-white'
-                        : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
-            </div>
+            {!isAdaptive && (
+              <div className="flex gap-2">
+                {questions.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentIdx(idx)}
+                    className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                      idx === currentIdx
+                        ? 'bg-accent text-white scale-110'
+                        : answers[idx] !== undefined
+                          ? answers[idx] === questions[idx].correct
+                            ? 'bg-green-500 text-white'
+                            : 'bg-red-400 text-white'
+                          : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {currentQuestion < questions.length - 1 ? (
-              <button
-                onClick={() => setCurrentQuestion(currentQuestion + 1)}
-                className="px-5 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors"
-              >
-                {q('next')}
-              </button>
-            ) : (
+            {isLast || (isAdaptive && currentIdx === questions.length - 1 && questions.length === total) ? (
               <button
                 onClick={() => setShowResults(true)}
                 disabled={!allDone}
@@ -248,14 +331,17 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
               >
                 {q('submit')}
               </button>
+            ) : (
+              <button
+                onClick={goNext}
+                disabled={!answered || loadingNext}
+                className="px-5 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors disabled:opacity-40"
+              >
+                {loadingNext ? '...' : q('next')}
+              </button>
             )}
           </div>
 
-          {!allDone && (
-            <p className="text-center text-xs text-neutral-400 mt-4">
-              {q('noQuestions')}
-            </p>
-          )}
         </Card>
       </div>
     </section>

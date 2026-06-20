@@ -11,27 +11,52 @@ import {
   formatTime,
   isTimeCritical,
   EXAM_CONFIG,
+  getAdaptiveQuestion,
+  updateAdaptiveDifficulty,
 } from '@/lib/examService';
 import { useLanguage } from '@/lib/LanguageContext';
 
+const DIFFICULTY_UI = {
+  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dot: '🟢' },
+  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dot: '🟡' },
+  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dot: '🔴' },
+};
+
 /** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = null }) {
-  const { t } = useLanguage();
+  const { locale, t } = useLanguage();
   const ev = (k) => t(`quiz.eval.${k}`);
-  const [phase,           setPhase]           = useState('intro');   // intro | quiz | results
+
+  const isAdaptive = mode === 'module';
+  const total = EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT;
+
+  const [phase,           setPhase]           = useState('intro');
   const [questions,       setQuestions]       = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers,         setAnswers]         = useState({});
   const [timeLeft,        setTimeLeft]        = useState(EXAM_CONFIG.EVALUATION.DURATION);
   const [loading,         setLoading]         = useState(true);
+
+  // Adaptive state
+  const [difficulty,  setDifficulty]  = useState(1);
+  const [streak,      setStreak]      = useState(0);
+  const [wrongStreak, setWrongStreak] = useState(0);
+  const [usedIds,     setUsedIds]     = useState([]);
+
   const intervalRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
-      const q = mode === 'module'
-        ? await getModuleQuestions(moduleId, EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT)
-        : await getMixedQuestions(EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT);
-      setQuestions(q.map(randomizeAnswerOptions));
+      if (isAdaptive) {
+        const first = await getAdaptiveQuestion(moduleId, 1, []);
+        if (first) {
+          setQuestions([first]);
+          setUsedIds([first.id ?? first.text]);
+        }
+      } else {
+        const q = await getMixedQuestions(total);
+        setQuestions(q.map(randomizeAnswerOptions));
+      }
       setLoading(false);
     };
     load();
@@ -53,13 +78,37 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     return () => clearInterval(intervalRef.current);
   }, [phase]);
 
-  const handleAnswer = (index) => {
+  const handleAnswer = async (index) => {
     if (answers[currentQuestion] !== undefined) return;
-    const newAnswers = { ...answers, [currentQuestion]: index };
-    setAnswers(newAnswers);
-    // Avancer automatiquement après 600ms
-    if (currentQuestion < questions.length - 1) {
-      setTimeout(() => setCurrentQuestion((q) => q + 1), 600);
+    setAnswers((prev) => ({ ...prev, [currentQuestion]: index }));
+
+    if (!isAdaptive) {
+      if (currentQuestion < questions.length - 1) {
+        setTimeout(() => setCurrentQuestion((q) => q + 1), 600);
+      }
+      return;
+    }
+
+    // Adaptive: update difficulty
+    const isCorrect = index === questions[currentQuestion].correct;
+    const newStreak      = isCorrect ? streak + 1 : 0;
+    const newWrongStreak = isCorrect ? 0 : wrongStreak + 1;
+    const updated = updateAdaptiveDifficulty(difficulty, newStreak, newWrongStreak);
+    setDifficulty(updated.difficulty);
+    setStreak(updated.streak);
+    setWrongStreak(updated.wrongStreak);
+
+    const nextIdx = currentQuestion + 1;
+    if (nextIdx < total) {
+      // Load next adaptive question after 600ms
+      setTimeout(async () => {
+        const next = await getAdaptiveQuestion(moduleId, updated.difficulty, usedIds);
+        if (next) {
+          setQuestions((prev) => [...prev, next]);
+          setUsedIds((prev) => [...prev, next.id ?? next.text]);
+        }
+        setCurrentQuestion(nextIdx);
+      }, 600);
     }
   };
 
@@ -178,9 +227,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
   // ——— Quiz ———
   const question  = questions[currentQuestion];
   const answered  = answers[currentQuestion] !== undefined;
-  const progress  = Math.round(((currentQuestion + 1) / questions.length) * 100);
+  const progress  = Math.round(((currentQuestion + 1) / total) * 100);
   const answeredCount = Object.keys(answers).length;
-  const isLast    = currentQuestion === questions.length - 1;
+  const isLast    = currentQuestion === total - 1;
 
   return (
     <section className="py-12 bg-neutral-50 min-h-screen">
@@ -188,9 +237,16 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
         {/* Timer flottant */}
         <div className={`flex justify-between items-center mb-4 px-5 py-3 rounded-2xl font-bold ${isTimeCritical(timeLeft) ? 'bg-red-50 border-2 border-red-300 text-red-600' : 'bg-white border border-neutral-200 text-primary'}`}>
-          <span className="text-sm">{t('quiz.question')} {currentQuestion + 1}/{questions.length}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm">{t('quiz.question')} {currentQuestion + 1}/{total}</span>
+            {isAdaptive && (
+              <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
+                {DIFFICULTY_UI[difficulty].dot} {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
+              </span>
+            )}
+          </div>
           <span className="text-xl">⏱ {formatTime(timeLeft)}</span>
-          <span className="text-sm text-neutral-400">{answeredCount}/{questions.length}</span>
+          <span className="text-sm text-neutral-400">{answeredCount}/{total}</span>
         </div>
 
         {/* Barre de progression */}
