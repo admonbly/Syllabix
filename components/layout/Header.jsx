@@ -6,6 +6,7 @@ import { auth, authFunctions } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const navLinks = [
+  { href: '/training',      label: 'Apprentissage' },
   { href: '/certification', label: 'Certification' },
   { href: '/#actualites',   label: 'Actualités' },
   { href: '/partenariats',  label: 'Partenariats' },

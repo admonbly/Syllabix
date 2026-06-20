@@ -189,25 +189,20 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {modules.map((mod, i) => (
               <Reveal key={mod.id} direction="up" delay={i * 55}>
-                <Link
-                  href={`/training/module/${mod.id}`}
-                  className="block h-full rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-                >
-                  <Card
-                    icon={mod.icon}
-                    title={mod.title}
-                    description={mod.description}
-                    number={mod.id}
-                    className="h-full cursor-pointer"
-                  />
-                </Link>
+                <Card
+                  icon={mod.icon}
+                  title={mod.title}
+                  description={mod.description}
+                  number={mod.id}
+                  className="h-full"
+                />
               </Reveal>
             ))}
           </div>
 
           <Reveal direction="up" delay={350} className="mt-12 text-center">
             <CTAButton href="/training" size="lg">
-              S&apos;entraîner sur les modules
+              S&apos;entraîner sur tous les modules
               <ArrowRight className="w-4 h-4" />
             </CTAButton>
           </Reveal>
