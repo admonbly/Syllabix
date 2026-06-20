@@ -17,6 +17,7 @@ import {
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+/** @param {{ mode?: string, moduleId?: string | number | null, certificateType?: string | null }} props */
 export default function CertificationQuizComponent({
   mode = 'global',
   moduleId = null,

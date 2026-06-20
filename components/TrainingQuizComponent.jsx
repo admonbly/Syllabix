@@ -22,6 +22,7 @@ import {
  * - Pas de certificat
  * - Résultats non enregistrés
  */
+/** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function TrainingQuizComponent({ mode = 'module', moduleId = null }) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [questions, setQuestions] = useState([]);
