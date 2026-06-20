@@ -61,7 +61,7 @@ function SectionHeader({ tag, title, subtitle, center = true }) {
         {title}
       </h2>
       {subtitle && (
-        <p className={`text-lg text-neutral-500 leading-relaxed ${center ? 'max-w-2xl mx-auto' : 'max-w-xl'}`}>
+        <p className={`text-lg text-neutral-600 leading-relaxed ${center ? 'max-w-2xl mx-auto' : 'max-w-xl'}`}>
           {subtitle}
         </p>
       )}
@@ -133,7 +133,7 @@ export default function HomePage() {
                       </span>
                     </div>
                     <h3 className="font-display font-bold text-lg text-neutral-900 mb-2">{step.title}</h3>
-                    <p className="text-sm text-neutral-500 leading-relaxed">{step.desc}</p>
+                    <p className="text-sm text-neutral-600 leading-relaxed">{step.desc}</p>
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-b-2xl bg-gradient-to-r from-accent to-accent-light origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-350" />
                   </div>
                 </Reveal>
@@ -250,7 +250,7 @@ export default function HomePage() {
                           <span className="px-2.5 py-1 bg-accent/10 text-accent text-xs font-display font-semibold rounded-full">{badge}</span>
                         </div>
                         <h3 className="font-display font-bold text-base text-neutral-900 mb-2 group-hover:text-accent transition-colors leading-snug">{postTitle}</h3>
-                        <p className="text-neutral-500 text-sm leading-relaxed flex-1">{postExcerpt}</p>
+                        <p className="text-neutral-600 text-sm leading-relaxed flex-1">{postExcerpt}</p>
                         <div className="mt-5 flex items-center gap-1.5 text-accent text-sm font-display font-semibold">
                           {h('blog.cta')}
                           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

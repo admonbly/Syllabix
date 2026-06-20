@@ -8,16 +8,17 @@
   --primary-dark:   #0D1540;
   --primary-mid:    #1E2D8A;
   --primary-light:  #2A3B9F;
-  --accent:         #E67E22;
-  --accent-dark:    #CF6D17;
-  --accent-light:   #F5A25A;
-  --accent-pale:    #FEF0E3;
+  --primary-vivid:  #2235CC;
+  --accent:         #E85D04;
+  --accent-dark:    #C44E03;
+  --accent-light:   #FF8B3D;
+  --accent-pale:    #FFF0E0;
   --secondary:      #27AE60;
   --secondary-dark: #1E8449;
   --secondary-pale: #E8F8EE;
   --dark:           #0A0F2E;
-  --surface:        #F8F9FC;
-  --surface-warm:   #FFFAF5;
+  --surface:        #F5F6FF;
+  --surface-warm:   #FFF8F0;
   --border:         #E5E7EB;
 }
 
@@ -90,9 +91,9 @@ html.dyslexia-font a {
            text-xs font-semibold tracking-wide uppercase;
   }
 
-  /* Gradient text (accent orange) */
+  /* Gradient text (primary vivid → accent) */
   .gradient-text {
-    background: linear-gradient(130deg, var(--accent) 0%, var(--accent-light) 100%);
+    background: linear-gradient(130deg, var(--primary-vivid) 0%, var(--accent) 55%, var(--accent-light) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -180,9 +181,9 @@ html.dyslexia-font a {
 .hero-bg {
   background-color: var(--primary-dark);
   background-image:
-    radial-gradient(ellipse 80% 55% at 72% 85%, rgba(230,126,34,0.22) 0%, transparent 58%),
-    radial-gradient(ellipse 55% 40% at 8%  18%, rgba(39,174,96,0.12)  0%, transparent 50%),
-    radial-gradient(circle              at 50% 50%, rgba(42,59,159,0.45)  0%, transparent 70%);
+    radial-gradient(ellipse 80% 55% at 72% 85%, rgba(232,93,4,0.38)    0%, transparent 58%),
+    radial-gradient(ellipse 55% 40% at 8%  18%, rgba(39,174,96,0.18)   0%, transparent 50%),
+    radial-gradient(circle              at 50% 50%, rgba(34,53,204,0.55)  0%, transparent 70%);
 }
 .hero-dots {
   background-image: radial-gradient(circle, rgba(255,255,255,0.055) 1px, transparent 1px);
@@ -193,8 +194,8 @@ html.dyslexia-font a {
 .dark-section {
   background-color: var(--dark);
   background-image:
-    radial-gradient(ellipse 65% 40% at 20% 80%, rgba(230,126,34,0.13) 0%, transparent 58%),
-    radial-gradient(ellipse 45% 35% at 80% 20%, rgba(26,35,126,0.45)  0%, transparent 52%);
+    radial-gradient(ellipse 65% 40% at 20% 80%, rgba(232,93,4,0.22)   0%, transparent 58%),
+    radial-gradient(ellipse 45% 35% at 80% 20%, rgba(34,53,204,0.55)  0%, transparent 52%);
 }
 
 /* ── Progress bar animation ─────────────────────────── */
