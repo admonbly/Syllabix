@@ -102,10 +102,19 @@ export default function Header() {
                 onClick={() => setDropOpen(!dropOpen)}
                 className="flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200 hover:bg-white/10"
               >
-                {/* Avatar initiales */}
-                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  {initials}
-                </div>
+                {/* Avatar photo ou initiales */}
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt={user.displayName || 'Avatar'}
+                    referrerPolicy="no-referrer"
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-white/30"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    {initials}
+                  </div>
+                )}
                 <span className={`text-sm font-semibold max-w-[120px] truncate ${scrolled ? 'text-primary' : 'text-white'}`}>
                   {user.displayName?.split(' ')[0] || user.email?.split('@')[0]}
                 </span>

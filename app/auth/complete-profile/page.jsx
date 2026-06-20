@@ -26,7 +26,7 @@ function calculateAge(dob) {
 
 function CompleteProfileForm() {
   const searchParams  = useSearchParams();
-  const redirectTo    = searchParams.get('redirect') || '/dashboard';
+  const redirectTo    = searchParams.get('redirect') || '/';
 
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [loading,      setLoading]      = useState(true);

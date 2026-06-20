@@ -19,7 +19,7 @@ function redirect(url) {
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const redirectTo = searchParams.get('redirect') || '/';
 
   // Mode : 'email' | 'phone'
   const [mode, setMode] = useState('email');
