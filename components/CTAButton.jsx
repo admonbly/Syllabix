@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import clsx from 'clsx';
 
+/** @param {{ href?: any, variant?: string, size?: string, className?: string, children?: any, type?: string, [key: string]: any }} props */
 export default function CTAButton({
   href,
-  variant  = 'primary',
-  size     = 'md',
-  className,
+  variant   = 'primary',
+  size      = 'md',
+  className = '',
   children,
   type     = 'button',
   ...props
