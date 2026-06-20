@@ -4,9 +4,13 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect, Suspense } from 'react';
-import { authFunctions, auth } from '@/lib/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
+import { useState, Suspense } from 'react';
+import { authFunctions } from '@/lib/firebase';
+
+function redirect(url) {
+  document.cookie = 'syllabix_session=1; path=/; SameSite=Strict; Max-Age=604800';
+  window.location.href = url;
+}
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -17,25 +21,13 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // Écoute l'état Firebase — pose le cookie ET redirige dès qu'un user est authentifié
-  useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // Cookie posé ici pour gérer aussi l'état Firebase en cache (reconnexion auto)
-        document.cookie = 'syllabix_session=1; path=/; SameSite=Strict; Max-Age=604800';
-        window.location.href = redirectTo;
-      }
-    });
-    return () => unsub();
-  }, [redirectTo]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
     try {
       await authFunctions.signIn(email, password);
-      // La redirection est gérée par onAuthStateChanged
+      redirect(redirectTo);
     } catch (err) {
       setError(err.message || 'Erreur de connexion');
       setIsLoading(false);
@@ -106,10 +98,9 @@ function LoginForm() {
                 setOauthLoading(true);
                 try {
                   await authFunctions.signInWithGoogle();
-                  // La redirection est gérée par onAuthStateChanged
+                  redirect(redirectTo);
                 } catch (err) {
-                  // Ne pas afficher l'erreur si l'utilisateur a fermé le popup
-                  if (err.code !== 'auth/popup-closed-by-user' && err.message !== 'auth/popup-closed-by-user') {
+                  if (!err.message?.includes('popup-closed-by-user')) {
                     setError(err.message || 'Erreur de connexion Google');
                   }
                   setOauthLoading(false);
