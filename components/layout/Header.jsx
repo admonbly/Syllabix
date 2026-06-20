@@ -25,7 +25,7 @@ export default function Header() {
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
           ? 'bg-white/96 backdrop-blur-md shadow-soft border-b border-neutral-100/80'
-          : 'bg-transparent'
+          : 'bg-[#1A237E] shadow-md'
       }`}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -48,7 +48,7 @@ export default function Header() {
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-150 ${
                 scrolled
                   ? 'text-neutral-600 hover:text-accent hover:bg-accent/5'
-                  : 'text-white/75 hover:text-white hover:bg-white/10'
+                  : 'text-white/85 hover:text-white hover:bg-white/10'
               }`}
             >
               {label}
@@ -71,7 +71,7 @@ export default function Header() {
             className={`md:hidden p-2 rounded-xl transition-colors ${
               scrolled
                 ? 'text-neutral-700 hover:bg-neutral-100'
-                : 'text-white hover:bg-white/12'
+                : 'text-white hover:bg-white/15'
             }`}
             aria-label={open ? 'Fermer le menu' : 'Ouvrir le menu'}
             aria-expanded={open}
