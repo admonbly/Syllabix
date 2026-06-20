@@ -3,12 +3,12 @@
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
-import { authFunctions } from '@/lib/firebase';
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { authFunctions, auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
   const [email, setEmail] = useState('');
@@ -17,17 +17,25 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [oauthLoading, setOauthLoading] = useState(false);
 
+  // Écoute le changement d'état Firebase — redirige dès que l'utilisateur est connecté
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = redirectTo;
+      }
+    });
+    return () => unsub();
+  }, [redirectTo]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-
     try {
       await authFunctions.signIn(email, password);
-      router.push(redirectTo);
+      // La redirection est gérée par onAuthStateChanged
     } catch (err) {
       setError(err.message || 'Erreur de connexion');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -96,17 +104,19 @@ function LoginForm() {
                 setOauthLoading(true);
                 try {
                   await authFunctions.signInWithGoogle();
-                  router.push(redirectTo);
+                  // La redirection est gérée par onAuthStateChanged
                 } catch (err) {
-                  setError(err.message || 'Erreur de connexion Google');
-                } finally {
+                  // Ne pas afficher l'erreur si l'utilisateur a fermé le popup
+                  if (err.code !== 'auth/popup-closed-by-user' && err.message !== 'auth/popup-closed-by-user') {
+                    setError(err.message || 'Erreur de connexion Google');
+                  }
                   setOauthLoading(false);
                 }
               }}
               disabled={oauthLoading || isLoading}
               className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span>🔷</span> {oauthLoading ? 'Connexion...' : 'Continuer avec Google'}
+              <span>🔷</span> {oauthLoading ? 'Connexion en cours...' : 'Continuer avec Google'}
             </button>
             <button
               onClick={() => setError('La connexion Facebook n\'est pas encore disponible. Utilisez email ou Google.')}
