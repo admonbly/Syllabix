@@ -3,102 +3,41 @@
 import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
-import Link from 'next/link';
-import {
-  getModuleQuestions,
-  getMixedQuestions,
-  calculateScore,
-  formatTime,
-  isTimeCritical,
-  randomizeAnswerOptions,
-  EXAM_CONFIG,
-} from '@/lib/examService';
+import { getModuleQuestions, getMixedQuestions, calculateScore, randomizeAnswerOptions, EXAM_CONFIG } from '@/lib/examService';
 
-/**
- * Composant d'entraînement
- * - 5 questions
- * - 10 minutes
- * - Feedback immédiat
- * - Pas de certificat
- * - Résultats non enregistrés
- */
 /** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function TrainingQuizComponent({ mode = 'module', moduleId = null }) {
+  const [questions,       setQuestions]       = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [questions, setQuestions] = useState([]);
-  const [answers, setAnswers] = useState({});
-  const [showResults, setShowResults] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(EXAM_CONFIG.TRAINING.DURATION);
-  const [timerStarted, setTimerStarted] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [answers,         setAnswers]         = useState({});
+  const [showResults,     setShowResults]     = useState(false);
+  const [loading,         setLoading]         = useState(true);
 
-  // Initialiser les questions au montage
   useEffect(() => {
-    setIsMounted(true);
-    loadQuestions();
-  }, []);
-
-  // Timer
-  useEffect(() => {
-    if (!timerStarted || showResults) return;
-
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setShowResults(true);
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timerStarted, showResults]);
-
-  const loadQuestions = () => {
-    let quizQuestions = [];
-
-    if (mode === 'module' && moduleId) {
-      quizQuestions = getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
-    } else if (mode === 'mixed') {
-      quizQuestions = getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
-    }
-
-    // Randomiser les réponses
-    quizQuestions = quizQuestions.map(randomizeAnswerOptions);
-
-    setQuestions(quizQuestions);
+    let q = mode === 'mixed'
+      ? getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
+      : getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
+    setQuestions(q.map(randomizeAnswerOptions));
     setLoading(false);
-
-    // Démarrer le timer
-    setTimeout(() => setTimerStarted(true), 500);
-  };
+  }, []);
 
   if (loading) {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-neutral-600">Chargement des questions...</p>
-        </div>
+        <p className="text-neutral-500">Chargement des questions...</p>
       </section>
     );
   }
 
-  if (!isMounted || questions.length === 0) {
+  if (questions.length === 0) {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <p className="text-lg text-neutral-600">Erreur lors du chargement</p>
+        <p className="text-neutral-500">Aucune question disponible pour ce module.</p>
       </section>
     );
   }
 
-  const question = questions[currentQuestion];
-  const answered = answers[currentQuestion] !== undefined;
-  const isCorrect = answered && answers[currentQuestion] === question.correct;
-
-  // Afficher résultats
+  // ——— Page résultats ———
   if (showResults) {
     const scoreData = calculateScore(
       Object.entries(answers).map(([qIdx, ans]) => ({
@@ -108,163 +47,198 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
       questions
     );
 
+    const restart = () => {
+      let q = mode === 'mixed'
+        ? getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
+        : getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
+      setQuestions(q.map(randomizeAnswerOptions));
+      setCurrentQuestion(0);
+      setAnswers({});
+      setShowResults(false);
+    };
+
     return (
       <section className="py-20 bg-neutral-50 min-h-screen">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="text-center">
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-4xl font-heading font-bold text-primary mb-2">
-              Entraînement terminé!
-            </h2>
-            <p className="text-xl text-neutral-600 mb-8">
-              Vous avez complété cet entraînement
-            </p>
+          <div className="text-center mb-8">
+            <div className="text-6xl mb-4">{scoreData.percentage >= 60 ? '🎉' : '💪'}</div>
+            <h2 className="text-4xl font-heading font-bold text-primary mb-2">Entraînement terminé !</h2>
+            <p className="text-neutral-500">Résultats à titre indicatif — rien n'est enregistré.</p>
+          </div>
 
-            <Card className="mb-8">
-              <div className="text-center">
-                <p className="text-6xl font-bold text-accent mb-4">{scoreData.percentage}%</p>
-                <p className="text-neutral-600">
-                  Score: {scoreData.correct} sur {scoreData.total} bonnes réponses
-                </p>
-              </div>
-            </Card>
+          <Card className="mb-6 text-center">
+            <p className="text-6xl font-bold text-accent mb-2">{scoreData.percentage}%</p>
+            <p className="text-neutral-600">{scoreData.correct} bonne{scoreData.correct > 1 ? 's' : ''} réponse{scoreData.correct > 1 ? 's' : ''} sur {scoreData.total}</p>
+          </Card>
 
-            <Card className="mb-8 bg-blue-50 border-l-4 border-blue-500">
-              <p className="text-neutral-700">
-                💡 Cet entraînement n'est pas enregistré. Ses résultats sont à titre informatif uniquement.
-              </p>
-            </Card>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <CTAButton
-                onClick={() => {
-                  setCurrentQuestion(0);
-                  setAnswers({});
-                  setShowResults(false);
-                  setTimeLeft(EXAM_CONFIG.TRAINING.DURATION);
-                  setTimerStarted(false);
-                  setTimeout(() => setTimerStarted(true), 500);
-                }}
-                variant="primary"
-                size="lg"
-              >
-                🔄 Recommencer
-              </CTAButton>
-              <CTAButton href="/training" variant="outline" size="lg">
-                ← Retour aux formations
-              </CTAButton>
+          {/* Récap détaillé par question */}
+          <Card className="mb-6">
+            <h3 className="font-heading font-bold text-primary mb-4">Récapitulatif</h3>
+            <div className="space-y-4">
+              {questions.map((q, idx) => {
+                const userAns = answers[idx];
+                const correct = userAns === q.correct;
+                return (
+                  <div key={idx} className={`p-4 rounded-lg border-l-4 ${correct ? 'border-green-500 bg-green-50' : 'border-red-400 bg-red-50'}`}>
+                    <p className="font-semibold text-sm text-neutral-800 mb-1">
+                      {correct ? '✅' : '❌'} Q{idx + 1} — {q.text}
+                    </p>
+                    {!correct && (
+                      <p className="text-sm text-neutral-600">
+                        Votre réponse : <span className="text-red-600 font-medium">{userAns !== undefined ? q.options[userAns] : 'Sans réponse'}</span><br />
+                        Bonne réponse : <span className="text-green-700 font-medium">{q.options[q.correct]}</span>
+                      </p>
+                    )}
+                    {q.explanation && (
+                      <p className="text-xs text-neutral-500 mt-2 italic">💡 {q.explanation}</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+          </Card>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <CTAButton onClick={restart} variant="primary" size="lg">🔄 Recommencer</CTAButton>
+            <CTAButton href="/training" variant="outline" size="lg">← Retour aux formations</CTAButton>
           </div>
         </div>
       </section>
     );
   }
 
-  // Afficher question
+  // ——— Page question ———
+  const question  = questions[currentQuestion];
+  const answered  = answers[currentQuestion] !== undefined;
+  const isCorrect = answered && answers[currentQuestion] === question.correct;
+  const progress  = Math.round(((currentQuestion + 1) / questions.length) * 100);
+  const allDone   = Object.keys(answers).length === questions.length;
+
   return (
     <section className="py-20 bg-neutral-50 min-h-screen">
       <div className="max-w-2xl mx-auto px-4">
         <Card className="p-8">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-8 pb-4 border-b">
-            <div>
-              <p className="text-sm text-neutral-600">
+
+          {/* En-tête progression */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-sm font-semibold text-neutral-500">
                 Question {currentQuestion + 1} / {questions.length}
               </p>
-              <div className="mt-2 bg-neutral-200 rounded-full h-2">
-                <div
-                  className="bg-accent h-2 rounded-full transition-all"
-                  style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
-                ></div>
-              </div>
+              <p className="text-sm text-secondary font-semibold">
+                {Object.keys(answers).length} répondu{Object.keys(answers).length > 1 ? 's' : ''}
+              </p>
             </div>
-            <div className={`text-lg font-bold ${isTimeCritical(timeLeft) ? 'text-red-600' : 'text-primary'}`}>
-              ⏱ {formatTime(timeLeft)}
+            <div className="w-full bg-neutral-200 rounded-full h-2">
+              <div
+                className="bg-accent h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
 
           {/* Question */}
-          <div className="mb-8">
-            <p className="text-xl font-semibold text-neutral-800 mb-6">{question.text}</p>
+          <p className="text-xl font-semibold text-neutral-800 mb-6 leading-relaxed">{question.text}</p>
 
-            {/* Options */}
-            <div className="space-y-3">
-              {question.options.map((option, index) => (
+          {/* Options */}
+          <div className="space-y-3 mb-6">
+            {question.options.map((option, index) => {
+              let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
+              if (answered) {
+                if (index === question.correct) {
+                  style = 'border-green-500 bg-green-50 text-green-800';
+                } else if (index === answers[currentQuestion] && !isCorrect) {
+                  style = 'border-red-400 bg-red-50 text-red-800';
+                } else {
+                  style = 'border-neutral-200 opacity-50';
+                }
+              }
+              return (
                 <button
                   key={index}
-                  onClick={() => {
-                    setAnswers({ ...answers, [currentQuestion]: index });
-                  }}
+                  onClick={() => !answered && setAnswers({ ...answers, [currentQuestion]: index })}
                   disabled={answered}
-                  className={`w-full p-4 text-left rounded-lg border-2 font-semibold transition-all ${
-                    answers[currentQuestion] === index
-                      ? isCorrect
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-red-500 bg-red-50'
-                      : 'border-neutral-200 hover:border-accent cursor-pointer'
-                  } ${answered ? 'opacity-75' : 'hover:shadow-md'}`}
+                  className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
                 >
+                  <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
+                    {String.fromCharCode(65 + index)}
+                  </span>
                   {option}
+                  {answered && index === question.correct && <span className="float-right">✅</span>}
+                  {answered && index === answers[currentQuestion] && !isCorrect && index !== question.correct && <span className="float-right">❌</span>}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
-          {/* Feedback immédiat */}
+          {/* Explication après réponse */}
           {answered && (
-            <div
-              className={`p-4 rounded-lg mb-8 text-center ${
-                isCorrect ? 'bg-green-50 border border-green-500' : 'bg-red-50 border border-red-500'
-              }`}
-            >
-              <p className={`font-semibold ${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
-                {isCorrect ? '✅ Bonne réponse!' : '❌ Mauvaise réponse'}
+            <div className={`p-4 rounded-xl mb-6 ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
+              <p className={`font-bold mb-1 ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
+                {isCorrect ? '✅ Bonne réponse !' : `❌ Pas tout à fait — la bonne réponse est : ${question.options[question.correct]}`}
               </p>
-              {!isCorrect && (
-                <p className="text-sm text-neutral-700 mt-2">
-                  La bonne réponse est: <strong>{question.options[question.correct]}</strong>
+              {question.explanation && (
+                <p className="text-sm text-neutral-700 leading-relaxed">
+                  💡 {question.explanation}
                 </p>
               )}
             </div>
           )}
 
           {/* Navigation */}
-          <div className="flex gap-4 justify-between">
-            {currentQuestion > 0 && (
-              <button
-                onClick={() => setCurrentQuestion(currentQuestion - 1)}
-                className="px-6 py-3 bg-neutral-200 text-neutral-900 rounded-lg font-semibold hover:shadow-lg transition-shadow"
-              >
-                ← Précédent
-              </button>
-            )}
-            <div className="flex-1" />
+          <div className="flex gap-3 justify-between">
+            <button
+              onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+              disabled={currentQuestion === 0}
+              className="px-5 py-3 bg-neutral-100 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-200 transition-colors disabled:opacity-30"
+            >
+              ← Précédent
+            </button>
+
+            <div className="flex gap-2">
+              {/* Pastilles de navigation rapide */}
+              {questions.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentQuestion(idx)}
+                  className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                    idx === currentQuestion
+                      ? 'bg-accent text-white scale-110'
+                      : answers[idx] !== undefined
+                        ? answers[idx] === questions[idx].correct
+                          ? 'bg-green-500 text-white'
+                          : 'bg-red-400 text-white'
+                        : 'bg-neutral-200 text-neutral-500 hover:bg-neutral-300'
+                  }`}
+                >
+                  {idx + 1}
+                </button>
+              ))}
+            </div>
+
             {currentQuestion < questions.length - 1 ? (
               <button
                 onClick={() => setCurrentQuestion(currentQuestion + 1)}
-                disabled={!answered}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                  answered
-                    ? 'bg-accent text-white hover:shadow-lg cursor-pointer'
-                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                }`}
+                className="px-5 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors"
               >
                 Suivant →
               </button>
             ) : (
               <button
                 onClick={() => setShowResults(true)}
-                disabled={!answered}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                  answered
-                    ? 'bg-green-600 text-white hover:shadow-lg cursor-pointer'
-                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                }`}
+                disabled={!allDone}
+                className={`px-5 py-3 rounded-xl font-semibold transition-colors ${allDone ? 'bg-secondary text-white hover:bg-green-700' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
               >
                 ✓ Terminer
               </button>
             )}
           </div>
+
+          {!allDone && (
+            <p className="text-center text-xs text-neutral-400 mt-4">
+              Répondez à toutes les questions pour terminer. Vous pouvez naviguer librement.
+            </p>
+          )}
         </Card>
       </div>
     </section>

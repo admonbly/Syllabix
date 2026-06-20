@@ -5,6 +5,7 @@ const PROTECTED_PATHS = [
   '/training',
   '/exam',
   '/certification',
+  '/evaluation',
   '/profile',
 ];
 
