@@ -195,7 +195,16 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
         </div>
 
         <Card className="p-7">
-          <p className="text-xl font-semibold text-neutral-800 mb-6 leading-relaxed">{question.text}</p>
+          <p className="text-xl font-semibold text-neutral-800 mb-4 leading-relaxed">{question.text}</p>
+          {question.imageUrl && (
+            <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200">
+              <img
+                src={question.imageUrl}
+                alt="Contexte visuel de la question"
+                className="w-full max-h-64 object-contain bg-neutral-50"
+              />
+            </div>
+          )}
 
           <div className="space-y-3">
             {question.options.map((option, index) => {
