@@ -2,12 +2,14 @@
 import Link from 'next/link';
 import { ArrowRight, MapPin } from 'lucide-react';
 import { useState } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const produits = [
-  { href: '/training/mixed',             label: "S'entraîner" },
-  { href: '/exam/global',                label: 'Passer la certification' },
-  { href: '/certification/presentation', label: 'Référentiel compétences' },
-  { href: '/dashboard',                  label: 'Tableau de bord' },
+  { href: '/training',                    label: "S'entraîner" },
+  { href: '/certification',               label: 'Passer la certification' },
+  { href: '/certification/presentation',  label: 'Référentiel compétences' },
+  { href: '/dashboard',                   label: 'Tableau de bord' },
 ];
 
 const ressources = [
@@ -37,13 +39,29 @@ function FooterLink({ href, label }) {
 }
 
 export default function Footer() {
-  const [email, setEmail] = useState('');
-  const [sent,  setSent]  = useState(false);
+  const [email,   setEmail]   = useState('');
+  const [sent,    setSent]    = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error,   setError]   = useState('');
   const year = new Date().getFullYear();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email.trim()) { setSent(true); setEmail(''); }
+    if (!email.trim()) return;
+    setLoading(true);
+    setError('');
+    try {
+      await addDoc(collection(db, 'newsletter'), {
+        email: email.trim().toLowerCase(),
+        subscribedAt: serverTimestamp(),
+      });
+      setSent(true);
+      setEmail('');
+    } catch (err) {
+      setError('Une erreur est survenue. Réessayez.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,13 +71,15 @@ export default function Footer() {
         {/* Main grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
 
-          {/* Brand */}
+          {/* Brand — logo cliquable vers accueil */}
           <div>
-            <img
-              src="/syllabix-logo-sans%20fond.png"
-              alt="Syllabix"
-              className="h-28 w-auto mb-5 brightness-0 invert opacity-90"
-            />
+            <Link href="/" className="inline-block mb-5">
+              <img
+                src="/syllabix-logo-sans%20fond.png"
+                alt="Syllabix — Accueil"
+                className="h-28 w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
+              />
+            </Link>
             <p className="text-white/50 text-sm leading-relaxed mb-5">
               La plateforme de référence pour évaluer et certifier les compétences numériques à travers l&apos;Afrique.
             </p>
@@ -112,13 +132,16 @@ export default function Footer() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="votre@email.com"
                   aria-label="Adresse email newsletter"
-                  className="w-full px-4 py-2.5 bg-white/8 border border-white/14 text-white text-sm placeholder-white/28 rounded-xl focus:outline-none focus:border-accent focus:bg-white/12 transition-all"
+                  className="w-full px-4 py-2.5 bg-white/10 border border-white/20 text-white text-sm placeholder-white/40 rounded-xl focus:outline-none focus:border-accent focus:bg-white/15 transition-all"
+                  style={{ caretColor: 'white' }}
                 />
+                {error && <p className="text-red-400 text-xs">{error}</p>}
                 <button
                   type="submit"
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-dark text-white font-display font-semibold text-sm rounded-xl transition-colors active:scale-[0.98]"
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-accent hover:bg-accent-dark text-white font-display font-semibold text-sm rounded-xl transition-colors active:scale-[0.98] disabled:opacity-60"
                 >
-                  S&apos;abonner <ArrowRight className="w-4 h-4" />
+                  {loading ? 'Inscription...' : <><span>S&apos;abonner</span> <ArrowRight className="w-4 h-4" /></>}
                 </button>
               </form>
             )}
