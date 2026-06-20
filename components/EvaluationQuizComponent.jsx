@@ -12,9 +12,12 @@ import {
   isTimeCritical,
   EXAM_CONFIG,
 } from '@/lib/examService';
+import { useLanguage } from '@/lib/LanguageContext';
 
 /** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = null }) {
+  const { t } = useLanguage();
+  const ev = (k) => t(`quiz.eval.${k}`);
   const [phase,           setPhase]           = useState('intro');   // intro | quiz | results
   const [questions,       setQuestions]       = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -68,7 +71,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
   if (loading) {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <p className="text-neutral-500">Préparation de l'évaluation...</p>
+        <p className="text-neutral-500">{ev('start')}</p>
       </section>
     );
   }
@@ -80,38 +83,36 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
         <div className="max-w-xl mx-auto px-4 w-full">
           <Card className="p-8 text-center">
             <div className="text-5xl mb-4">📊</div>
-            <h1 className="text-3xl font-heading font-bold text-primary mb-3">Évaluation de niveau</h1>
-            <p className="text-neutral-600 mb-6">
-              Ce test rapide mesure votre niveau actuel. Les résultats vous aident à cibler vos efforts avant la certification.
-            </p>
+            <h1 className="text-3xl font-heading font-bold text-primary mb-3">{ev('title')}</h1>
+            <p className="text-neutral-600 mb-6">{ev('desc')}</p>
             <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="bg-accent/10 rounded-xl p-4">
                 <p className="text-2xl font-bold text-accent">{EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT}</p>
-                <p className="text-xs text-neutral-500 mt-1">Questions</p>
+                <p className="text-xs text-neutral-500 mt-1">{ev('questions')}</p>
               </div>
               <div className="bg-primary/10 rounded-xl p-4">
                 <p className="text-2xl font-bold text-primary">10 min</p>
-                <p className="text-xs text-neutral-500 mt-1">Durée</p>
+                <p className="text-xs text-neutral-500 mt-1">{ev('duration')}</p>
               </div>
               <div className="bg-secondary/10 rounded-xl p-4">
-                <p className="text-2xl font-bold text-secondary">Indicatif</p>
-                <p className="text-xs text-neutral-500 mt-1">Pas de certificat</p>
+                <p className="text-2xl font-bold text-secondary">{ev('type')}</p>
+                <p className="text-xs text-neutral-500 mt-1">{ev('typeDesc')}</p>
               </div>
             </div>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
-              <p className="text-sm text-blue-800 font-semibold mb-2">Comment ça marche :</p>
+              <p className="text-sm text-blue-800 font-semibold mb-2">{ev('how')}</p>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Le timer démarre dès que vous commencez</li>
-                <li>• Passez automatiquement à la question suivante après chaque réponse</li>
-                <li>• L'évaluation se soumet automatiquement à 0 seconde</li>
-                <li>• Aucun résultat n'est enregistré dans votre profil</li>
+                <li>• {ev('how1')}</li>
+                <li>• {ev('how2')}</li>
+                <li>• {ev('how3')}</li>
+                <li>• {ev('how4')}</li>
               </ul>
             </div>
             <CTAButton onClick={() => setPhase('quiz')} size="lg" className="w-full">
-              🚀 Commencer l'évaluation
+              {ev('start')}
             </CTAButton>
             <p className="mt-4 text-sm text-neutral-400">
-              <a href="/training" className="hover:text-accent underline">← Revenir à l'entraînement</a>
+              <a href="/training" className="hover:text-accent underline">{ev('back')}</a>
             </p>
           </Card>
         </div>
@@ -132,17 +133,17 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     const pct = scoreData.percentage;
     let niveau, niveauColor, niveauBg, conseil;
     if (pct >= 80) {
-      niveau = 'Avancé'; niveauColor = 'text-green-700'; niveauBg = 'bg-green-50 border-green-300';
-      conseil = 'Excellent niveau ! Vous êtes prêt pour passer la certification officielle.';
+      niveau = ev('levels.advanced'); niveauColor = 'text-green-700'; niveauBg = 'bg-green-50 border-green-300';
+      conseil = ev('adviceAdv');
     } else if (pct >= 60) {
-      niveau = 'Intermédiaire'; niveauColor = 'text-blue-700'; niveauBg = 'bg-blue-50 border-blue-300';
-      conseil = 'Bon niveau. Quelques révisions ciblées et vous serez prêt pour la certification.';
+      niveau = ev('levels.mid'); niveauColor = 'text-blue-700'; niveauBg = 'bg-blue-50 border-blue-300';
+      conseil = ev('adviceMid');
     } else if (pct >= 40) {
-      niveau = 'Débutant avancé'; niveauColor = 'text-orange-700'; niveauBg = 'bg-orange-50 border-orange-300';
-      conseil = 'Des bases solides mais il faut renforcer vos connaissances. Continuez l\'entraînement !';
+      niveau = ev('levels.begPlus'); niveauColor = 'text-orange-700'; niveauBg = 'bg-orange-50 border-orange-300';
+      conseil = ev('adviceBegP');
     } else {
-      niveau = 'Débutant'; niveauColor = 'text-red-700'; niveauBg = 'bg-red-50 border-red-300';
-      conseil = 'Commencez par les modules d\'entraînement pour renforcer vos bases avant la certification.';
+      niveau = ev('levels.beg'); niveauColor = 'text-red-700'; niveauBg = 'bg-red-50 border-red-300';
+      conseil = ev('adviceBeg');
     }
 
     return (
@@ -150,14 +151,14 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
         <div className="max-w-xl mx-auto px-4">
           <div className="text-center mb-8">
             <div className="text-6xl mb-3">{pct >= 60 ? '📈' : '📚'}</div>
-            <h2 className="text-3xl font-heading font-bold text-primary">Résultat de votre évaluation</h2>
+            <h2 className="text-3xl font-heading font-bold text-primary">{ev('resultsTitle')}</h2>
           </div>
 
           <Card className="mb-5 text-center">
             <p className="text-7xl font-bold text-accent mb-2">{pct}%</p>
-            <p className="text-neutral-500">{scoreData.correct} bonne{scoreData.correct > 1 ? 's' : ''} réponse{scoreData.correct > 1 ? 's' : ''} sur {scoreData.total}</p>
+            <p className="text-neutral-500">{scoreData.correct} {scoreData.correct > 1 ? ev('corrects') : ev('correct')} {scoreData.correct > 1 ? ev('responses') : ev('response')} / {scoreData.total}</p>
             <div className={`inline-block mt-3 px-4 py-1.5 rounded-full border text-sm font-bold ${niveauBg} ${niveauColor}`}>
-              Niveau : {niveau}
+              {ev('niveau')} {niveau}
             </div>
           </Card>
 
@@ -166,8 +167,8 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           </Card>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <CTAButton href="/training" variant="outline" size="lg">📚 S'entraîner</CTAButton>
-            <CTAButton href="/certification" size="lg">🏆 Passer la certification</CTAButton>
+            <CTAButton href="/training" variant="outline" size="lg">{ev('trainCta')}</CTAButton>
+            <CTAButton href="/certification" size="lg">{ev('certCta')}</CTAButton>
           </div>
         </div>
       </section>
@@ -187,9 +188,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
         {/* Timer flottant */}
         <div className={`flex justify-between items-center mb-4 px-5 py-3 rounded-2xl font-bold ${isTimeCritical(timeLeft) ? 'bg-red-50 border-2 border-red-300 text-red-600' : 'bg-white border border-neutral-200 text-primary'}`}>
-          <span className="text-sm">Question {currentQuestion + 1}/{questions.length}</span>
+          <span className="text-sm">{t('quiz.question')} {currentQuestion + 1}/{questions.length}</span>
           <span className="text-xl">⏱ {formatTime(timeLeft)}</span>
-          <span className="text-sm text-neutral-400">{answeredCount}/{questions.length} répondus</span>
+          <span className="text-sm text-neutral-400">{answeredCount}/{questions.length}</span>
         </div>
 
         {/* Barre de progression */}
@@ -237,7 +238,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
           {/* En mode évaluation : pas d'explication immédiate */}
           {answered && !isLast && (
-            <p className="text-center text-xs text-neutral-400 mt-4">Passage automatique à la question suivante...</p>
+            <p className="text-center text-xs text-neutral-400 mt-4">{t('quiz.autoNext')}</p>
           )}
 
           {answered && isLast && (
@@ -247,7 +248,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                 size="lg"
                 className="w-full"
               >
-                ✅ Voir mon résultat
+                {t('quiz.submit')}
               </CTAButton>
             </div>
           )}

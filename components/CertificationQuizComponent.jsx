@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import { auth, userDB } from '@/lib/firebase';
+import { useLanguage } from '@/lib/LanguageContext';
 import {
   getModuleQuestionsWithRepeat,
   getMixedQuestions,
@@ -40,7 +41,10 @@ export default function CertificationQuizComponent({
   const [certId, setCertId] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [scoreData, setScoreData] = useState(null);
-  const [cooldownRemaining, setCooldownRemaining] = useState(null); // secondes restantes ou null
+  const [cooldownRemaining, setCooldownRemaining] = useState(null);
+  const { t } = useLanguage();
+  const ct = (k) => t(`quiz.cert.${k}`);
+  const qt = (k) => t(`quiz.results.${k}`);
 
   useEffect(() => {
     setIsMounted(true);
@@ -257,7 +261,7 @@ export default function CertificationQuizComponent({
   if (loading) {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <p className="text-lg text-neutral-600">Chargement de l'examen...</p>
+        <p className="text-lg text-neutral-600">{t('quiz.loading')}</p>
       </section>
     );
   }
@@ -265,7 +269,7 @@ export default function CertificationQuizComponent({
   if (!isMounted || questions.length === 0) {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <p className="text-lg text-neutral-600">Erreur lors du chargement</p>
+        <p className="text-lg text-neutral-600">{t('quiz.noQuestions')}</p>
       </section>
     );
   }
@@ -277,71 +281,71 @@ export default function CertificationQuizComponent({
         <div className="max-w-2xl mx-auto px-4">
           <Card className={`p-8 ${isChildMode ? 'text-lg' : ''}`}>
             <h2 className={`font-heading font-bold text-primary mb-6 ${isChildMode ? 'text-4xl' : 'text-3xl'}`}>
-              {isChildMode ? '🌟 Instructions de l\'examen' : 'Instructions de l\'examen'}
+              {isChildMode ? `🌟 ${ct('instructions')}` : ct('instructions')}
             </h2>
 
             {isChildMode && (
               <div className="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-400 mb-4">
-                <p className="font-semibold text-purple-800">Mode Enfant activé — Tu as plus de temps !</p>
+                <p className="font-semibold text-purple-800">{ct('childMode')}</p>
               </div>
             )}
 
             <div className="space-y-4 mb-8 text-neutral-700">
               <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                <p className="font-semibold mb-2">📋 Nombre de questions:</p>
-                <p>35 questions mixtes</p>
+                <p className="font-semibold mb-2">📋 {ct('questions')}</p>
+                <p>{ct('questionsVal')}</p>
               </div>
 
               <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-500">
-                <p className="font-semibold mb-2">⏱ Durée:</p>
-                <p>{isChildMode ? '60 minutes' : '35 minutes (1 minute par question)'}</p>
+                <p className="font-semibold mb-2">⏱ {ct('duration')}</p>
+                <p>{isChildMode ? ct('durationChild') : ct('durationVal')}</p>
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
-                <p className="font-semibold mb-2">✅ Pour réussir:</p>
-                <p>Vous devez obtenir un score d'au moins 60%</p>
+                <p className="font-semibold mb-2">✅ {ct('pass')}</p>
+                <p>{ct('passVal')}</p>
               </div>
 
               <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
-                <p className="font-semibold mb-2">📜 Certificat:</p>
-                <p>Un certificat officiel sera généré si vous réussissez</p>
+                <p className="font-semibold mb-2">📜 {ct('certificate')}</p>
+                <p>{ct('certVal')}</p>
               </div>
 
               <div className="space-y-2 text-sm">
-                <p><strong>⚠️ Règles importantes:</strong></p>
+                <p><strong>⚠️ {ct('rules')}</strong></p>
                 <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>Une seule réponse possible par question</li>
-                  <li>Vous ne pouvez pas revenir en arrière</li>
-                  <li>Le timer démarre immédiatement et ne peut pas être arrêté</li>
-                  <li>Soumission automatique à la fin du temps</li>
-                  <li>Les réponses sont sauvegardées automatiquement</li>
+                  <li>{ct('rule1')}</li>
+                  <li>{ct('rule2')}</li>
+                  <li>{ct('rule3')}</li>
+                  <li>{ct('rule4')}</li>
+                  <li>{ct('rule5')}</li>
                 </ul>
               </div>
             </div>
 
             {cooldownRemaining ? (
               <div className="bg-orange-50 border border-orange-300 rounded-xl p-5 text-center">
-                <p className="text-orange-700 font-bold text-lg mb-1">⏳ Cooldown actif</p>
+                <p className="text-orange-700 font-bold text-lg mb-1">⏳ {ct('cooldownTitle')}</p>
                 <p className="text-orange-600 text-sm mb-2">
-                  Vous pouvez repasser cet examen dans :
+                  {ct('cooldownDesc')}
                 </p>
                 <p className="text-3xl font-bold text-orange-700">
                   {Math.floor(cooldownRemaining / 3600)}h {Math.floor((cooldownRemaining % 3600) / 60)}m {cooldownRemaining % 60}s
                 </p>
                 <p className="text-xs text-orange-500 mt-2">
-                  Ce délai vous permet de réviser avant de retenter.
+                  {ct('cooldownNote')}
                 </p>
                 <CTAButton variant="outline" size="lg" href="/training" className="mt-4 w-full md:w-auto">
-                  📚 Réviser les modules
+                  {ct('cooldownCta')}
                 </CTAButton>
               </div>
             ) : (
               <div className="flex gap-4 justify-center">
                 <CTAButton variant="primary" size="lg" onClick={handleStartExam} className="w-full md:w-auto">
-                  Commencer l'examen
+                  {ct('start')}
                 </CTAButton>
                 <CTAButton variant="outline" size="lg" href="/certification" className="w-full md:w-auto">
-                  Annuler
+                  {ct('cancel')}
                 </CTAButton>
               </div>
             )}
@@ -366,17 +370,17 @@ export default function CertificationQuizComponent({
           <div className="text-center">
             <div className="text-6xl mb-4">{isSubmitting ? '⏳' : emoji}</div>
             <h2 className="text-4xl font-heading font-bold text-primary mb-2">
-              {isSubmitting ? 'Enregistrement...' : passed ? 'Bravo!' : 'Certificat non obtenu'}
+              {isSubmitting ? qt('submitting') : passed ? qt('passed') : qt('failed')}
             </h2>
             <p className="text-xl text-neutral-600 mb-8">
-              Vous avez terminé l'examen de certification
+              {qt('done')}
             </p>
 
             <Card className="mb-8">
               <div className="text-center">
                 <p className="text-6xl font-bold text-accent mb-4">{score.percentage}%</p>
                 <p className="text-neutral-600">
-                  Score: {score.correct} sur {score.total} bonnes réponses
+                  {score.correct} {qt('score')} {score.total}
                 </p>
               </div>
             </Card>
@@ -389,14 +393,14 @@ export default function CertificationQuizComponent({
 
             {passed && !isSubmitting && (
               <Card variant="accent" className="mb-8 bg-green-50 border-l-4 border-green-500">
-                <p className="text-lg text-green-700 mb-4">✅ Vous avez réussi!</p>
+                <p className="text-lg text-green-700 mb-4">✅ {qt('passedDesc')}</p>
                 {certId ? (
                   <p className="text-neutral-600">
-                    Votre certificat a été généré et est disponible à télécharger.
+                    {qt('certGenerated')}
                   </p>
                 ) : (
                   <p className="text-neutral-600">
-                    Un certificat officiel sera généré et disponible dans votre tableau de bord.
+                    {qt('certPending')}
                   </p>
                 )}
               </Card>
@@ -404,9 +408,9 @@ export default function CertificationQuizComponent({
 
             {!passed && !isSubmitting && (
               <Card className="mb-8 bg-orange-50 border-l-4 border-orange-500">
-                <p className="text-lg text-orange-700 mb-4">⚠️ Résultat insuffisant</p>
+                <p className="text-lg text-orange-700 mb-4">⚠️ {qt('failed')}</p>
                 <p className="text-neutral-600">
-                  Vous avez besoin d'au moins 60% pour obtenir le certificat. Vous pouvez retenter l'examen.
+                  {qt('failedDesc')}
                 </p>
               </Card>
             )}
@@ -415,12 +419,12 @@ export default function CertificationQuizComponent({
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 {passed && certId && (
                   <CTAButton href={`/certificate/${certId}`} variant="primary" size="lg">
-                    📜 Voir le certificat
+                    {qt('viewCert')}
                   </CTAButton>
                 )}
                 {passed && !certId && (
                   <CTAButton href="/dashboard" variant="primary" size="lg">
-                    📊 Mon tableau de bord
+                    {qt('dashboard')}
                   </CTAButton>
                 )}
                 <CTAButton
@@ -440,7 +444,7 @@ export default function CertificationQuizComponent({
                   variant={passed ? 'outline' : 'primary'}
                   size="lg"
                 >
-                  {passed ? '← Retour' : '🔄 Retenter'}
+                  {passed ? qt('train') : qt('restart')}
                 </CTAButton>
               </div>
             )}
@@ -459,7 +463,7 @@ export default function CertificationQuizComponent({
           <div className="flex justify-between items-center mb-8 pb-4 border-b">
             <div>
               <p className="text-sm text-neutral-600">
-                Question {currentQuestion + 1} / {questions.length}
+                {t('quiz.question')} {currentQuestion + 1} / {questions.length}
               </p>
               <div className="mt-2 bg-neutral-200 rounded-full h-2">
                 <div
@@ -511,7 +515,7 @@ export default function CertificationQuizComponent({
                 onClick={handlePrevious}
                 className="px-6 py-3 bg-neutral-200 text-neutral-900 rounded-lg font-semibold hover:shadow-lg transition-shadow"
               >
-                ← Précédent
+                {t('quiz.previous')}
               </button>
             )}
             <div className="flex-1" />
@@ -525,7 +529,7 @@ export default function CertificationQuizComponent({
                     : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
                 }`}
               >
-                Suivant →
+                {t('quiz.next')}
               </button>
             ) : (
               <button
@@ -537,7 +541,7 @@ export default function CertificationQuizComponent({
                     : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
                 }`}
               >
-                ✓ Soumettre
+                {t('quiz.submit')}
               </button>
             )}
           </div>

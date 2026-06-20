@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useState, Suspense } from 'react';
 import { authFunctions } from '@/lib/firebase';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const DIAL_CODES = [
   { code: '+225', flag: '🇨🇮', label: '+225' },
@@ -20,6 +21,8 @@ function redirect(url) {
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
+  const { t } = useLanguage();
+  const a = (k) => t(`auth.login.${k}`);
 
   // Mode : 'email' | 'phone'
   const [mode, setMode] = useState('email');
@@ -86,7 +89,7 @@ function LoginForm() {
       <div className="w-full max-w-md mx-auto px-4">
         <Card className="p-8">
           <h1 className="text-3xl font-heading font-bold text-primary text-center mb-6">
-            Connexion
+            {a('title')}
           </h1>
 
           {/* Tabs email / téléphone */}
@@ -98,7 +101,7 @@ function LoginForm() {
                 mode === 'email' ? 'bg-white text-primary shadow-sm' : 'text-neutral-500 hover:text-neutral-700'
               }`}
             >
-              📧 Email
+              {a('tabEmail')}
             </button>
             <button
               type="button"
@@ -107,7 +110,7 @@ function LoginForm() {
                 mode === 'phone' ? 'bg-white text-primary shadow-sm' : 'text-neutral-500 hover:text-neutral-700'
               }`}
             >
-              📱 Téléphone
+              {a('tabPhone')}
             </button>
           </div>
 
@@ -121,19 +124,19 @@ function LoginForm() {
           {mode === 'email' && (
             <form onSubmit={handleEmailSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Email</label>
+                <label className="block text-sm font-semibold text-primary mb-2">{a('emailLabel')}</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors"
-                  placeholder="vous@exemple.com"
+                  placeholder={a('emailHolder')}
                   required
                   disabled={isLoading}
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-primary mb-2">Mot de passe</label>
+                <label className="block text-sm font-semibold text-primary mb-2">{a('passwordLabel')}</label>
                 <input
                   type="password"
                   value={password}
@@ -145,7 +148,7 @@ function LoginForm() {
                 />
               </div>
               <CTAButton type="submit" disabled={isLoading} className="w-full" size="lg">
-                {isLoading ? '⏳ Connexion...' : '✓ Se connecter'}
+                {isLoading ? a('submitting') : a('submit')}
               </CTAButton>
             </form>
           )}
@@ -181,16 +184,16 @@ function LoginForm() {
                         disabled={phoneLoading}
                       />
                     </div>
-                    <p className="text-xs text-neutral-400 mt-1">Le 0 de début est retiré automatiquement.</p>
+                    <p className="text-xs text-neutral-400 mt-1">{a('phoneSend')}</p>
                   </div>
                   <CTAButton type="submit" disabled={phoneLoading || !phoneLocal.trim()} className="w-full" size="lg">
-                    {phoneLoading ? '⏳ Envoi...' : '📲 Recevoir un code SMS'}
+                    {phoneLoading ? a('phoneSending') : a('phoneSend')}
                   </CTAButton>
                 </form>
               ) : (
                 <form onSubmit={handleConfirmSMS} className="space-y-5">
                   <p className="text-sm text-neutral-600">
-                    Code envoyé au <strong>{dialCode} {phoneLocal}</strong>. Saisissez-le ci-dessous :
+                    {a('smsSent')} <strong>{dialCode} {phoneLocal}</strong>
                   </p>
                   <input
                     type="text"
@@ -203,14 +206,14 @@ function LoginForm() {
                     autoFocus
                   />
                   <CTAButton type="submit" disabled={phoneLoading || smsCode.length !== 6} className="w-full" size="lg">
-                    {phoneLoading ? '⏳ Vérification...' : '✅ Confirmer le code'}
+                    {phoneLoading ? a('codeConfirming') : a('codeConfirm')}
                   </CTAButton>
                   <button
                     type="button"
                     onClick={() => { setSmsStep('idle'); setSmsCode(''); setError(''); }}
                     className="w-full text-sm text-neutral-500 hover:text-neutral-700 py-2"
                   >
-                    ← Modifier le numéro
+                    {a('changeNum')}
                   </button>
                 </form>
               )}
@@ -242,15 +245,15 @@ function LoginForm() {
               disabled={oauthLoading || isLoading || phoneLoading}
               className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <span>🔷</span> {oauthLoading ? 'Connexion en cours...' : 'Continuer avec Google'}
+              <span>🔷</span> {oauthLoading ? a('submitting') : a('google')}
             </button>
 
           </div>
 
           <p className="text-sm text-neutral-600 text-center">
-            Pas encore de compte?{' '}
+            {a('noAccount')}{' '}
             <Link href="/auth/signup" className="text-accent font-semibold hover:underline">
-              S'inscrire
+              {a('signUp')}
             </Link>
           </p>
         </Card>

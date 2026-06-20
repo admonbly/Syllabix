@@ -10,92 +10,42 @@ import {
   Monitor, Globe, Mail, FileText, ShieldCheck, Bot, Briefcase,
   BookOpen, Target, Zap, ArrowRight, Quote,
 } from 'lucide-react';
+import { useLanguage } from '@/lib/LanguageContext';
 
-/* ── Data ──────────────────────────────────────────────── */
-const modules = [
-  { id: 1, icon: Monitor,     title: 'IT & Ordinateur',          description: "Bases informatiques et utilisation efficace de l'ordinateur." },
-  { id: 2, icon: Globe,       title: 'Internet & Google',        description: 'Navigation web, recherche et outils Google.' },
-  { id: 3, icon: Mail,        title: 'Email',                    description: 'Créer et gérer vos communications email professionnellement.' },
-  { id: 4, icon: FileText,    title: 'Bureautique',              description: 'Traitement de texte, tableurs et présentations.' },
-  { id: 5, icon: ShieldCheck, title: 'Cybersécurité',            description: 'Protéger vos données et comptes en ligne.' },
-  { id: 6, icon: Bot,         title: 'Intelligence Artificielle',description: "L'IA et ses applications pratiques au quotidien." },
-  { id: 7, icon: Briefcase,   title: 'Employabilité',            description: 'Compétences numériques recherchées par les employeurs.' },
-];
-
-const steps = [
-  {
-    number: '01', icon: BookOpen,
-    title: 'Choisissez votre parcours',
-    desc:  'Sélectionnez un ou plusieurs modules selon vos besoins. Formation libre ou certification complète.',
-  },
-  {
-    number: '02', icon: Target,
-    title: "Passez l'évaluation",
-    desc:  'Répondez à nos questions adaptatives. Moins de 30 minutes pour l\'évaluation complète.',
-  },
-  {
-    number: '03', icon: Zap,
-    title: 'Obtenez votre certificat',
-    desc:  'Téléchargez votre certificat PDF reconnu. Partagez sur LinkedIn et dans vos candidatures.',
-  },
-];
+/* ── Static icons (unchanged across languages) ─────────── */
+const MODULE_ICONS = [Monitor, Globe, Mail, FileText, ShieldCheck, Bot, Briefcase];
+const MODULE_KEYS  = ['it', 'internet', 'email', 'bureautique', 'cybersec', 'ai', 'emploi'];
+const STEP_ICONS   = [BookOpen, Target, Zap];
 
 const bigStats = [
-  { value: 5000, suffix: '+',    label: 'Apprenants certifiés' },
-  { value: 7,    suffix: '',     label: 'Modules disponibles'  },
-  { value: 30,   suffix: ' min', label: "Durée max d'évaluation" },
-  { value: 98,   suffix: '%',    label: 'Taux de satisfaction' },
+  { value: 5000, suffix: '+' },
+  { value: 7,    suffix: '' },
+  { value: 30,   suffix: ' min' },
+  { value: 98,   suffix: '%' },
 ];
 
 const testimonials = [
-  {
-    quote:    "Syllabix m'a permis de certifier mes compétences numériques. Le certificat a vraiment fait la différence dans ma recherche d'emploi.",
-    name:     'Amara Traoré',
-    role:     'Assistant administratif',
-    location: 'Dakar, Sénégal',
-    initials: 'AT',
-    color:    'bg-primary',
-  },
-  {
-    quote:    "Interface simple et modules très bien structurés. J'ai pu former toute mon équipe en quelques semaines. Vraiment recommandé !",
-    name:     'Samuel Adeyemi',
-    role:     'Manager RH',
-    location: 'Lagos, Nigeria',
-    initials: 'SA',
-    color:    'bg-accent',
-  },
-  {
-    quote:    "En tant que jeune diplômée, ce certificat m'a aidée à montrer concrètement mes compétences aux recruteurs. Merci Syllabix !",
-    name:     'Zainab Mohamed',
-    role:     'Chargée de communication',
-    location: 'Kigali, Rwanda',
-    initials: 'ZM',
-    color:    'bg-secondary',
-  },
+  { name: 'Amara Traoré',   role: 'Assistant administratif', location: 'Dakar, Sénégal',    initials: 'AT', color: 'bg-primary' },
+  { name: 'Samuel Adeyemi', role: 'Manager RH',               location: 'Lagos, Nigeria',    initials: 'SA', color: 'bg-accent'  },
+  { name: 'Zainab Mohamed', role: 'Chargée de communication', location: 'Kigali, Rwanda',    initials: 'ZM', color: 'bg-secondary' },
+];
+
+const testimonialQuotesFr = [
+  "Syllabix m'a permis de certifier mes compétences numériques. Le certificat a vraiment fait la différence dans ma recherche d'emploi.",
+  "Interface simple et modules très bien structurés. J'ai pu former toute mon équipe en quelques semaines. Vraiment recommandé !",
+  "En tant que jeune diplômée, ce certificat m'a aidée à montrer concrètement mes compétences aux recruteurs. Merci Syllabix !",
+];
+
+const testimonialQuotesEn = [
+  "Syllabix helped me certify my digital skills. The certificate really made a difference in my job search.",
+  "Simple interface and well-structured modules. I trained my whole team in a few weeks. Highly recommended!",
+  "As a recent graduate, this certificate helped me concretely showcase my skills to recruiters. Thank you Syllabix!",
 ];
 
 const blogPosts = [
-  {
-    href:    '/blog/ia-chat-gpt-2024',
-    badge:   'IA',
-    icon:    Bot,
-    title:   "ChatGPT et l'IA en 2024",
-    excerpt: 'Comment utiliser les assistants IA dans votre quotidien professionnel et personnel.',
-  },
-  {
-    href:    '/blog/securite-mots-passe',
-    badge:   'Sécurité',
-    icon:    ShieldCheck,
-    title:   'Mots de passe : les bonnes pratiques',
-    excerpt: 'Les méthodes pour créer et gérer des mots de passe solides en 2024.',
-  },
-  {
-    href:    '/blog/google-avancee',
-    badge:   'Internet',
-    icon:    Globe,
-    title:   'Maîtriser la recherche Google',
-    excerpt: 'Les opérateurs avancés qui vous feront gagner des heures de recherche.',
-  },
+  { href: '/blog/ia-chat-gpt-2024',     badge: 'IA',       icon: Bot,        titleFr: "ChatGPT et l'IA en 2024",                   excerptFr: 'Comment utiliser les assistants IA dans votre quotidien professionnel et personnel.',   titleEn: 'ChatGPT & AI in 2024',                  excerptEn: 'How to use AI assistants in your professional and personal daily life.' },
+  { href: '/blog/securite-mots-passe',  badge: 'Sécurité', icon: ShieldCheck, titleFr: 'Mots de passe : les bonnes pratiques',      excerptFr: 'Les méthodes pour créer et gérer des mots de passe solides en 2024.',                  titleEn: 'Passwords: best practices',             excerptEn: 'Methods for creating and managing strong passwords in 2024.' },
+  { href: '/blog/google-avancee',       badge: 'Internet',  icon: Globe,       titleFr: 'Maîtriser la recherche Google',             excerptFr: "Les opérateurs avancés qui vous feront gagner des heures de recherche.",               titleEn: 'Master Google Search',                  excerptEn: 'Advanced operators that will save you hours of research.' },
 ];
 
 /* ── Composant section header ──────────────────────────── */
@@ -121,31 +71,49 @@ function SectionHeader({ tag, title, subtitle, center = true }) {
 
 /* ── Page ──────────────────────────────────────────────── */
 export default function HomePage() {
+  const { locale, t } = useLanguage();
+  const h = (k) => t(`home.${k}`);
+
+  const modules = MODULE_KEYS.map((key, i) => ({
+    id:          i + 1,
+    icon:        MODULE_ICONS[i],
+    title:       h(`moduleNames.${key}`),
+    description: h(`moduleDescs.${key}`),
+  }));
+
+  const steps = [
+    { number: '01', icon: STEP_ICONS[0], title: h('howItWorks.step1.title'), desc: h('howItWorks.step1.desc') },
+    { number: '02', icon: STEP_ICONS[1], title: h('howItWorks.step2.title'), desc: h('howItWorks.step2.desc') },
+    { number: '03', icon: STEP_ICONS[2], title: h('howItWorks.step3.title'), desc: h('howItWorks.step3.desc') },
+  ];
+
+  const statLabels = [h('stats.learners'), h('stats.modules'), h('stats.duration'), h('stats.satisfaction')];
+  const quotes = locale === 'fr' ? testimonialQuotesFr : testimonialQuotesEn;
+
   return (
     <>
       {/* ─── 1. Hero ───────────────────────────────── */}
       <Hero
         title={
           <>
-            Certifiez vos<br />
-            <span className="gradient-text">compétences</span><br />
-            numériques
+            {h('hero.title1')}<br />
+            <span className="gradient-text">{h('hero.title2')}</span>
+            {h('hero.title3') ? <><br />{h('hero.title3')}</> : null}
           </>
         }
-        subtitle="La plateforme de référence pour évaluer et certifier vos compétences numériques en Afrique. Passez l'évaluation, obtenez votre certificat reconnu."
+        subtitle={h('hero.subtitle')}
       />
 
       {/* ─── 2. Comment ça marche ──────────────────── */}
       <section className="py-24 bg-white">
         <div className="container-max">
           <SectionHeader
-            tag="Simple et rapide"
-            title="Comment ça marche ?"
-            subtitle="Trois étapes pour valider vos compétences et obtenir votre certificat numérique."
+            tag={h('howItWorks.tag')}
+            title={h('howItWorks.title')}
+            subtitle={h('howItWorks.subtitle')}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            {/* Connecting line on desktop */}
             <div
               aria-hidden
               className="hidden md:block absolute top-10 left-[calc(33.33%+16px)] right-[calc(33.33%+16px)] h-px bg-gradient-to-r from-accent/20 via-accent/60 to-accent/20"
@@ -166,8 +134,6 @@ export default function HomePage() {
                     </div>
                     <h3 className="font-display font-bold text-lg text-neutral-900 mb-2">{step.title}</h3>
                     <p className="text-sm text-neutral-500 leading-relaxed">{step.desc}</p>
-
-                    {/* Bottom accent */}
                     <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-b-2xl bg-gradient-to-r from-accent to-accent-light origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-350" />
                   </div>
                 </Reveal>
@@ -181,9 +147,9 @@ export default function HomePage() {
       <section className="py-24 bg-surface">
         <div className="container-max">
           <SectionHeader
-            tag="7 modules"
-            title="Évaluez toutes vos compétences"
-            subtitle="Chaque module couvre un domaine essentiel du numérique. Passez-les tous ou sélectionnez les plus pertinents."
+            tag={h('modules.tag')}
+            title={h('modules.title')}
+            subtitle={h('modules.subtitle')}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -202,7 +168,7 @@ export default function HomePage() {
 
           <Reveal direction="up" delay={350} className="mt-12 text-center">
             <CTAButton href="/training" size="lg">
-              S&apos;entraîner sur tous les modules
+              {h('modules.viewAll')}
               <ArrowRight className="w-4 h-4" />
             </CTAButton>
           </Reveal>
@@ -215,11 +181,11 @@ export default function HomePage() {
         <div className="container-max relative z-10">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-4">
             {bigStats.map((s, i) => (
-              <Reveal key={s.label} direction="scale" delay={i * 90} className="text-center">
+              <Reveal key={i} direction="scale" delay={i * 90} className="text-center">
                 <p className="text-4xl sm:text-5xl font-display font-extrabold text-white mb-2">
                   <CountUp value={s.value} suffix={s.suffix} duration={2100} />
                 </p>
-                <p className="text-white/45 text-xs uppercase tracking-widest">{s.label}</p>
+                <p className="text-white/45 text-xs uppercase tracking-widest">{statLabels[i]}</p>
               </Reveal>
             ))}
           </div>
@@ -230,36 +196,28 @@ export default function HomePage() {
       <section className="py-24 bg-surface-warm">
         <div className="container-max">
           <SectionHeader
-            tag="Témoignages"
-            title="Ils ont certifié leurs compétences"
-            subtitle="Des milliers de professionnels africains font confiance à Syllabix pour valider et valoriser leurs compétences numériques."
+            tag={h('testimonials.tag')}
+            title={h('testimonials.title')}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
+            {testimonials.map((tm, i) => (
               <Reveal key={i} direction="up" delay={i * 110}>
                 <div className="group relative bg-white rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-neutral-100 hover:border-accent/20 flex flex-col h-full">
                   <Quote className="w-8 h-8 text-accent/20 mb-4 flex-shrink-0 group-hover:text-accent/35 transition-colors" strokeWidth={1.5} />
-
                   <p className="text-neutral-600 text-sm leading-relaxed flex-1 italic mb-6">
-                    &ldquo;{t.quote}&rdquo;
+                    &ldquo;{quotes[i]}&rdquo;
                   </p>
-
                   <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
-                    <div className={`w-10 h-10 rounded-full ${t.color} flex items-center justify-center flex-shrink-0`}>
-                      <span className="text-white text-xs font-display font-bold">{t.initials}</span>
+                    <div className={`w-10 h-10 rounded-full ${tm.color} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-white text-xs font-display font-bold">{tm.initials}</span>
                     </div>
                     <div>
-                      <p className="text-sm font-display font-semibold text-neutral-900">{t.name}</p>
-                      <p className="text-xs text-neutral-400">{t.role} · {t.location}</p>
+                      <p className="text-sm font-display font-semibold text-neutral-900">{tm.name}</p>
+                      <p className="text-xs text-neutral-400">{tm.role} · {tm.location}</p>
                     </div>
                   </div>
-
-                  {/* Bottom line reveal */}
-                  <div
-                    aria-hidden
-                    className="absolute bottom-0 left-6 right-6 h-0.5 bg-gradient-to-r from-accent/0 via-accent to-accent/0 origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-b-2xl"
-                  />
+                  <div aria-hidden className="absolute bottom-0 left-6 right-6 h-0.5 bg-gradient-to-r from-accent/0 via-accent to-accent/0 origin-center scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-b-2xl" />
                 </div>
               </Reveal>
             ))}
@@ -271,51 +229,43 @@ export default function HomePage() {
       <section id="actualites" className="py-24 bg-white">
         <div className="container-max">
           <SectionHeader
-            tag="Blog & Actualités"
-            title="Restez informé"
-            subtitle="Articles, guides pratiques et actualités du monde numérique africain."
+            tag={h('blog.tag')}
+            title={h('blog.title')}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {blogPosts.map(({ href, badge, icon: Icon, title, excerpt }, i) => (
-              <Reveal key={href} direction="up" delay={i * 100}>
-                <Link
-                  href={href}
-                  className="group block h-full rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
-                >
-                  <div className="h-full bg-white rounded-2xl shadow-card border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col">
-                    {/* Top color bar */}
-                    <div className="h-1 bg-gradient-to-r from-accent to-accent-light flex-shrink-0" />
-
-                    <div className="p-6 flex flex-col flex-1">
-                      <div className="flex items-center justify-between mb-5">
-                        <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0 group-hover:bg-accent/20 transition-colors">
-                          <Icon className="w-5 h-5 text-accent" strokeWidth={1.75} />
+            {blogPosts.map(({ href, badge, icon: Icon, titleFr, excerptFr, titleEn, excerptEn }, i) => {
+              const postTitle   = locale === 'fr' ? titleFr   : titleEn;
+              const postExcerpt = locale === 'fr' ? excerptFr : excerptEn;
+              return (
+                <Reveal key={href} direction="up" delay={i * 100}>
+                  <Link href={href} className="group block h-full rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
+                    <div className="h-full bg-white rounded-2xl shadow-card border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col">
+                      <div className="h-1 bg-gradient-to-r from-accent to-accent-light flex-shrink-0" />
+                      <div className="p-6 flex flex-col flex-1">
+                        <div className="flex items-center justify-between mb-5">
+                          <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0 group-hover:bg-accent/20 transition-colors">
+                            <Icon className="w-5 h-5 text-accent" strokeWidth={1.75} />
+                          </div>
+                          <span className="px-2.5 py-1 bg-accent/10 text-accent text-xs font-display font-semibold rounded-full">{badge}</span>
                         </div>
-                        <span className="px-2.5 py-1 bg-accent/10 text-accent text-xs font-display font-semibold rounded-full">
-                          {badge}
-                        </span>
-                      </div>
-
-                      <h3 className="font-display font-bold text-base text-neutral-900 mb-2 group-hover:text-accent transition-colors leading-snug">
-                        {title}
-                      </h3>
-                      <p className="text-neutral-500 text-sm leading-relaxed flex-1">{excerpt}</p>
-
-                      <div className="mt-5 flex items-center gap-1.5 text-accent text-sm font-display font-semibold">
-                        Lire l&apos;article
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        <h3 className="font-display font-bold text-base text-neutral-900 mb-2 group-hover:text-accent transition-colors leading-snug">{postTitle}</h3>
+                        <p className="text-neutral-500 text-sm leading-relaxed flex-1">{postExcerpt}</p>
+                        <div className="mt-5 flex items-center gap-1.5 text-accent text-sm font-display font-semibold">
+                          {h('blog.cta')}
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              </Reveal>
-            ))}
+                  </Link>
+                </Reveal>
+              );
+            })}
           </div>
 
           <Reveal direction="up" delay={280} className="mt-12 text-center">
             <CTAButton href="/blog" variant="outline" size="lg">
-              Voir tous les articles
+              {h('blog.all')}
             </CTAButton>
           </Reveal>
         </div>
@@ -332,34 +282,22 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 border border-accent/25 mb-8">
               <span className="w-2 h-2 rounded-full bg-accent" style={{animation:'pulse-dot 1.4s ease-in-out infinite'}} />
               <span className="text-accent text-xs font-display font-semibold tracking-widest uppercase">
-                Prêt à commencer ?
+                {h('cta.title')}
               </span>
             </div>
 
             <h2 className="text-4xl sm:text-5xl font-display font-bold text-white mb-5 leading-tight">
-              Certifiez vos compétences<br />
-              <span className="gradient-text">en moins de 30 minutes</span>
+              {h('cta.subtitle')}
             </h2>
-
-            <p className="text-lg text-white/55 mb-10 max-w-xl mx-auto leading-relaxed">
-              Aucune inscription préalable requise. Commencez l&apos;évaluation maintenant et obtenez votre certificat immédiatement.
-            </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <CTAButton href="/certification" variant="primary" size="lg">
-                Passer l&apos;examen maintenant
+                {h('cta.primary')}
                 <ArrowRight className="w-4 h-4" />
               </CTAButton>
               <CTAButton href="/contact" variant="outline-white" size="lg">
-                Des questions ?
+                {h('cta.secondary')}
               </CTAButton>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-white/35 text-sm">
-              {['✓ Certificat PDF immédiat', '✓ Aucune inscription requise', '✓ 100 % en ligne'].map((item) => (
-                <span key={item}>{item}</span>
-              ))}
             </div>
           </Reveal>
         </div>
