@@ -9,13 +9,14 @@ export default function CTAButton({
   children,
   ...props
 }) {
-  const baseStyles = 'font-semibold rounded-lg transition-all duration-300 inline-flex items-center justify-center gap-2 font-heading';
+  const base = 'font-heading font-semibold rounded-xl inline-flex items-center justify-center gap-2 transition-all duration-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
 
   const variants = {
-    primary: 'bg-gradient-to-r from-[var(--color-blue-savant)] to-[var(--color-ocre-terre)] text-white hover:shadow-lg hover:shadow-[0_5px_20px_rgba(230,126,34,0.35)]',
-    secondary: 'bg-[var(--color-emerald-green)] text-white hover:bg-[var(--color-warning)] hover:shadow-lg',
-    outline: 'border-2 border-[var(--color-ocre-terre)] text-[var(--color-ocre-terre)] hover:bg-[var(--color-ocre-terre)] hover:text-white',
-    ghost: 'text-[var(--color-ocre-terre)] hover:bg-[var(--color-ocre-terre)]/10',
+    primary:   'bg-accent text-white hover:bg-accent-dark hover:shadow-accent focus-visible:ring-accent',
+    secondary: 'bg-secondary text-white hover:bg-secondary-dark hover:shadow-lg focus-visible:ring-secondary',
+    outline:   'border-2 border-accent text-accent hover:bg-accent hover:text-white focus-visible:ring-accent',
+    ghost:     'text-accent hover:bg-accent/10 focus-visible:ring-accent',
+    dark:      'bg-primary text-white hover:bg-primary-dark hover:shadow-primary focus-visible:ring-primary',
   };
 
   const sizes = {
@@ -24,24 +25,11 @@ export default function CTAButton({
     lg: 'px-8 py-4 text-lg',
   };
 
-  const classes = clsx(
-    baseStyles,
-    variants[variant],
-    sizes[size],
-    className
-  );
+  const classes = clsx(base, variants[variant], sizes[size], className);
 
   if (href) {
-    return (
-      <Link href={href} className={classes} {...props}>
-        {children}
-      </Link>
-    );
+    return <Link href={href} className={classes} {...props}>{children}</Link>;
   }
 
-  return (
-    <button className={classes} {...props}>
-      {children}
-    </button>
-  );
+  return <button className={classes} {...props}>{children}</button>;
 }

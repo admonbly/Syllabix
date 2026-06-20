@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 
 export default function Card({
-  icon,
+  icon: Icon,
   title,
   description,
   variant = 'default',
@@ -10,23 +10,35 @@ export default function Card({
   ...props
 }) {
   const variants = {
-    default: 'bg-white border border-[var(--color-border)] hover:shadow-lg hover:border-[var(--color-ocre-terre)]',
-    accent: 'bg-[var(--color-ocre-terre)]/10 border border-[var(--color-ocre-terre)]/20 hover:border-[var(--color-ocre-terre)]',
-    secondary: 'bg-[var(--color-emerald-green)]/10 border border-[var(--color-emerald-green)]/20 hover:border-[var(--color-emerald-green)]',
+    default:   'bg-white border border-neutral-200 hover:border-accent hover:shadow-card-hover',
+    accent:    'bg-accent/5 border border-accent/20 hover:border-accent',
+    secondary: 'bg-secondary/5 border border-secondary/20 hover:border-secondary',
+    primary:   'bg-primary/5 border border-primary/20 hover:border-primary',
+    flat:      'bg-neutral-50 border border-neutral-100',
   };
 
   return (
     <div
       className={clsx(
-        'p-6 rounded-lg transition-all duration-300',
+        'p-6 rounded-2xl shadow-card transition-all duration-200',
         variants[variant],
         className
       )}
       {...props}
     >
-      {icon && <div className="text-4xl mb-4">{icon}</div>}
-      {title && <h3 className="text-xl font-heading font-bold mb-2 text-primary">{title}</h3>}
-      {description && <p className="text-neutral-600 leading-relaxed">{description}</p>}
+      {Icon && (
+        <div className="mb-4 w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
+          <Icon className="w-6 h-6 text-accent" strokeWidth={1.75} />
+        </div>
+      )}
+      {title && (
+        <h3 className="text-lg font-heading font-semibold text-neutral-900 mb-2">
+          {title}
+        </h3>
+      )}
+      {description && (
+        <p className="text-neutral-500 text-sm leading-relaxed">{description}</p>
+      )}
       {children}
     </div>
   );

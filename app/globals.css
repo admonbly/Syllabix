@@ -2,123 +2,117 @@
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
+/* ─── Brand Tokens ─────────────────────────────────────── */
 :root {
-  --color-blue-savant: #1A237E;
-  --color-ocre-terre: #E67E22;
-  --color-emerald-green: #27AE60;
-  --color-cream-white: #F4F4F4;
-  --color-gradient-start: #667eea;
-  --color-gradient-end: #764ba2;
-  --color-success: #27AE60;
-  --color-warning: #F39C12;
-  --color-danger: #E74C3C;
-  --color-light: #F5F7FA;
-  --color-dark: #2C3E50;
-  --color-text: #34495E;
-  --color-border: #DDD;
+  --primary:       #1A237E;
+  --primary-dark:  #0D1540;
+  --primary-light: #2A3B9F;
+  --accent:        #E67E22;
+  --accent-dark:   #CF6D17;
+  --secondary:     #27AE60;
+  --success:       #27AE60;
+  --warning:       #F39C12;
+  --danger:        #E74C3C;
+  --surface:       #F8F9FC;
+  --border:        #E4E7EE;
 }
 
+/* ─── Base ──────────────────────────────────────────────── */
 @layer base {
   body {
-    @apply bg-neutral-50 text-neutral-900;
+    @apply bg-surface text-neutral-800 antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-bold;
+    @apply font-heading font-bold text-neutral-900;
   }
 
-  h1 {
-    @apply text-5xl;
-  }
-
-  h2 {
-    @apply text-4xl;
-  }
-
-  h3 {
-    @apply text-2xl;
+  /* Focus states for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-accent ring-offset-2;
   }
 }
 
+/* ─── Components ────────────────────────────────────────── */
 @layer components {
   .container-max {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   .btn-primary {
-    @apply px-6 py-3 bg-gradient-to-r from-accent to-orange-500 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow;
+    @apply px-6 py-3 bg-accent text-white rounded-xl font-semibold
+           hover:bg-accent-dark hover:shadow-accent transition-all duration-200
+           focus-visible:ring-accent active:scale-[0.98];
   }
 
   .btn-secondary {
-    @apply px-6 py-3 bg-secondary text-white rounded-lg font-semibold hover:shadow-lg transition-shadow;
+    @apply px-6 py-3 bg-secondary text-white rounded-xl font-semibold
+           hover:bg-secondary-dark hover:shadow-lg transition-all duration-200
+           active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply px-6 py-3 border-2 border-accent text-accent rounded-xl font-semibold
+           hover:bg-accent hover:text-white transition-all duration-200
+           active:scale-[0.98];
   }
 
   .section-title {
-    @apply text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-primary mb-4;
+    @apply text-3xl sm:text-4xl font-heading font-bold text-primary;
   }
 
   .section-subtitle {
-    @apply text-lg sm:text-xl text-neutral-600 mb-12;
+    @apply text-lg text-neutral-500 leading-relaxed;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent/10 text-accent;
+  }
+
+  .badge-secondary {
+    @apply badge bg-secondary/10 text-secondary;
+  }
+
+  .badge-primary {
+    @apply badge bg-primary/10 text-primary;
   }
 }
 
-/* Animations */
+/* ─── Animations ────────────────────────────────────────── */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-@keyframes slideInUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Utilities */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
+.animate-fade-in  { animation: fadeIn  0.5s ease-out; }
+.animate-slide-up { animation: slideUp 0.5s ease-out; }
 
-.animate-slide-in-up {
-  animation: slideInUp 0.5s ease-in-out;
-}
+/* ─── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: var(--surface); }
+::-webkit-scrollbar-thumb  { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9AA3B2; }
 
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Print Styles for Certificates */
+/* ─── Print (Certificates) ──────────────────────────────── */
 @media print {
-  .no-print {
-    display: none !important;
-  }
+  .no-print { display: none !important; }
+  body { background-color: white; }
+}
 
-  body {
-    background-color: white;
+/* ─── Reduced Motion ────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
