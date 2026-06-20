@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import BadgeGrid from '@/components/BadgeGrid';
 import Link from 'next/link';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -39,6 +40,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState(null);
   const [progress, setProgress] = useState([]);
   const [certificates, setCertificates] = useState([]);
+  const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,12 +52,14 @@ export default function DashboardPage() {
       setUser(firebaseUser);
 
       try {
-        const [prog, certs] = await Promise.all([
+        const [prog, certs, bdgs] = await Promise.all([
           userDB.getUserProgress(firebaseUser.uid),
           userDB.getUserCertificates(firebaseUser.uid),
+          userDB.getUserBadges(firebaseUser.uid),
         ]);
         setProgress(prog || []);
         setCertificates(certs || []);
+        setBadges(bdgs || []);
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
@@ -158,6 +162,19 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold">{attemptedCount}</p>
           </Card>
         </div>
+
+        {/* Badges */}
+        <Card className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-heading font-bold text-primary">
+              🏅 {d('badges.title') || 'Mes badges'}
+            </h3>
+            <span className="text-sm text-neutral-500">
+              {badges.length}/{7} {d('badges.earned') || 'obtenus'}
+            </span>
+          </div>
+          <BadgeGrid badges={badges} />
+        </Card>
 
         <Card className="mb-8">
           <h3 className="text-xl font-heading font-bold text-primary mb-4">

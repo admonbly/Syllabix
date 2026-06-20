@@ -1,10 +1,13 @@
 'use client';
 
+'use client';
+
 import { useState, useEffect } from 'react';
 import { auth, userDB, authFunctions } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import BadgeGrid from '@/components/BadgeGrid';
 import Link from 'next/link';
 
 const DIAL_CODES = [
@@ -24,6 +27,7 @@ function parsePhone(full = '') {
 export default function ProfilePage() {
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [profile, setProfile]   = useState(null);
+  const [badges, setBadges]     = useState([]);
   const [loading, setLoading]   = useState(true);
 
   // Form state
@@ -44,8 +48,12 @@ export default function ProfilePage() {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (!user) { setLoading(false); return; }
       setFirebaseUser(user);
-      const data = await userDB.getUserProfile(user.uid);
-      if (data) {
+      const [data, bdgs] = await Promise.all([
+        userDB.getUserProfile(user.uid),
+        userDB.getUserBadges(user.uid),
+      ]);
+      setBadges(bdgs || []);
+      if (data !== undefined && data) {
         setProfile(data);
         setFirstName(data.firstName || user.displayName?.split(' ')[0] || '');
         setLastName(data.lastName  || user.displayName?.split(' ').slice(1).join(' ') || '');
@@ -163,6 +171,14 @@ export default function ProfilePage() {
             </div>
           </div>
         </Card>
+
+        {/* Badges obtenus */}
+        {badges.length > 0 && (
+          <Card className="mb-8">
+            <h2 className="text-lg font-heading font-bold text-primary mb-4">🏅 Badges obtenus</h2>
+            <BadgeGrid badges={badges} compact />
+          </Card>
+        )}
 
         {/* Formulaire d'édition */}
         <Card className="mb-8">

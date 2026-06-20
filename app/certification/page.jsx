@@ -6,6 +6,7 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import BadgeGrid from '@/components/BadgeGrid';
 
 const MODULES = [
   {
@@ -72,6 +73,7 @@ export default function CertificationPage() {
   const [user, setUser] = useState(null);
   const [progress, setProgress] = useState({});
   const [certificates, setCertificates] = useState([]);
+  const [badges, setBadges] = useState([]);
   const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
@@ -79,10 +81,12 @@ export default function CertificationPage() {
       if (!u) { setLoadingUser(false); return; }
       setUser(u);
       try {
-        const [prog, certs] = await Promise.all([
+        const [prog, certs, bdgs] = await Promise.all([
           userDB.getUserProgress(u.uid),
           userDB.getUserCertificates(u.uid),
+          userDB.getUserBadges(u.uid),
         ]);
+        setBadges(bdgs || []);
         const byModule = {};
         (prog || []).forEach((p) => {
           const k = String(p.moduleId);
@@ -182,6 +186,20 @@ export default function CertificationPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Badges par module */}
+        {user && !loadingUser && (
+          <section>
+            <div className="flex items-center gap-3 mb-6">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-accent text-white text-sm font-bold">🏅</span>
+              <h2 className="text-2xl font-heading font-bold text-primary">Mes badges</h2>
+              <span className="text-sm text-neutral-500">{badges.length}/{MODULES.length} obtenus</span>
+            </div>
+            <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-6">
+              <BadgeGrid badges={badges} />
+            </div>
+          </section>
         )}
 
         {/* Certification Globale */}
