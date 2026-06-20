@@ -129,16 +129,12 @@ export default function DashboardPage() {
               <p className="text-sm text-neutral-500">Membre depuis {joinYear}</p>
             )}
           </div>
-          <button
-            onClick={async () => {
-              const { authFunctions } = await import('@/lib/firebase');
-              await authFunctions.signOut();
-              window.location.href = '/auth/login';
-            }}
+          <Link
+            href="/profile"
             className="px-6 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors"
           >
-            Déconnexion
-          </button>
+            Mon profil
+          </Link>
         </Card>
 
         {/* Stats Row */}
