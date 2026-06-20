@@ -6,6 +6,7 @@ import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const MODULES = [
   { id: 0, name: 'IT (Ordinateur)' },
@@ -33,6 +34,8 @@ function formatCertDate(isoStr) {
 }
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
+  const d = (k) => t(`dashboard.${k}`);
   const [user, setUser] = useState(null);
   const [progress, setProgress] = useState([]);
   const [certificates, setCertificates] = useState([]);
@@ -66,7 +69,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <p className="text-lg text-neutral-600">Chargement du tableau de bord...</p>
+        <p className="text-lg text-neutral-600">{d('loading')}</p>
       </section>
     );
   }
@@ -75,9 +78,9 @@ export default function DashboardPage() {
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-lg text-neutral-600 mb-4">Vous devez être connecté pour accéder au tableau de bord.</p>
+          <p className="text-lg text-neutral-600 mb-4">{d('notLoggedIn')}</p>
           <Link href="/auth/login" className="text-accent font-semibold hover:underline">
-            Se connecter
+            {d('signIn')}
           </Link>
         </div>
       </section>
@@ -118,53 +121,47 @@ export default function DashboardPage() {
   return (
     <section className="py-20 bg-neutral-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="section-title">Mon Tableau de Bord</h1>
+        <h1 className="section-title">{d('title')}</h1>
 
-        {/* User Info */}
         <Card className="mb-8 flex justify-between items-center">
           <div>
-            <p className="text-neutral-600">Bienvenue</p>
+            <p className="text-neutral-600">{d('welcome')}</p>
             <p className="text-2xl font-heading font-bold text-primary">{displayName}</p>
             {joinYear && (
-              <p className="text-sm text-neutral-500">Membre depuis {joinYear}</p>
+              <p className="text-sm text-neutral-500">{d('member')} {joinYear}</p>
             )}
           </div>
-          <Link
-            href="/profile"
-            className="px-6 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors"
-          >
-            Mon profil
+          <Link href="/profile" className="px-6 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors">
+            {d('myProfile')}
           </Link>
         </Card>
 
-        {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card variant="accent">
             <div className="text-4xl mb-2">🏆</div>
-            <p className="text-neutral-600 text-sm">Modules complétés</p>
+            <p className="text-neutral-600 text-sm">{d('stats.completed')}</p>
             <p className="text-3xl font-bold text-accent">{completedCount}/{MODULES.length}</p>
           </Card>
           <Card variant="secondary">
             <div className="text-4xl mb-2">📜</div>
-            <p className="text-neutral-600 text-sm">Certificats obtenus</p>
+            <p className="text-neutral-600 text-sm">{d('stats.certificates')}</p>
             <p className="text-3xl font-bold text-secondary">{certificates.length}</p>
           </Card>
           <Card>
             <div className="text-4xl mb-2">📊</div>
-            <p className="text-neutral-600 text-sm">Taux de réussite</p>
+            <p className="text-neutral-600 text-sm">{d('stats.rate')}</p>
             <p className="text-3xl font-bold text-primary">{passRate > 0 ? `${passRate}%` : '-'}</p>
           </Card>
           <Card>
             <div className="text-4xl mb-2">📝</div>
-            <p className="text-neutral-600 text-sm">Modules tentés</p>
+            <p className="text-neutral-600 text-sm">{d('stats.attempted')}</p>
             <p className="text-3xl font-bold">{attemptedCount}</p>
           </Card>
         </div>
 
-        {/* Progress Bar */}
         <Card className="mb-8">
           <h3 className="text-xl font-heading font-bold text-primary mb-4">
-            Progression générale
+            {d('progress.title')}
           </h3>
           <div className="flex items-center gap-4">
             <div className="flex-1">
@@ -182,16 +179,16 @@ export default function DashboardPage() {
         {/* Progress by Module */}
         <Card className="mb-8">
           <h3 className="text-xl font-heading font-bold text-primary mb-6">
-            Progression par module
+            {d('byModule.title')}
           </h3>
 
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b-2 border-neutral-200">
-                  <th className="text-left py-3 font-heading font-bold text-primary">Module</th>
-                  <th className="text-center py-3 font-heading font-bold text-primary">Meilleur score</th>
-                  <th className="text-right py-3 font-heading font-bold text-primary">Statut</th>
+                  <th className="text-left py-3 font-heading font-bold text-primary">{d('byModule.module')}</th>
+                  <th className="text-center py-3 font-heading font-bold text-primary">{d('byModule.bestScore')}</th>
+                  <th className="text-right py-3 font-heading font-bold text-primary">{d('byModule.status')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -202,7 +199,7 @@ export default function DashboardPage() {
                       {item.bestScore > 0 ? `${item.bestScore}%` : '-'}
                     </td>
                     <td className="text-right py-4 font-semibold text-accent">
-                      {item.passed ? '✅ Certifié' : item.attempted ? '⚠️ Non réussi' : '🔒 Non tenté'}
+                      {item.passed ? d('byModule.certified') : item.attempted ? d('byModule.failed') : d('byModule.notTried')}
                     </td>
                   </tr>
                 ))}
@@ -215,7 +212,7 @@ export default function DashboardPage() {
         {certificates.length > 0 && (
           <Card className="mb-8">
             <h3 className="text-xl font-heading font-bold text-primary mb-6">
-              📜 Mes certificats
+              {d('certificates.title')}
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -226,12 +223,12 @@ export default function DashboardPage() {
                       <p className="font-heading font-bold text-primary">
                         {cert.moduleId !== null && cert.moduleId !== undefined
                           ? MODULES[cert.moduleId]?.name || `Module ${cert.moduleId}`
-                          : 'Certification Globale'}
+                          : d('certificates.globalCert')}
                       </p>
                       <p className="text-sm text-neutral-600">{formatCertDate(cert.issuedAt || cert.createdAt)}</p>
                     </div>
                     <span className="px-3 py-1 bg-accent text-white rounded-full text-xs font-bold">
-                      {cert.score >= 80 ? 'AVANCÉ' : cert.score >= 60 ? 'INTERMÉDIAIRE' : 'VALIDÉ'}
+                      {cert.score >= 80 ? d('certificates.levels.advanced') : cert.score >= 60 ? d('certificates.levels.mid') : d('certificates.levels.basic')}
                     </span>
                   </div>
                   <p className="text-xs text-neutral-500 mb-4">ID: {cert.id}</p>
@@ -239,7 +236,7 @@ export default function DashboardPage() {
                     href={`/certificate/${cert.id}`}
                     className="block w-full px-4 py-2 border-2 border-accent text-accent rounded-lg font-semibold hover:bg-accent hover:text-white transition-colors text-sm text-center"
                   >
-                    📥 Voir le certificat
+                    {d('certificates.view')}
                   </Link>
                 </Card>
               ))}
@@ -249,18 +246,13 @@ export default function DashboardPage() {
 
         {certificates.length === 0 && completedCount === 0 && (
           <Card className="mb-8 bg-blue-50 border-l-4 border-blue-400">
-            <p className="text-blue-800 font-semibold mb-2">Vous n'avez pas encore de certificat.</p>
-            <p className="text-blue-700 text-sm">
-              Passez un examen de certification pour obtenir votre premier certificat.
-            </p>
+            <p className="text-blue-800 font-semibold mb-2">{d('certificates.noCert')}</p>
+            <p className="text-blue-700 text-sm">{d('certificates.noCertDesc')}</p>
           </Card>
         )}
 
-        {/* CTA */}
         <div className="text-center">
-          <CTAButton href="/training/mixed" size="lg">
-            🏋️ Continuer l'entraînement
-          </CTAButton>
+          <CTAButton href="/training/mixed" size="lg">{d('cta')}</CTAButton>
         </div>
       </div>
     </section>

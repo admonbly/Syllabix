@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useLanguage } from '@/lib/LanguageContext';
 
 const MODULE_NAMES = {
   0: 'IT & Ordinateur',
@@ -31,6 +32,8 @@ function getLevel(score) {
 
 export default function CertificatePage() {
   const { id } = useParams();
+  const { t } = useLanguage();
+  const c = (k) => t(`certificate.${k}`);
   const [cert, setCert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -63,6 +66,11 @@ export default function CertificatePage() {
 
   const handlePrint = () => window.print();
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    alert(c('linkCopied'));
+  };
+
   const handleLinkedIn = () => {
     if (!cert) return;
     const issueDate = cert.issuedAt ? new Date(cert.issuedAt) : new Date();
@@ -79,7 +87,7 @@ export default function CertificatePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <p className="text-neutral-500 text-lg">Chargement du certificat...</p>
+        <p className="text-neutral-500 text-lg">{c('loading')}</p>
       </div>
     );
   }
@@ -89,12 +97,10 @@ export default function CertificatePage() {
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
           <div className="text-6xl mb-4">🔍</div>
-          <h1 className="text-2xl font-bold text-primary mb-3">Certificat introuvable</h1>
-          <p className="text-neutral-600 mb-6">
-            Ce certificat n'existe pas ou vous n'avez pas les droits pour le consulter.
-          </p>
+          <h1 className="text-2xl font-bold text-primary mb-3">{c('notFound')}</h1>
+          <p className="text-neutral-600 mb-6">{c('notFoundDesc')}</p>
           <Link href="/dashboard" className="inline-block px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary/90 transition-colors">
-            ← Mon tableau de bord
+            {c('back')}
           </Link>
         </div>
       </div>
@@ -105,7 +111,7 @@ export default function CertificatePage() {
   const certTitle = cert.moduleId !== null && cert.moduleId !== undefined
     ? `${MODULE_NAMES[cert.moduleId] || `Module ${cert.moduleId}`}`
     : 'Certification Numérique Complète';
-  const examLabel = cert.examType === 'MODULE' ? 'Certification de module' : 'Certification globale';
+  const examLabel = cert.examType === 'MODULE' ? c('certType.module') : c('certType.global');
 
   return (
     <>
@@ -124,7 +130,7 @@ export default function CertificatePage() {
         {/* Actions */}
         <div className="max-w-3xl mx-auto mb-6 flex flex-wrap gap-3 justify-between items-center no-print">
           <Link href="/dashboard" className="text-primary hover:underline font-medium text-sm">
-            ← Retour au tableau de bord
+            {c('back')}
           </Link>
           <div className="flex gap-3">
             <button
@@ -134,7 +140,7 @@ export default function CertificatePage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
               </svg>
-              Ajouter à LinkedIn
+              {c('linkedin')}
             </button>
             <button
               onClick={handlePrint}
@@ -144,7 +150,7 @@ export default function CertificatePage() {
                 <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
                 <rect x="6" y="14" width="12" height="8"/>
               </svg>
-              Imprimer / PDF
+              {c('print')}
             </button>
           </div>
         </div>
@@ -190,8 +196,7 @@ export default function CertificatePage() {
             </h2>
 
             <p className="text-neutral-600 max-w-lg mx-auto mb-10 leading-relaxed">
-              Pour avoir démontré des compétences numériques et réussi avec succès l'évaluation
-              de certification <strong>{certTitle}</strong> sur la plateforme Syllabix.
+              {c('desc')} <strong>{certTitle}</strong> {c('desc2')}
             </p>
 
             {/* Score + Niveau */}
@@ -205,7 +210,7 @@ export default function CertificatePage() {
                     {cert.score}%
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-neutral-500">Score obtenu</p>
+                <p className="text-sm font-semibold text-neutral-500">{c('score')}</p>
               </div>
               <div className="text-center">
                 <div
@@ -216,31 +221,29 @@ export default function CertificatePage() {
                     {level.label}
                   </span>
                 </div>
-                <p className="text-sm font-semibold text-neutral-500">Niveau</p>
+                <p className="text-sm font-semibold text-neutral-500">{c('level')}</p>
               </div>
             </div>
 
-            {/* Infos pied de certificat */}
             <div className="grid grid-cols-2 gap-6 text-sm text-neutral-500 pt-6" style={{ borderTop: '1px solid #f0f0f0' }}>
               <div className="text-left">
-                <p className="font-semibold text-neutral-700 mb-1">Date d'émission</p>
+                <p className="font-semibold text-neutral-700 mb-1">{c('issueDate')}</p>
                 <p>{formatDate(cert.issuedAt)}</p>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-neutral-700 mb-1">Identifiant unique</p>
+                <p className="font-semibold text-neutral-700 mb-1">{c('uniqueId')}</p>
                 <p className="font-mono text-xs break-all">{cert.id || id}</p>
               </div>
             </div>
           </div>
 
-          {/* Pied de certificat */}
           <div className="px-12 py-5 flex items-center justify-between" style={{ background: '#f8f9ff', borderTop: '2px solid #e8ecff' }}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1A237E' }}>
                 Syllabix — afridigi.com
               </p>
               <p className="text-xs text-neutral-400 mt-0.5">
-                Ce certificat peut être vérifié à l'adresse indiquée
+                {c('verify')}
               </p>
             </div>
             <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: '#1A237E' }}>
@@ -255,12 +258,9 @@ export default function CertificatePage() {
         {/* Partage social supplémentaire */}
         <div className="max-w-3xl mx-auto mt-6 text-center no-print">
           <p className="text-sm text-neutral-500">
-            Partagez ce certificat :{' '}
-            <button
-              onClick={() => { navigator.clipboard.writeText(window.location.href); alert('Lien copié !'); }}
-              className="text-primary font-medium hover:underline"
-            >
-              Copier le lien
+            {c('share')}{' '}
+            <button onClick={handleCopyLink} className="text-primary font-medium hover:underline">
+              {c('copyLink')}
             </button>
           </p>
         </div>
