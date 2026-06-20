@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import type { User, ExamStats } from '@/types';
-import { apiClient } from './api';
+import { apiClient } from '@/services/api';
 
 // ========== AUTHENTICATION STORE ==========
 
