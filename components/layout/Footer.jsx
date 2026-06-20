@@ -56,7 +56,7 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <img
-              src="/syllabix-logo-with-name.png"
+              src="/syllabix-logo-sans%20fond.png"
               alt="Syllabix"
               className="h-10 w-auto mb-5 brightness-0 invert opacity-85"
             />
