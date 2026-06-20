@@ -1,11 +1,12 @@
 import clsx from 'clsx';
 
+/** @param {{ icon?: any, title?: any, description?: any, number?: any, variant?: string, className?: string, children?: any, [key: string]: any }} props */
 export default function Card({
-  icon: Icon,
-  title,
-  description,
-  number,
-  variant   = 'default',
+  icon: Icon    = null,
+  title         = null,
+  description   = null,
+  number        = null,
+  variant       = 'default',
   className,
   children,
   ...props
