@@ -3,6 +3,8 @@ import { Plus_Jakarta_Sans, DM_Sans } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { LanguageProvider } from '@/lib/LanguageContext';
+import { A11yProvider } from '@/lib/AccessibilityContext';
 import './globals.css';
 
 const jakarta = Plus_Jakarta_Sans({
@@ -51,11 +53,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           Aller au contenu principal
         </a>
-        <ErrorBoundary>
-          <Header />
-          <main id="main-content" className="min-h-screen" tabIndex={-1}>{children}</main>
-          <Footer />
-        </ErrorBoundary>
+        <LanguageProvider>
+          <A11yProvider>
+            <ErrorBoundary>
+              <Header />
+              <main id="main-content" className="min-h-screen" tabIndex={-1}>{children}</main>
+              <Footer />
+            </ErrorBoundary>
+          </A11yProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
