@@ -35,7 +35,8 @@ export default function VerifyEmailPage() {
     if (user) {
       await user.reload();
       if (user.emailVerified) {
-        window.location.href = '/dashboard';
+        await authFunctions.markEmailVerified();
+        window.location.href = '/auth/verify-phone';
       } else {
         setError('Votre email n\'a pas encore été vérifié. Vérifiez votre boîte mail.');
       }
