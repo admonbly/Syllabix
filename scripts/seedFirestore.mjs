@@ -19,12 +19,12 @@ import { getFirestore, doc, setDoc, collection, writeBatch } from 'firebase/fire
 
 // ─── Configuration Firebase (copiez depuis votre lib/firebase.js) ─────────────
 const firebaseConfig = {
-  apiKey:            process.env.FIREBASE_API_KEY            || 'VOTRE_API_KEY',
-  authDomain:        process.env.FIREBASE_AUTH_DOMAIN        || 'VOTRE_AUTH_DOMAIN',
-  projectId:         process.env.FIREBASE_PROJECT_ID         || 'VOTRE_PROJECT_ID',
-  storageBucket:     process.env.FIREBASE_STORAGE_BUCKET     || 'VOTRE_STORAGE_BUCKET',
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || 'VOTRE_SENDER_ID',
-  appId:             process.env.FIREBASE_APP_ID             || 'VOTRE_APP_ID',
+  apiKey:            'AIzaSyDfbKDfuOHhD1sXDm-nCllDshLu1Sf0HRw',
+  authDomain:        'syllabix-e6f20.firebaseapp.com',
+  projectId:         'syllabix-e6f20',
+  storageBucket:     'syllabix-e6f20.firebasestorage.app',
+  messagingSenderId: '779665654341',
+  appId:             '1:779665654341:web:6295875ac11404ff69d92c',
 };
 // ─────────────────────────────────────────────────────────────────────────────
 

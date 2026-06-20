@@ -1,245 +1,261 @@
-# AFRIDIGI - Plateforme Web Complète 🌍
+# Syllabix
 
-**AFRIDIGI** est une plateforme NextJS 14 complète pour l'évaluation et la certification des compétences numériques en Afrique.
+Plateforme de certification des compétences numériques en Afrique. 7 modules, résultats en moins de 30 minutes, certificat PDF généré automatiquement.
 
-## 🚀 Qu'est-ce qui est nouveau (NextJS Version)?
-
-Cette version est une complète **refonte** de l'application React MVP initiale:
-
-✅ **Architecture Full-Stack** - Next.js 14 avec App Router
-✅ **8+ Pages Marketing** - Homepage, À Propos, Contact, Partenariats
-✅ **Système Blog Complet** - Articles dynamiques avec catégories
-✅ **Quiz Intégré** - Mode entraînement, mode démo, examen officiel
-✅ **Tableau de Bord Utilisateur** - Suivi de progression, certificats
-✅ **Attribution Supabase-Ready** - Prêt pour auth et API
-✅ **Design Mobile-First** - Optimisé pour connexions lentes (Afrique)
-✅ **Performances** - Optimisé avec Tailwind CSS pur
-
-## 📁 Structure du Projet
-
-```
-afridigi-web/
-├── app/                          # Next.js 14 App Router
-│   ├── (marketing)/             # Marketing pages (about, contact, partnerships)
-│   ├── certification/           # Certification section (5 sub-pages)
-│   ├── blog/                    # Blog list + dynamic articles
-│   ├── dashboard/               # User dashboard
-│   ├── auth/                    # Authentication (login, signup)
-│   ├── layout.tsx               # Global layout
-│   ├── page.jsx                 # Homepage (6 sections)
-│   └── globals.css              # Global styles (Tailwind)
-├── components/
-│   ├── layout/
-│   │   ├── Header.jsx           # Navigation globale
-│   │   └── Footer.jsx           # Footer + newsletter
-│   ├── QuizComponent.jsx        # Quiz réutilisable (3 modes)
-│   ├── CTAButton.jsx            # Bouton CTA responsive
-│   ├── Card.jsx                 # Composant Card réutilisable
-│   └── Hero.jsx                 # Hero section
-├── lib/
-│   ├── supabase.js              # Client Supabase + DB helpers
-│   └── stores.js                # Zustand stores (auth, progress, blog)
-├── public/                       # Assets statiques
-├── .env.example                 # Variables d'environnement template
-├── tailwind.config.js           # Configuration Tailwind
-├── next.config.js               # Configuration Next.js
-├── tsconfig.json                # Configuration TypeScript
-└── package.json                 # Dépendances
-
-```
-
-## 🛠️ Stack Technique
-
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS 3.4.1
-- **UI Components**: React 18.2.0
-- **State Management**: Zustand 4.4.0
-- **Backend**: Firebase (Auth + Firestore)
-- **Language**: JavaScript/JSX
-
-## ⚡ Installation & Démarrage
-
-### 1️⃣ Installation des dépendances
-```bash
-npm install
-```
-
-### 2️⃣ Configuration Firebase
-```bash
-cp .env.example .env.local
-```
-
-Puis remplissez les variables avec vos credentials Firebase:
-```
-NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyDx...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=myproject.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=myproject-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=myproject.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456
-NEXT_PUBLIC_FIREBASE_APP_ID=1:123456:web:abc
-```
-
-Consultez [FIREBASE_CONFIG.md](./FIREBASE_CONFIG.md) pour les instructions détaillées.
-
-### 3️⃣ Démarrer le serveur de développement
-```bash
-npm run dev
-```
-
-L'application s'ouvrira automatiquement sur `http://localhost:3000`
-
-## 📄 Pages et Routes
-
-### Marketing (Public)
-- `/` - **Accueil** (Hero + 6 sections)
-- `/about` - À Propos
-- `/contact` - Contact
-- `/partenariats` - Partenariats
-- `/blog` - Blog (liste articles)
-- `/blog/[slug]` - Article détaillé
-
-### Certification
-- `/certification` - Index/redirection
-- `/certification/presentation` - Présentation
-- `/certification/s-entrainer` - Mode entraînement
-- `/certification/demo` - Mode démo
-- `/certification/examen` - Examen officiel
-- `/certification/referentiel` - Référentiel
-
-### Utilisateur
-- `/auth/login` - Connexion
-- `/auth/signup` - Inscription
-- `/dashboard` - Tableau de bord (protégé)
-
-## 📊 Composants Réutilisables
-
-### Header
-- Navigation globale sticky
-- Menu mobile responsive
-- Boutons connexion/CTA
-
-### Hero
-- 4 variantes (default, accent, secondary)
-- Texte + image
-- CTA intégré
-
-### Card
-- 3 variantes (default, accent, secondary)
-- Icône + titre + description
-- Hover effects
-
-### CTAButton
-- 4 variantes (primary, secondary, outline, ghost)
-- 3 tailles (sm, md, lg)
-- Support Link ou button
-
-### QuizComponentIntégrée avec Firebase)
-
-L'application intègre **Firebase Authentication**. Pour l'utiliser:
-
-```javascript
-import { authFunctions } from '@/lib/firebase';
-
-// Signup
-await authFunctions.signUp(email, password);
-
-// Login
-await authFunctions.signIn(email, password);
-
-// Logout
-await authFunctions.signOut();
-
-// Get session
-const user = await authFunctions.getSession();
-```
-
-Les pages d'authentification (`/auth/login` et `/auth/signup`) sont prêtes à l'emploi!
-// Login
-await auth.signIn(email, password);
-
-// Logout
-await auth.signOut();
-```
-
-## 📱 Optimisations pour Afrique
-
-✅ **Mobile-First Design** - Priorité mobile
-✅ **Low Bandwidth** - CSS pur, pas de frameworks lourd
-✅ **Progressive Enhancement** - Fonctionne avec ou sans JS
-✅ **Image Optimization** - Emojis au lieu d'images
-✅ **Compression** - Build minimal (~50KB gzipped)
-
-## 🎨 Design System
-
-### Couleurs
-- **Primary**: `#0D1B47` (Bleu foncé)
-- **Accent**: `#FF6B35` (Orange)
-- **Secondary**: `#06B6D4` (Cyan)
-- **Neutral**: échelle de gris complète
-
-### Typographie
-- **Headers**: Poppins (Google Fonts)
-- **Body**: Inter (Google Fonts)
-- **Fallback**: System fonts
-
-### Spacing
-- Section padding: 5rem (remplaceable)
-- Breakpoints: 640px, 768px, 1024px, 1280px
-
-## 🚢 Déploiement
-
-### Sur Vercel (Recommandé)
-```bash
-npm install -g vercel
-vercel
-```
-
-### Sur Netlify
-```bash
-npm run build
-# Déployer le dossier .next
-```
-
-### Variables d'environnement
-Ajouter sur le provider:
-```
-NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
-```
-
-## 📈 Prochaines Étapes
-
-- [ ] Intégrer Supabase Auth
-- [ ] Configurer les tables de database
-- [ ] Ajouter plus d'articles au blog
-- [ ] Implémenter les certificats PDF
-- [ ] Analytics (Google Analytics / Posthog)
-- [ ] Support multilingue (i18n)
-- [ ] Tests (Jest + React Testing Library)
-
-## 🐛 Troubleshooting
-
-**Error: "Failed to fetch..."**
-→ Vérifier les variables d'environnement Supabase
-
-**Page blanche au démarrage**
-→ `npm run build && npm run start`
-
-**Styles non appliqués**
-→ `npm install && npm run dev` (rebuild Tailwind)
-
-## 📞 Support
-
-Pour des questions ou problèmes:
-1. Consulter le [README.md](./README.md) du MVP
-2. Vérifier les cases `.env.example`
-3. Ouvrir un issue sur le repo
-
-## 📄 License
-
-MIT © AFRIDIGI 2024
+**Stack** : Next.js 14 App Router · Firebase Auth + Firestore · Tailwind CSS · JavaScript/JSX
 
 ---
 
-**Prêt à transformer le secteur numérique en Afrique?** 🚀
-Commencez par `npm run dev` et explorez l'application!
+## Prérequis
+
+- Node.js 18+
+- Compte Firebase (Auth + Firestore activés)
+
+## Installation
+
+```bash
+npm install
+cp .env.example .env.local   # puis remplir les variables Firebase
+npm run dev                  # → http://localhost:3000
+```
+
+### Variables d'environnement (`.env.local`)
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+```
+
+---
+
+## Structure du projet
+
+```
+app/
+├── page.jsx                          # Accueil
+├── layout.tsx                        # Layout global (Header, Footer, Providers)
+├── globals.css                       # Design tokens + animations
+│
+├── (marketing)/
+│   ├── about/page.jsx
+│   ├── contact/page.jsx
+│   └── partenariats/page.jsx
+│
+├── auth/
+│   ├── login/page.jsx                # Email/password + téléphone + Google OAuth
+│   ├── signup/page.jsx
+│   ├── verify-email/page.jsx
+│   ├── verify-phone/page.jsx
+│   └── complete-profile/page.jsx     # Complément profil après OAuth
+│
+├── training/
+│   ├── page.jsx                      # Hub formation — 7 modules + mixte
+│   ├── module/[id]/page.jsx          # Quiz d'entraînement par module
+│   └── mixed/page.jsx                # Quiz mixte tous modules
+│
+├── evaluation/
+│   ├── page.jsx                      # Hub évaluation diagnostique
+│   └── module/[id]/page.jsx          # Évaluation par module
+│
+├── certification/
+│   ├── page.jsx                      # Page de présentation de la certification
+│   └── presentation/page.jsx
+│
+├── exam/
+│   ├── global/page.jsx               # Examen de certification global (protégé)
+│   └── module/[id]/page.jsx          # Examen par module
+│
+├── certificate/[id]/page.jsx         # Certificat public (partageable)
+├── dashboard/page.jsx                # Tableau de bord utilisateur (protégé)
+├── profile/page.jsx                  # Profil et paramètres (protégé)
+│
+├── blog/
+│   ├── page.jsx
+│   └── [slug]/page.jsx
+│
+├── actualites/page.jsx
+├── cgu/page.jsx
+├── privacy/page.jsx
+│
+└── api/
+    └── notify/certificate/route.js  # Envoi email après certificat généré
+
+components/
+├── layout/
+│   ├── Header.jsx                    # Nav + sélecteur langue + barre accessibilité
+│   └── Footer.jsx
+├── TrainingQuizComponent.jsx         # Quiz entraînement (feedback immédiat)
+├── EvaluationQuizComponent.jsx       # Quiz diagnostique (timer 10 min, niveaux)
+├── CertificationQuizComponent.jsx    # Examen officiel (timer, cooldown 7j, certificat)
+├── Hero.jsx
+├── Card.jsx
+├── CTAButton.jsx
+├── Reveal.jsx                        # Scroll-reveal animation wrapper
+├── CountUp.jsx                       # Compteur animé
+└── JsonLd.jsx                        # SEO structured data
+
+lib/
+├── firebase.js                       # Config Firebase + authFunctions
+├── LanguageContext.jsx               # Contexte FR/EN + hook useLanguage()
+├── i18n.js                           # Dictionnaire FR/EN complet
+├── AccessibilityContext.jsx          # Taille texte, contraste élevé, police dyslexie
+├── examService.js                    # Chargement questions Firestore, calcul scores
+├── quizService.js                    # Helpers quiz (randomisation, timer)
+├── quizData.js                       # Questions statiques de secours
+└── articlesSeed.js                   # Articles blog statiques
+
+middleware.ts                         # Protection routes authentifiées
+```
+
+---
+
+## Authentification
+
+Routes protégées (redirigent vers `/auth/login?redirect=…`) :
+
+```
+/dashboard  /profile  /training  /evaluation  /exam  /certification
+```
+
+Exception publique : `/certification/presentation`
+
+Méthodes disponibles :
+
+```js
+import { authFunctions } from '@/lib/firebase';
+
+await authFunctions.signUp(email, password);
+await authFunctions.signIn(email, password);
+await authFunctions.signInWithGoogle();          // → { profileComplete }
+await authFunctions.sendPhoneLoginSMS(phone, 'recaptcha-id');
+await authFunctions.confirmPhoneLogin(code);
+await authFunctions.signOut();
+```
+
+---
+
+## Internationalisation (FR/EN)
+
+Toute l'UI est bilingue via `lib/i18n.js` + `lib/LanguageContext.jsx`. Les questions de quiz restent en français.
+
+```jsx
+import { useLanguage } from '@/lib/LanguageContext';
+
+export default function MyComponent() {
+  const { locale, t } = useLanguage();
+  // t('section.key') → string dans la langue active
+}
+```
+
+Sections couvertes : `nav`, `a11y`, `home`, `training`, `certification`, `dashboard`, `auth.login`, `quiz`, `quiz.eval`, `quiz.cert`, `quiz.results`, `certificate`.
+
+Le sélecteur de langue est dans le Header. La préférence est persistée en `localStorage`.
+
+---
+
+## Système de quiz
+
+Trois composants distincts partagent la même source de questions Firestore.
+
+| Composant | Mode | Timer | Feedback | Résultat |
+|---|---|---|---|---|
+| `TrainingQuizComponent` | Entraînement | Non | Immédiat (bonne/mauvaise) | Récap détaillé |
+| `EvaluationQuizComponent` | Diagnostic | 10 min | Auto-avance | Niveau (Débutant → Avancé) |
+| `CertificationQuizComponent` | Examen officiel | 30 min | Aucun pendant l'examen | Certificat PDF ou échec |
+
+Les questions sont stockées dans Firestore (collection `questions`). Pour en ajouter :
+
+```bash
+node scripts/seedFirestore.mjs          # questions initiales
+node scripts/seedNewQuestions.mjs       # 30 nouvelles questions avec images
+```
+
+### Cooldown certification
+
+Après un échec, l'utilisateur ne peut pas repasser l'examen pendant 7 jours. Le cooldown est stocké dans Firestore sur le document utilisateur.
+
+---
+
+## Design system
+
+### Couleurs
+
+| Token | Valeur | Usage |
+|---|---|---|
+| `--primary` | `#1A237E` | Titres, éléments de marque |
+| `--primary-vivid` | `#2235CC` | Gradient-text, accents UI |
+| `--accent` | `#E85D04` | CTA, liens actifs (contraste 4.6:1 ✓ AA) |
+| `--secondary` | `#27AE60` | Succès, validation |
+| `--surface` | `#F5F6FF` | Fond sections alternées (teinté primary) |
+| `--surface-warm` | `#FFF8F0` | Fond sections chaudes (teinté accent) |
+| `--dark` | `#0A0F2E` | Section hero foncée, footer |
+
+### Typographie
+
+| Rôle | Police | Variable |
+|---|---|---|
+| Titres / Display | Plus Jakarta Sans | `--font-display` |
+| Corps / UI | DM Sans | `--font-body` |
+| Dyslexie (a11y) | OpenDyslexic | Activé via `html.dyslexia-font` |
+
+### Classes utilitaires
+
+```css
+.gradient-text        /* titre dégradé primary-vivid → accent */
+.hero-bg              /* fond hero avec radial gradients */
+.dark-section         /* section CTA sombre */
+.container-max        /* max-w-7xl centré avec padding responsive */
+.section-tag          /* badge de section (tag pill) */
+.card-shine           /* effet shimmer au hover sur carte */
+.btn-shine            /* effet shimmer au hover sur bouton */
+```
+
+### Accessibilité
+
+Trois options disponibles dans la barre d'accessibilité du Header (persistées en `localStorage`) :
+
+- **Taille du texte** : normal / +10% / +25%
+- **Contraste élevé** : `filter: contrast(1.5)` + fond noir
+- **Police dyslexie** : OpenDyslexic sur tout le texte de l'interface
+
+---
+
+## Déploiement
+
+### Vercel (recommandé)
+
+```bash
+npx vercel
+```
+
+Ajouter les variables d'environnement Firebase dans le dashboard Vercel.
+
+### Build de production
+
+```bash
+npm run build
+npm run start
+```
+
+---
+
+## Scripts
+
+```bash
+scripts/seedFirestore.mjs          # Initialise les questions Firestore
+scripts/seedNewQuestions.mjs       # Ajoute 30 questions avec images
+scripts/questions-completes.md     # Référence complète de toutes les questions
+```
+
+---
+
+## Limitations connues
+
+- `firebase.json` configuré pour Firebase Hosting statique — non utilisé (Vercel). À ignorer.
+- `app/exam/module/[id]` et `app/training/module/[id]` ont des doublons `.tsx` + `.jsx` — le `.tsx` prend la priorité ; supprimer le `.jsx` redondant.
+- Pas de tests automatisés — à mettre en place (Jest / Playwright).
+- Blog : articles statiques via `lib/articlesSeed.js`, pas de CMS connecté.
