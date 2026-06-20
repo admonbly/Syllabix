@@ -23,7 +23,8 @@ export default function SignupPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [dialCode, setDialCode] = useState('+225');
+  const [phoneLocal, setPhoneLocal] = useState('');
   const [status, setStatus] = useState('student');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [parentalConsent, setParentalConsent] = useState(false);
@@ -91,7 +92,7 @@ export default function SignupPage() {
         role: roleMap[status] ?? 'LEARNER',
         dateOfBirth,
         parentalConsentGiven: needsParentalConsent ? parentalConsent : false,
-        phoneNumber: phone.trim(),
+        phoneNumber: `${dialCode}${phoneLocal.replace(/^0/, '').trim()}`,
       });
       router.push('/auth/verify-email');
     } catch (err) {
@@ -232,17 +233,30 @@ export default function SignupPage() {
               <label className="block text-sm font-semibold text-primary mb-2">
                 Numéro de téléphone
               </label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors"
-                placeholder="+221 77 000 00 00"
-                required
-                disabled={isLoading}
-              />
-              <p className="text-xs text-neutral-500 mt-1">
-                Format international avec indicatif pays (+221, +225, +33…)
+              <div className="flex gap-2">
+                {/* Sélecteur pays */}
+                <select
+                  value={dialCode}
+                  onChange={(e) => setDialCode(e.target.value)}
+                  disabled={isLoading}
+                  className="flex-shrink-0 px-3 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors bg-white text-sm font-medium"
+                >
+                  <option value="+225">🇨🇮 +225</option>
+                  <option value="+33">🇫🇷 +33</option>
+                </select>
+                {/* Numéro local */}
+                <input
+                  type="tel"
+                  value={phoneLocal}
+                  onChange={(e) => setPhoneLocal(e.target.value.replace(/\D/g, ''))}
+                  className="flex-1 px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors"
+                  placeholder="07 00 00 00 00"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+              <p className="text-xs text-neutral-400 mt-1">
+                Le 0 de début est retiré automatiquement
               </p>
             </div>
 
