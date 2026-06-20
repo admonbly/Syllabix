@@ -163,6 +163,106 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+        {/* Recommandations personnalisées */}
+        {(() => {
+          const recommendations = moduleProgress
+            .map((m, i) => ({ ...m, moduleId: i }))
+            .filter((m) => m.bestScore < 80)
+            .sort((a, b) => {
+              // Priorité : non tenté d'abord, puis score le plus bas
+              if (!a.attempted && b.attempted) return -1;
+              if (a.attempted && !b.attempted) return 1;
+              return a.bestScore - b.bestScore;
+            })
+            .slice(0, 3);
+
+          if (recommendations.length === 0) return (
+            <Card className="mb-8 bg-green-50 border-l-4 border-green-400">
+              <p className="text-green-800 font-semibold text-lg mb-1">🎉 Bravo, tu maîtrises tout !</p>
+              <p className="text-green-700 text-sm">Tous tes modules sont au-dessus de 80%. Passe la certification globale pour couronner le tout.</p>
+            </Card>
+          );
+
+          const TAG = {
+            notTried:  { label: 'À commencer',   cls: 'bg-neutral-100 text-neutral-500' },
+            improve:   { label: 'À renforcer',    cls: 'bg-red-100 text-red-600' },
+            progress:  { label: 'Peut progresser', cls: 'bg-amber-100 text-amber-700' },
+          };
+
+          return (
+            <Card className="mb-8">
+              <div className="flex items-center gap-3 mb-5">
+                <span className="text-2xl">🎯</span>
+                <div>
+                  <h3 className="text-xl font-heading font-bold text-primary">Ton parcours recommandé</h3>
+                  <p className="text-sm text-neutral-500">Basé sur tes résultats — modules à travailler en priorité</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {recommendations.map((rec, idx) => {
+                  const tag = !rec.attempted ? TAG.notTried : rec.bestScore < 60 ? TAG.improve : TAG.progress;
+                  const icons = ['💻','🌐','📧','📊','🔒','🤖','💼'];
+                  return (
+                    <div key={rec.moduleId} className="relative flex flex-col p-5 rounded-2xl border-2 border-neutral-100 hover:border-accent/30 hover:shadow-accent transition-all bg-white">
+                      {/* Numéro priorité */}
+                      <span className="absolute -top-3 -left-2 w-7 h-7 rounded-full bg-accent text-white text-xs font-bold flex items-center justify-center shadow-sm">
+                        {idx + 1}
+                      </span>
+
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-2xl">{icons[rec.moduleId]}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-heading font-bold text-primary text-sm leading-tight truncate">{rec.module}</p>
+                          <span className={`inline-block mt-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${tag.cls}`}>
+                            {tag.label}
+                          </span>
+                        </div>
+                      </div>
+
+                      {rec.attempted ? (
+                        <div className="mb-4">
+                          <div className="flex justify-between text-xs text-neutral-400 mb-1">
+                            <span>Meilleur score</span>
+                            <span className={rec.bestScore < 60 ? 'text-red-500 font-bold' : 'text-amber-600 font-bold'}>
+                              {rec.bestScore}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-neutral-100 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full ${rec.bestScore < 60 ? 'bg-red-400' : 'bg-amber-400'}`}
+                              style={{ width: `${rec.bestScore}%` }}
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-neutral-400 mb-4 flex-1">Pas encore tenté — commence l'entraînement !</p>
+                      )}
+
+                      <div className="flex gap-2 mt-auto">
+                        <a
+                          href={`/training/module/${rec.moduleId}`}
+                          className="flex-1 text-center px-3 py-2 bg-primary text-white rounded-xl text-xs font-semibold hover:bg-primary/90 transition-colors"
+                        >
+                          📚 S'entraîner
+                        </a>
+                        {rec.attempted && (
+                          <a
+                            href={`/exam/module/${rec.moduleId}`}
+                            className="px-3 py-2 border-2 border-accent text-accent rounded-xl text-xs font-semibold hover:bg-accent hover:text-white transition-colors"
+                          >
+                            🎓
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          );
+        })()}
+
         {/* Badges */}
         <Card className="mb-8">
           <div className="flex items-center justify-between mb-6">
