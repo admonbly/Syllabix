@@ -40,23 +40,37 @@ export default function CertificationQuizComponent({
   const [certId, setCertId] = useState(null);
   const [submitError, setSubmitError] = useState(null);
   const [scoreData, setScoreData] = useState(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState(null); // secondes restantes ou null
 
   useEffect(() => {
     setIsMounted(true);
     loadQuestions();
 
-    // Détecter le rôle CHILD pour adapter le timer et l'UI
-    const detectChildMode = async () => {
+    const init = async () => {
       const firebaseUser = auth.currentUser;
-      if (firebaseUser) {
-        const profile = await userDB.getUserProfile(firebaseUser.uid);
-        if (profile?.role === 'CHILD') {
-          setIsChildMode(true);
-          setTimeLeft(EXAM_CONFIG.CHILD.DURATION);
+      if (!firebaseUser) return;
+
+      // Détecter le rôle CHILD
+      const profile = await userDB.getUserProfile(firebaseUser.uid);
+      if (profile?.role === 'CHILD') {
+        setIsChildMode(true);
+        setTimeLeft(EXAM_CONFIG.CHILD.DURATION);
+      }
+
+      // Vérifier le cooldown (24h entre chaque tentative)
+      const examKey = mode === 'module' && moduleId !== null
+        ? `certification_module_${moduleId}`
+        : 'certification_global';
+      const lastAttempt = await userDB.getLastCertAttempt(firebaseUser.uid, examKey);
+      if (lastAttempt?.lastAttemptAt) {
+        const elapsed = Date.now() - new Date(lastAttempt.lastAttemptAt).getTime();
+        const cooldownMs = 24 * 60 * 60 * 1000; // 24h
+        if (elapsed < cooldownMs) {
+          setCooldownRemaining(Math.ceil((cooldownMs - elapsed) / 1000));
         }
       }
     };
-    detectChildMode();
+    init();
   }, []);
 
   // Timer avec soumission auto
@@ -140,16 +154,27 @@ export default function CertificationQuizComponent({
         console.error('API submission failed:', err);
       }
 
+      // Sauvegarder cooldown (toujours, même en cas d'échec)
+      const firebaseUser2 = auth.currentUser;
+      if (firebaseUser2) {
+        const examKey = mode === 'module' && moduleId !== null
+          ? `certification_module_${moduleId}`
+          : 'certification_global';
+        await userDB.saveCertAttempt(firebaseUser2.uid, examKey);
+      }
+
       // Sauvegarder le certificat dans Firestore si réussi
       if (passed) {
         try {
           const firebaseUser = auth.currentUser;
           if (firebaseUser) {
+            const issuedAt = new Date().toISOString();
             const id = await userDB.saveCertificate(firebaseUser.uid, {
+              displayName: firebaseUser.displayName || firebaseUser.email || 'Apprenant',
               moduleId: moduleId !== null ? moduleId : null,
               examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
               score: computed.percentage,
-              issuedAt: new Date().toISOString(),
+              issuedAt,
             });
             setCertId(id);
 
@@ -157,6 +182,23 @@ export default function CertificationQuizComponent({
             if (moduleId !== null) {
               await userDB.saveUserProgress(firebaseUser.uid, String(moduleId), computed.percentage, []);
             }
+
+            // Notification email (non bloquant)
+            try {
+              const token = await firebaseUser.getIdToken();
+              await fetch('/api/notify/certificate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                  certId: id,
+                  email: firebaseUser.email,
+                  displayName: firebaseUser.displayName || '',
+                  score: computed.percentage,
+                  examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
+                  moduleId: moduleId !== null ? moduleId : null,
+                }),
+              });
+            } catch (_) { /* email optionnel */ }
           }
         } catch (err) {
           console.error('Certificate save failed:', err);
@@ -172,17 +214,23 @@ export default function CertificationQuizComponent({
     submitAndSaveCert();
   }, [showResults]);
 
-  const loadQuestions = () => {
-    let quizQuestions = [];
+  // Décompte cooldown en temps réel
+  useEffect(() => {
+    if (!cooldownRemaining) return;
+    const t = setInterval(() => {
+      setCooldownRemaining((prev) => {
+        if (prev <= 1) { clearInterval(t); return null; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [cooldownRemaining]);
 
-    if (mode === 'module' && moduleId !== null) {
-      quizQuestions = getModuleQuestionsWithRepeat(moduleId, EXAM_CONFIG.CERTIFICATION.QUESTIONS_COUNT);
-    } else {
-      quizQuestions = getMixedQuestions(EXAM_CONFIG.CERTIFICATION.QUESTIONS_COUNT);
-    }
-
-    quizQuestions = quizQuestions.map(randomizeAnswerOptions);
-    setQuestions(quizQuestions);
+  const loadQuestions = async () => {
+    let quizQuestions = mode === 'module' && moduleId !== null
+      ? await getModuleQuestionsWithRepeat(moduleId, EXAM_CONFIG.CERTIFICATION.QUESTIONS_COUNT)
+      : await getMixedQuestions(EXAM_CONFIG.CERTIFICATION.QUESTIONS_COUNT);
+    setQuestions(quizQuestions.map(randomizeAnswerOptions));
     setLoading(false);
   };
 
@@ -271,14 +319,32 @@ export default function CertificationQuizComponent({
               </div>
             </div>
 
-            <div className="flex gap-4 justify-center">
-              <CTAButton variant="primary" size="lg" onClick={handleStartExam} className="w-full md:w-auto">
-                Commencer l'examen
-              </CTAButton>
-              <CTAButton variant="outline" size="lg" href="/certification" className="w-full md:w-auto">
-                Annuler
-              </CTAButton>
-            </div>
+            {cooldownRemaining ? (
+              <div className="bg-orange-50 border border-orange-300 rounded-xl p-5 text-center">
+                <p className="text-orange-700 font-bold text-lg mb-1">⏳ Cooldown actif</p>
+                <p className="text-orange-600 text-sm mb-2">
+                  Vous pouvez repasser cet examen dans :
+                </p>
+                <p className="text-3xl font-bold text-orange-700">
+                  {Math.floor(cooldownRemaining / 3600)}h {Math.floor((cooldownRemaining % 3600) / 60)}m {cooldownRemaining % 60}s
+                </p>
+                <p className="text-xs text-orange-500 mt-2">
+                  Ce délai vous permet de réviser avant de retenter.
+                </p>
+                <CTAButton variant="outline" size="lg" href="/training" className="mt-4 w-full md:w-auto">
+                  📚 Réviser les modules
+                </CTAButton>
+              </div>
+            ) : (
+              <div className="flex gap-4 justify-center">
+                <CTAButton variant="primary" size="lg" onClick={handleStartExam} className="w-full md:w-auto">
+                  Commencer l'examen
+                </CTAButton>
+                <CTAButton variant="outline" size="lg" href="/certification" className="w-full md:w-auto">
+                  Annuler
+                </CTAButton>
+              </div>
+            )}
           </Card>
         </div>
       </section>

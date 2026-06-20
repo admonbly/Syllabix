@@ -24,11 +24,14 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    let q = mode === 'module'
-      ? getModuleQuestions(moduleId, EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT)
-      : getMixedQuestions(EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT);
-    setQuestions(q.map(randomizeAnswerOptions));
-    setLoading(false);
+    const load = async () => {
+      const q = mode === 'module'
+        ? await getModuleQuestions(moduleId, EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT)
+        : await getMixedQuestions(EXAM_CONFIG.EVALUATION.QUESTIONS_COUNT);
+      setQuestions(q.map(randomizeAnswerOptions));
+      setLoading(false);
+    };
+    load();
   }, []);
 
   // Timer — démarre quand phase === 'quiz'

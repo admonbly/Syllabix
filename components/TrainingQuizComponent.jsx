@@ -14,11 +14,14 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   const [loading,         setLoading]         = useState(true);
 
   useEffect(() => {
-    let q = mode === 'mixed'
-      ? getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
-      : getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
-    setQuestions(q.map(randomizeAnswerOptions));
-    setLoading(false);
+    const load = async () => {
+      const q = mode === 'mixed'
+        ? await getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
+        : await getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
+      setQuestions(q.map(randomizeAnswerOptions));
+      setLoading(false);
+    };
+    load();
   }, []);
 
   if (loading) {
@@ -47,10 +50,10 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
       questions
     );
 
-    const restart = () => {
-      let q = mode === 'mixed'
-        ? getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
-        : getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
+    const restart = async () => {
+      const q = mode === 'mixed'
+        ? await getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT)
+        : await getModuleQuestions(moduleId, EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
       setQuestions(q.map(randomizeAnswerOptions));
       setCurrentQuestion(0);
       setAnswers({});
