@@ -17,10 +17,12 @@ function LoginForm() {
   const [error, setError] = useState('');
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // Écoute le changement d'état Firebase — redirige dès que l'utilisateur est connecté
+  // Écoute l'état Firebase — pose le cookie ET redirige dès qu'un user est authentifié
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
       if (user) {
+        // Cookie posé ici pour gérer aussi l'état Firebase en cache (reconnexion auto)
+        document.cookie = 'syllabix_session=1; path=/; SameSite=Strict; Max-Age=604800';
         window.location.href = redirectTo;
       }
     });

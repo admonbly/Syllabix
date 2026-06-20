@@ -8,18 +8,23 @@ const PROTECTED_PATHS = [
   '/profile',
 ];
 
+// Pages publiques même si elles commencent par un chemin protégé
+const PUBLIC_EXCEPTIONS = [
+  '/certification/presentation',
+];
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
+  const isException = PUBLIC_EXCEPTIONS.some((p) => pathname === p);
+  if (isException) return NextResponse.next();
 
-  if (!isProtected) {
-    return NextResponse.next();
-  }
+  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
+  if (!isProtected) return NextResponse.next();
 
   const session = request.cookies.get('syllabix_session')?.value;
 
-  if (!session) {
+  if (!session || session !== '1') {
     const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
@@ -29,5 +34,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$|.*\\.svg$|.*\\.jpg$|.*\\.ico$).*)'],
 };
