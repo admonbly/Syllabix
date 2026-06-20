@@ -28,14 +28,14 @@ export default function Header() {
           : 'bg-[#1A237E]'
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
         {/* Logo — transparent PNG, invert to white on dark header */}
         <Link href="/" className="flex-shrink-0">
           <img
             src="/syllabix-logo-sans%20fond.png"
             alt="Syllabix"
-            className={`h-10 w-auto transition-all duration-300 ${!scrolled ? 'brightness-0 invert' : ''}`}
+            className={`h-14 w-auto transition-all duration-300 ${!scrolled ? 'brightness-0 invert' : ''}`}
           />
         </Link>
 

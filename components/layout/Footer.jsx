@@ -58,7 +58,7 @@ export default function Footer() {
             <img
               src="/syllabix-logo-sans%20fond.png"
               alt="Syllabix"
-              className="h-10 w-auto mb-5 brightness-0 invert opacity-85"
+              className="h-14 w-auto mb-5 brightness-0 invert opacity-90"
             />
             <p className="text-white/50 text-sm leading-relaxed mb-5">
               La plateforme de référence pour évaluer et certifier les compétences numériques à travers l&apos;Afrique.
