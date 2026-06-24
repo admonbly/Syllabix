@@ -7,7 +7,6 @@ import { quizData } from '@/lib/quizData';
 import { useLanguage } from '@/lib/LanguageContext';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 
-const COMP_MAP = Object.fromEntries(MODULE_COMPETENCIES.map((m) => [m.moduleId, m]));
 
 export default function TrainingPage() {
   const { locale, t } = useLanguage();
@@ -78,117 +77,80 @@ export default function TrainingPage() {
           </Card>
         </div>
 
+        {/* ─── Modules + compétences — section unique ─────── */}
         <div id="modules">
-          <h2 className="text-3xl font-heading font-bold text-primary mb-2 text-center">{tr('modules.title')}</h2>
-          <p className="text-center text-neutral-500 mb-8">{tr('modules.subtitle')}</p>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {quizData.map((module) => {
-              const comp = COMP_MAP[module.id];
-              return (
-                <Link key={module.id} href={`/training/module/${module.id}`} className="group">
-                  <Card className={`p-6 h-full cursor-pointer border-2 border-neutral-200 group-hover:shadow-lg transition-all flex flex-col ${comp ? `group-hover:${comp.color.border}` : 'group-hover:border-secondary'}`}>
-                    <div className="text-3xl mb-3">{comp?.icon ?? '📖'}</div>
-                    <p className="font-heading font-bold text-primary mb-1">{module.module}</p>
-                    <p className="text-xs text-neutral-500 mb-3">{module.questions.length} {tr('modules.available')}</p>
-
-                    {/* Compétences développées */}
-                    {comp && (
-                      <div className="flex flex-col gap-1.5 mb-4 flex-1">
-                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wide mb-0.5">
-                          {locale === 'fr' ? 'Tu vas apprendre à' : 'You will learn to'}
-                        </p>
-                        {comp.competences.map((c, i) => (
-                          <div key={i} className="flex items-start gap-1.5">
-                            <span className="text-sm leading-none mt-0.5">{c.emoji}</span>
-                            <span className="text-xs text-neutral-600 leading-snug">
-                              {locale === 'fr' ? c.fr : c.en}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full transition-colors mt-auto ${comp ? `${comp.color.badge} group-hover:bg-secondary group-hover:text-white` : 'bg-secondary/10 text-secondary group-hover:bg-secondary group-hover:text-white'}`}>
-                      {tr('modules.train')}
-                    </span>
-                  </Card>
-                </Link>
-              );
-            })}
-
-            <Link href="/training/mixed" className="group">
-              <Card className="p-6 h-full cursor-pointer border-2 border-dashed border-neutral-300 group-hover:border-accent group-hover:shadow-lg transition-all bg-neutral-50">
-                <div className="text-3xl mb-3">🎲</div>
-                <p className="font-heading font-bold text-primary mb-1">{tr('modules.mixed.title')}</p>
-                <p className="text-xs text-neutral-500 mb-4">{tr('modules.mixed.subtitle')}</p>
-                <span className="inline-block px-3 py-1 bg-accent/10 text-accent text-xs font-semibold rounded-full group-hover:bg-accent group-hover:text-white transition-colors">
-                  {tr('modules.mixed.cta')}
-                </span>
-              </Card>
-            </Link>
-          </div>
-        </div>
-
-        {/* ─── Compétences par module ─────────────────────── */}
-        <div className="mt-20 pt-16 border-t border-neutral-200">
-          <div className="text-center mb-12">
-            <span className="section-tag bg-primary/10 text-primary mb-4 inline-block">
-              {locale === 'fr' ? '21 compétences certifiées' : '21 certified competencies'}
-            </span>
-            <h2 className="text-3xl font-heading font-bold text-primary mb-3">
-              {locale === 'fr' ? 'Ce que tu vas maîtriser' : 'What you will master'}
-            </h2>
-            <p className="text-neutral-600 max-w-xl mx-auto text-sm">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-heading font-bold text-primary mb-2">{tr('modules.title')}</h2>
+            <p className="text-neutral-500 text-sm">
               {locale === 'fr'
                 ? 'Chaque module développe 3 compétences concrètes, validées par un examen officiel.'
                 : 'Each module develops 3 concrete competencies, validated by an official exam.'}
             </p>
           </div>
 
-          <div className="space-y-5">
-            {MODULE_COMPETENCIES.map((mod) => (
-              <div
-                key={mod.moduleId}
-                className={`rounded-2xl border-2 ${mod.color.bg} ${mod.color.border} overflow-hidden`}
-              >
-                {/* En-tête module */}
-                <div className="flex items-center gap-3 px-6 py-4 border-b border-black/5">
-                  <span className="text-2xl">{mod.icon}</span>
-                  <div className="flex-1">
-                    <p className={`font-heading font-bold ${mod.color.text}`}>
-                      {locale === 'fr' ? mod.nameFr : mod.nameEn}
-                    </p>
-                    <p className="text-xs text-neutral-500">
-                      {locale === 'fr' ? '3 compétences' : '3 competencies'}
-                    </p>
-                  </div>
-                  <Link
-                    href={`/training/module/${mod.moduleId}`}
-                    className={`text-xs font-semibold px-4 py-2 rounded-lg ${mod.color.badge} hover:opacity-80 transition-opacity`}
-                  >
-                    {locale === 'fr' ? "S'entraîner →" : 'Practice →'}
-                  </Link>
-                </div>
-
-                {/* Grille des compétences */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-black/5">
-                  {mod.competences.map((comp, i) => (
-                    <div key={i} className="px-6 py-4 flex gap-3">
-                      <span className="text-xl flex-shrink-0 mt-0.5">{comp.emoji}</span>
-                      <div>
-                        <p className={`text-sm font-semibold ${mod.color.text} leading-snug mb-1`}>
-                          {locale === 'fr' ? comp.fr : comp.en}
-                        </p>
-                        <p className="text-xs text-neutral-500 leading-relaxed">
-                          {locale === 'fr' ? comp.desc_fr : comp.desc_en}
-                        </p>
-                      </div>
+          <div className="space-y-4">
+            {MODULE_COMPETENCIES.map((mod) => {
+              const qModule = quizData.find((q) => q.id === mod.moduleId);
+              return (
+                <div
+                  key={mod.moduleId}
+                  className={`rounded-2xl border-2 ${mod.color.bg} ${mod.color.border} overflow-hidden hover:shadow-md transition-shadow`}
+                >
+                  {/* En-tête : navigation */}
+                  <div className="flex items-center gap-4 px-6 py-4 border-b border-black/5">
+                    <span className="text-3xl flex-shrink-0">{mod.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className={`font-heading font-bold text-base ${mod.color.text}`}>
+                        {locale === 'fr' ? mod.nameFr : mod.nameEn}
+                      </p>
+                      <p className="text-xs text-neutral-400">
+                        {qModule ? `${qModule.questions.length} ${tr('modules.available')}` : ''}{' '}
+                        · {locale === 'fr' ? '3 compétences' : '3 competencies'}
+                      </p>
                     </div>
-                  ))}
+                    <Link
+                      href={`/training/module/${mod.moduleId}`}
+                      className={`flex-shrink-0 text-xs font-bold px-5 py-2.5 rounded-xl ${mod.color.badge} hover:opacity-80 transition-opacity`}
+                    >
+                      {locale === 'fr' ? "S'entraîner →" : 'Practice →'}
+                    </Link>
+                  </div>
+
+                  {/* Compétences */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-black/5">
+                    {mod.competences.map((comp, i) => (
+                      <div key={i} className="px-6 py-4 flex gap-3 items-start">
+                        <span className="text-xl flex-shrink-0 mt-0.5">{comp.emoji}</span>
+                        <div>
+                          <p className={`text-sm font-semibold ${mod.color.text} leading-snug mb-0.5`}>
+                            {locale === 'fr' ? comp.fr : comp.en}
+                          </p>
+                          <p className="text-xs text-neutral-500 leading-relaxed">
+                            {locale === 'fr' ? comp.desc_fr : comp.desc_en}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Mode mixte */}
+            <Link href="/training/mixed" className="group block">
+              <div className="rounded-2xl border-2 border-dashed border-neutral-300 bg-neutral-50 group-hover:border-accent group-hover:bg-orange-50 transition-all overflow-hidden">
+                <div className="flex items-center gap-4 px-6 py-5">
+                  <span className="text-3xl flex-shrink-0">🎲</span>
+                  <div className="flex-1">
+                    <p className="font-heading font-bold text-primary">{tr('modules.mixed.title')}</p>
+                    <p className="text-xs text-neutral-500">{tr('modules.mixed.subtitle')}</p>
+                  </div>
+                  <span className="flex-shrink-0 text-xs font-bold px-5 py-2.5 rounded-xl bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors">
+                    {tr('modules.mixed.cta')} →
+                  </span>
                 </div>
               </div>
-            ))}
+            </Link>
           </div>
 
           <p className="text-center text-xs text-neutral-400 mt-10">
