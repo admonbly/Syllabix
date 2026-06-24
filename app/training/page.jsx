@@ -1,16 +1,26 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
-import { quizData } from '@/lib/quizData';
 import { useLanguage } from '@/lib/LanguageContext';
-import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 
+import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
+import { getAllModules } from '@/lib/quizService';
 
 export default function TrainingPage() {
   const { locale, t } = useLanguage();
   const tr = (k) => t(`training.${k}`);
+  const [questionCounts, setQuestionCounts] = useState({});
+
+  useEffect(() => {
+    getAllModules().then((modules) => {
+      const counts = {};
+      modules.forEach((m) => { counts[m.id] = m.questions?.length ?? 0; });
+      setQuestionCounts(counts);
+    });
+  }, []);
 
   return (
     <section className="py-20 bg-neutral-50 min-h-screen">
@@ -90,7 +100,6 @@ export default function TrainingPage() {
 
           <div className="space-y-4">
             {MODULE_COMPETENCIES.map((mod) => {
-              const qModule = quizData.find((q) => q.id === mod.moduleId);
               return (
                 <div
                   key={mod.moduleId}
@@ -104,7 +113,9 @@ export default function TrainingPage() {
                         {locale === 'fr' ? mod.nameFr : mod.nameEn}
                       </p>
                       <p className="text-xs text-neutral-400">
-                        {qModule ? `${qModule.questions.length} ${tr('modules.available')}` : ''}{' '}
+                        {questionCounts[mod.moduleId] != null
+                          ? `${questionCounts[mod.moduleId]} ${tr('modules.available')}`
+                          : '…'}{' '}
                         · {locale === 'fr' ? '3 compétences' : '3 competencies'}
                       </p>
                     </div>

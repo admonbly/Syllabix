@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import TrainingQuizComponent from '@/components/TrainingQuizComponent';
 import ModuleLesson from '@/components/ModuleLesson';
@@ -9,6 +9,7 @@ import CTAButton from '@/components/CTAButton';
 import { quizData } from '@/lib/quizData';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import { MODULE_LESSONS } from '@/lib/moduleLessons';
+import { getModuleById } from '@/lib/quizService';
 
 function TrainingModuleContent() {
   const params = useParams();
@@ -18,6 +19,13 @@ function TrainingModuleContent() {
   const compData = MODULE_COMPETENCIES.find((m) => m.moduleId === parseInt(moduleId));
   const lesson = MODULE_LESSONS.find((m) => m.moduleId === parseInt(moduleId));
   const [showQuiz, setShowQuiz] = useState(false);
+  const [questionCount, setQuestionCount] = useState(null);
+
+  useEffect(() => {
+    getModuleById(parseInt(moduleId)).then((mod) => {
+      if (mod?.questions?.length) setQuestionCount(mod.questions.length);
+    });
+  }, [moduleId]);
 
   if (!module) {
     return (
@@ -79,12 +87,16 @@ function TrainingModuleContent() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex gap-6">
                   <div className="text-center">
-                    <p className="text-xl font-bold text-primary">5</p>
+                    <p className="text-xl font-bold text-primary">
+                      {questionCount ?? '…'}
+                    </p>
                     <p className="text-xs text-neutral-500">Questions</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xl font-bold text-primary">~10 min</p>
-                    <p className="text-xs text-neutral-500">Durée</p>
+                    <p className="text-xl font-bold text-primary">
+                      ~{questionCount ? `${Math.ceil(questionCount * 1.5)} min` : '…'}
+                    </p>
+                    <p className="text-xs text-neutral-500">Durée estimée</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-bold text-primary">Adaptatif</p>

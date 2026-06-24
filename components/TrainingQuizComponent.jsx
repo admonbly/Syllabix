@@ -8,6 +8,7 @@ import {
   randomizeAnswerOptions, EXAM_CONFIG,
   getAdaptiveQuestion, updateAdaptiveDifficulty,
 } from '@/lib/examService';
+import { getModuleById } from '@/lib/quizService';
 import { useLanguage } from '@/lib/LanguageContext';
 
 const DIFFICULTY_UI = {
@@ -22,8 +23,8 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   const q = (k) => t(`quiz.${k}`);
 
   const isAdaptive = mode === 'module';
-  const total = EXAM_CONFIG.TRAINING.QUESTIONS_COUNT;
 
+  const [total,        setTotal]        = useState(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
   const [questions,    setQuestions]    = useState([]);
   const [currentIdx,   setCurrentIdx]   = useState(0);
   const [answers,      setAnswers]      = useState({});
@@ -40,13 +41,20 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   useEffect(() => {
     const load = async () => {
       if (isAdaptive) {
-        const first = await getAdaptiveQuestion(moduleId, 1, []);
+        // Charger le vrai stock Firestore pour ce module
+        const [first, mod] = await Promise.all([
+          getAdaptiveQuestion(moduleId, 1, []),
+          getModuleById(parseInt(moduleId)),
+        ]);
+        if (mod?.questions?.length) {
+          setTotal(mod.questions.length);
+        }
         if (first) {
           setQuestions([first]);
           setUsedIds([first.id ?? first.text]);
         }
       } else {
-        const qs = await getMixedQuestions(total);
+        const qs = await getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
         setQuestions(qs.map(randomizeAnswerOptions));
       }
       setLoading(false);
@@ -101,13 +109,17 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     setUsedIds([]);
 
     if (isAdaptive) {
-      const first = await getAdaptiveQuestion(moduleId, 1, []);
+      const [first, mod] = await Promise.all([
+        getAdaptiveQuestion(moduleId, 1, []),
+        getModuleById(parseInt(moduleId)),
+      ]);
+      if (mod?.questions?.length) setTotal(mod.questions.length);
       if (first) {
         setQuestions([first]);
         setUsedIds([first.id ?? first.text]);
       }
     } else {
-      const qs = await getMixedQuestions(total);
+      const qs = await getMixedQuestions(EXAM_CONFIG.TRAINING.QUESTIONS_COUNT);
       setQuestions(qs.map(randomizeAnswerOptions));
     }
     setLoading(false);
