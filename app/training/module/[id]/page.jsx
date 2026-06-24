@@ -1,12 +1,14 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useParams } from 'next/navigation';
 import TrainingQuizComponent from '@/components/TrainingQuizComponent';
+import ModuleLesson from '@/components/ModuleLesson';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import { quizData } from '@/lib/quizData';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
+import { MODULE_LESSONS } from '@/lib/moduleLessons';
 
 function TrainingModuleContent() {
   const params = useParams();
@@ -14,6 +16,8 @@ function TrainingModuleContent() {
 
   const module = quizData.find((m) => m.id === parseInt(moduleId));
   const compData = MODULE_COMPETENCIES.find((m) => m.moduleId === parseInt(moduleId));
+  const lesson = MODULE_LESSONS.find((m) => m.moduleId === parseInt(moduleId));
+  const [showQuiz, setShowQuiz] = useState(false);
 
   if (!module) {
     return (
@@ -65,26 +69,50 @@ function TrainingModuleContent() {
           )}
         </div>
 
-        {/* Info box */}
-        <Card className="mb-12 bg-blue-50 border-l-4 border-blue-500 p-6">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <p className="text-2xl font-bold text-primary">5</p>
-              <p className="text-sm text-neutral-600">Questions</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-primary">10 min</p>
-              <p className="text-sm text-neutral-600">Durée</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-primary">Gratuit</p>
-              <p className="text-sm text-neutral-600">Sans compte</p>
-            </div>
-          </div>
-        </Card>
+        {/* Leçon ou Quiz selon l'état */}
+        {!showQuiz ? (
+          <>
+            <ModuleLesson lesson={lesson} onStartQuiz={() => setShowQuiz(true)} />
 
-        {/* Quiz */}
-        <TrainingQuizComponent mode="module" moduleId={moduleId} />
+            {/* Info quiz */}
+            <Card className="mb-8 bg-blue-50 border-l-4 border-blue-500 p-5">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex gap-6">
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-primary">5</p>
+                    <p className="text-xs text-neutral-500">Questions</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-primary">~10 min</p>
+                    <p className="text-xs text-neutral-500">Durée</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-primary">Adaptatif</p>
+                    <p className="text-xs text-neutral-500">Difficulté</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowQuiz(true)}
+                  className="px-6 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-green-700 transition-colors text-sm"
+                >
+                  🚀 Commencer le quiz
+                </button>
+              </div>
+            </Card>
+          </>
+        ) : (
+          <>
+            <div className="mb-6">
+              <button
+                onClick={() => setShowQuiz(false)}
+                className="text-sm text-primary font-semibold hover:underline"
+              >
+                ← Revoir la leçon
+              </button>
+            </div>
+            <TrainingQuizComponent mode="module" moduleId={moduleId} />
+          </>
+        )}
       </div>
     </section>
   );
