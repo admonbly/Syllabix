@@ -6,12 +6,14 @@ import TrainingQuizComponent from '@/components/TrainingQuizComponent';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import { quizData } from '@/lib/quizData';
+import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 
 function TrainingModuleContent() {
   const params = useParams();
   const moduleId = params.id;
 
   const module = quizData.find((m) => m.id === parseInt(moduleId));
+  const compData = MODULE_COMPETENCIES.find((m) => m.moduleId === parseInt(moduleId));
 
   if (!module) {
     return (
@@ -41,6 +43,26 @@ function TrainingModuleContent() {
           <p className="text-lg text-neutral-600">
             Pratiquez avec 5 questions aléatoires de ce module
           </p>
+
+          {/* Compétences développées */}
+          {compData && (
+            <div className={`mt-5 p-5 rounded-2xl border-2 ${compData.color.bg} ${compData.color.border}`}>
+              <p className="text-xs font-bold text-neutral-400 uppercase tracking-wide mb-3">
+                Compétences que tu vas développer
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {compData.competences.map((comp, i) => (
+                  <div key={i} className={`flex items-center gap-2 px-4 py-2 rounded-xl ${compData.color.badge}`}>
+                    <span className="text-base">{comp.emoji}</span>
+                    <div>
+                      <p className="text-xs font-semibold leading-tight">{comp.fr}</p>
+                      <p className="text-[10px] text-neutral-500 leading-tight mt-0.5">{comp.desc_fr}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Info box */}

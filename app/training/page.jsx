@@ -5,82 +5,9 @@ import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
 import { quizData } from '@/lib/quizData';
 import { useLanguage } from '@/lib/LanguageContext';
-import {
-  Search, Database, BarChart2, Mail, Share2, Users, Briefcase,
-  FileText, Image, Code2, ShieldCheck, Laptop, Heart,
-  Wrench, Building2, Smartphone,
-} from 'lucide-react';
+import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 
-const DOMAINS = [
-  {
-    id: 1,
-    color: 'bg-blue-50 border-blue-200',
-    badgeColor: 'bg-blue-100 text-blue-800',
-    titleColor: 'text-blue-800',
-    fr: 'Informations & données',
-    en: 'Information & data',
-    competences: [
-      { icon: Search,    fr: 'Recherche & veille d\'information', en: 'Research & information monitoring' },
-      { icon: Database,  fr: 'Gestion des données',               en: 'Data management' },
-      { icon: BarChart2, fr: 'Traitement & analyse',              en: 'Processing & analysis' },
-    ],
-  },
-  {
-    id: 2,
-    color: 'bg-green-50 border-green-200',
-    badgeColor: 'bg-green-100 text-green-800',
-    titleColor: 'text-green-800',
-    fr: 'Communication & collaboration',
-    en: 'Communication & collaboration',
-    competences: [
-      { icon: Mail,      fr: 'Email & messagerie',                    en: 'Email & messaging' },
-      { icon: Share2,    fr: 'Partage & publication',                 en: 'Sharing & publishing' },
-      { icon: Users,     fr: 'Collaboration à distance',              en: 'Remote collaboration' },
-      { icon: Briefcase, fr: 'Insertion professionnelle numérique',   en: 'Digital career readiness' },
-    ],
-  },
-  {
-    id: 3,
-    color: 'bg-orange-50 border-orange-200',
-    badgeColor: 'bg-orange-100 text-orange-800',
-    titleColor: 'text-orange-800',
-    fr: 'Création de contenu',
-    en: 'Content creation',
-    competences: [
-      { icon: FileText, fr: 'Documents & présentations',         en: 'Documents & presentations' },
-      { icon: Image,    fr: 'Contenus visuels & médias',         en: 'Visual content & media' },
-      { icon: Code2,    fr: 'Automatisation & notions de code',  en: 'Automation & coding basics' },
-    ],
-  },
-  {
-    id: 4,
-    color: 'bg-red-50 border-red-200',
-    badgeColor: 'bg-red-100 text-red-800',
-    titleColor: 'text-red-800',
-    fr: 'Protection & sécurité',
-    en: 'Protection & security',
-    competences: [
-      { icon: ShieldCheck, fr: 'Vie privée & données personnelles', en: 'Privacy & personal data' },
-      { icon: Laptop,      fr: 'Sécurité des équipements',          en: 'Device security' },
-      { icon: Heart,       fr: 'Bien-être numérique',               en: 'Digital wellbeing' },
-    ],
-  },
-  {
-    id: 5,
-    color: 'bg-purple-50 border-purple-200',
-    badgeColor: 'bg-purple-100 text-purple-800',
-    titleColor: 'text-purple-800',
-    fr: 'Environnement numérique',
-    en: 'Digital environment',
-    competences: [
-      { icon: Wrench,     fr: 'Résolution de problèmes techniques',            en: 'Technical problem solving' },
-      { icon: Building2,  fr: 'Services publics numériques',                   en: 'Digital public services' },
-      { icon: Smartphone, fr: 'Écosystème numérique africain (Mobile Money…)', en: 'African digital ecosystem (Mobile Money…)' },
-    ],
-  },
-];
-
-const MODULE_ICONS = ['💻', '🌐', '📧', '📊', '🔒', '🤖', '💼'];
+const COMP_MAP = Object.fromEntries(MODULE_COMPETENCIES.map((m) => [m.moduleId, m]));
 
 export default function TrainingPage() {
   const { locale, t } = useLanguage();
@@ -156,18 +83,39 @@ export default function TrainingPage() {
           <p className="text-center text-neutral-500 mb-8">{tr('modules.subtitle')}</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {quizData.map((module) => (
-              <Link key={module.id} href={`/training/module/${module.id}`} className="group">
-                <Card className="p-6 h-full cursor-pointer border-2 border-neutral-200 group-hover:border-secondary group-hover:shadow-lg transition-all">
-                  <div className="text-3xl mb-3">{MODULE_ICONS[module.id] ?? '📖'}</div>
-                  <p className="font-heading font-bold text-primary mb-1">{module.module}</p>
-                  <p className="text-xs text-neutral-500 mb-4">{module.questions.length} {tr('modules.available')}</p>
-                  <span className="inline-block px-3 py-1 bg-secondary/10 text-secondary text-xs font-semibold rounded-full group-hover:bg-secondary group-hover:text-white transition-colors">
-                    {tr('modules.train')}
-                  </span>
-                </Card>
-              </Link>
-            ))}
+            {quizData.map((module) => {
+              const comp = COMP_MAP[module.id];
+              return (
+                <Link key={module.id} href={`/training/module/${module.id}`} className="group">
+                  <Card className={`p-6 h-full cursor-pointer border-2 border-neutral-200 group-hover:shadow-lg transition-all flex flex-col ${comp ? `group-hover:${comp.color.border}` : 'group-hover:border-secondary'}`}>
+                    <div className="text-3xl mb-3">{comp?.icon ?? '📖'}</div>
+                    <p className="font-heading font-bold text-primary mb-1">{module.module}</p>
+                    <p className="text-xs text-neutral-500 mb-3">{module.questions.length} {tr('modules.available')}</p>
+
+                    {/* Compétences développées */}
+                    {comp && (
+                      <div className="flex flex-col gap-1.5 mb-4 flex-1">
+                        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wide mb-0.5">
+                          {locale === 'fr' ? 'Tu vas apprendre à' : 'You will learn to'}
+                        </p>
+                        {comp.competences.map((c, i) => (
+                          <div key={i} className="flex items-start gap-1.5">
+                            <span className="text-sm leading-none mt-0.5">{c.emoji}</span>
+                            <span className="text-xs text-neutral-600 leading-snug">
+                              {locale === 'fr' ? c.fr : c.en}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <span className={`inline-block px-3 py-1 text-xs font-semibold rounded-full transition-colors mt-auto ${comp ? `${comp.color.badge} group-hover:bg-secondary group-hover:text-white` : 'bg-secondary/10 text-secondary group-hover:bg-secondary group-hover:text-white'}`}>
+                      {tr('modules.train')}
+                    </span>
+                  </Card>
+                </Link>
+              );
+            })}
 
             <Link href="/training/mixed" className="group">
               <Card className="p-6 h-full cursor-pointer border-2 border-dashed border-neutral-300 group-hover:border-accent group-hover:shadow-lg transition-all bg-neutral-50">
@@ -182,54 +130,62 @@ export default function TrainingPage() {
           </div>
         </div>
 
-        {/* ─── Référentiel des 16 compétences ─────────────── */}
+        {/* ─── Compétences par module ─────────────────────── */}
         <div className="mt-20 pt-16 border-t border-neutral-200">
           <div className="text-center mb-12">
             <span className="section-tag bg-primary/10 text-primary mb-4 inline-block">
-              {locale === 'fr' ? 'Référentiel complet' : 'Full competency framework'}
+              {locale === 'fr' ? '21 compétences certifiées' : '21 certified competencies'}
             </span>
             <h2 className="text-3xl font-heading font-bold text-primary mb-3">
-              {locale === 'fr' ? '16 compétences numériques' : '16 digital competencies'}
+              {locale === 'fr' ? 'Ce que tu vas maîtriser' : 'What you will master'}
             </h2>
             <p className="text-neutral-600 max-w-xl mx-auto text-sm">
               {locale === 'fr'
-                ? 'Notre référentiel complet, adapté au contexte africain. Ces modules arrivent bientôt.'
-                : 'Our full competency framework, adapted for the African context. These modules are coming soon.'}
+                ? 'Chaque module développe 3 compétences concrètes, validées par un examen officiel.'
+                : 'Each module develops 3 concrete competencies, validated by an official exam.'}
             </p>
           </div>
 
-          <div className="space-y-8">
-            {DOMAINS.map((domain) => (
-              <div key={domain.id}>
-                <div className="flex items-center gap-3 mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${domain.color} ${domain.badgeColor}`}>
-                    {locale === 'fr' ? domain.fr : domain.en}
-                  </span>
-                  <span className="text-xs text-neutral-400">
-                    {domain.competences.length} {locale === 'fr' ? 'compétences' : 'competencies'}
-                  </span>
+          <div className="space-y-5">
+            {MODULE_COMPETENCIES.map((mod) => (
+              <div
+                key={mod.moduleId}
+                className={`rounded-2xl border-2 ${mod.color.bg} ${mod.color.border} overflow-hidden`}
+              >
+                {/* En-tête module */}
+                <div className="flex items-center gap-3 px-6 py-4 border-b border-black/5">
+                  <span className="text-2xl">{mod.icon}</span>
+                  <div className="flex-1">
+                    <p className={`font-heading font-bold ${mod.color.text}`}>
+                      {locale === 'fr' ? mod.nameFr : mod.nameEn}
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                      {locale === 'fr' ? '3 compétences' : '3 competencies'}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/training/module/${mod.moduleId}`}
+                    className={`text-xs font-semibold px-4 py-2 rounded-lg ${mod.color.badge} hover:opacity-80 transition-opacity`}
+                  >
+                    {locale === 'fr' ? "S'entraîner →" : 'Practice →'}
+                  </Link>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                  {domain.competences.map((comp, idx) => {
-                    const Icon = comp.icon;
-                    return (
-                      <div
-                        key={idx}
-                        className={`relative p-5 rounded-xl border-2 ${domain.color} opacity-60 cursor-not-allowed select-none`}
-                      >
-                        <div className="absolute top-3 right-3">
-                          <span className="px-2 py-0.5 bg-neutral-200 text-neutral-500 text-[10px] font-semibold rounded-full">
-                            {locale === 'fr' ? 'Bientôt' : 'Coming soon'}
-                          </span>
-                        </div>
-                        <Icon className="w-6 h-6 mb-3 text-neutral-400" strokeWidth={1.5} />
-                        <p className={`font-display font-semibold text-sm ${domain.titleColor} leading-snug pr-12`}>
+                {/* Grille des compétences */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-black/5">
+                  {mod.competences.map((comp, i) => (
+                    <div key={i} className="px-6 py-4 flex gap-3">
+                      <span className="text-xl flex-shrink-0 mt-0.5">{comp.emoji}</span>
+                      <div>
+                        <p className={`text-sm font-semibold ${mod.color.text} leading-snug mb-1`}>
                           {locale === 'fr' ? comp.fr : comp.en}
                         </p>
+                        <p className="text-xs text-neutral-500 leading-relaxed">
+                          {locale === 'fr' ? comp.desc_fr : comp.desc_en}
+                        </p>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
