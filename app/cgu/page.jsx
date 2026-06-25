@@ -33,7 +33,7 @@ export default function CGUPage() {
           <Section number="1" title="Objet et champ d'application">
             <p>
               Les présentes Conditions Générales d'Utilisation (ci-après « CGU ») régissent l'accès et
-              l'utilisation de la plateforme Syllabix, éditée par <strong>Afridigi</strong>, société
+              l'utilisation de la plateforme Syllabix, éditée par <strong>Syllabix</strong>, société
               spécialisée dans la formation et la certification des compétences numériques en Afrique,
               accessible à l'adresse <strong>syllabix.com</strong> et ses sous-domaines.
             </p>
@@ -156,13 +156,13 @@ export default function CGUPage() {
             <p>
               L'ensemble du contenu de la plateforme Syllabix — questions d'examen, modules pédagogiques,
               leçons, articles de blog, certificats, charte graphique, logos, textes et interfaces —
-              est la propriété exclusive d'<strong>Afridigi</strong> ou fait l'objet de licences
-              accordées à Afridigi.
+              est la propriété exclusive d'<strong>Syllabix</strong> ou fait l'objet de licences
+              accordées à Syllabix.
             </p>
             <p>
               Toute reproduction, extraction, représentation, modification, traduction, adaptation ou
               distribution de tout ou partie de ces contenus, par quelque moyen que ce soit, sans
-              autorisation écrite préalable d'Afridigi, est strictement interdite et constitue une
+              autorisation écrite préalable d'Syllabix, est strictement interdite et constitue une
               contrefaçon sanctionnée par les lois applicables.
             </p>
             <p>
@@ -176,7 +176,7 @@ export default function CGUPage() {
             <ul className="list-disc list-inside space-y-2 ml-2">
               <li>Fournir des informations exactes lors de l'inscription et de la certification ;</li>
               <li>Passer les examens de manière personnelle, sans aide extérieure ;</li>
-              <li>Respecter les autres utilisateurs et les équipes Afridigi ;</li>
+              <li>Respecter les autres utilisateurs et les équipes Syllabix ;</li>
               <li>Ne pas tenter d'accéder aux systèmes ou bases de données de manière non autorisée.</li>
             </ul>
             <p>Il est strictement interdit :</p>
@@ -211,11 +211,11 @@ export default function CGUPage() {
 
           <Section number="9" title="Limitation de responsabilité">
             <p>
-              Syllabix est fourni « en l'état ». Afridigi s'engage à faire ses meilleurs efforts pour
+              Syllabix est fourni « en l'état ». Syllabix s'engage à faire ses meilleurs efforts pour
               assurer la disponibilité de la plateforme et la qualité des contenus, mais ne peut
               garantir un service ininterrompu ou exempt d'erreurs.
             </p>
-            <p>Afridigi ne saurait être tenu responsable :</p>
+            <p>Syllabix ne saurait être tenu responsable :</p>
             <ul className="list-disc list-inside space-y-2 ml-2">
               <li>D'une interruption temporaire du service pour maintenance ou incident technique ;</li>
               <li>De la perte de données résultant d'une défaillance technique imprévue ;</li>
@@ -223,14 +223,14 @@ export default function CGUPage() {
               <li>Des dommages indirects résultant de l'utilisation ou de l'impossibilité d'utiliser la plateforme.</li>
             </ul>
             <p>
-              La responsabilité d'Afridigi ne pourra en aucun cas excéder les sommes effectivement
+              La responsabilité d'Syllabix ne pourra en aucun cas excéder les sommes effectivement
               payées par l'utilisateur au cours des 12 derniers mois précédant le fait générateur.
             </p>
           </Section>
 
           <Section number="10" title="Suspension et résiliation">
             <p>
-              Afridigi se réserve le droit de suspendre ou de résilier l'accès d'un utilisateur à
+              Syllabix se réserve le droit de suspendre ou de résilier l'accès d'un utilisateur à
               la plateforme, sans préavis ni indemnité, en cas de :
             </p>
             <ul className="list-disc list-inside space-y-2 ml-2">
@@ -247,7 +247,7 @@ export default function CGUPage() {
 
           <Section number="11" title="Modifications des CGU">
             <p>
-              Afridigi se réserve le droit de modifier les présentes CGU à tout moment pour s'adapter
+              Syllabix se réserve le droit de modifier les présentes CGU à tout moment pour s'adapter
               à l'évolution de la plateforme, des partenariats ou du cadre légal applicable.
             </p>
             <p>
@@ -277,8 +277,8 @@ export default function CGUPage() {
             </p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Via la page <Link href="/contact" className="text-accent hover:underline">Contact</Link> de la plateforme ;</li>
-              <li>Par email : <strong>contact@afridigi.com</strong> ;</li>
-              <li>Par courrier : Afridigi, Abidjan, Côte d'Ivoire.</li>
+              <li>Par email : <strong>contact@syllabix.com</strong> ;</li>
+              <li>Par courrier : Syllabix, Abidjan, Côte d'Ivoire.</li>
             </ul>
           </Section>
 

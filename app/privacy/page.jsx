@@ -40,10 +40,10 @@ export default function PrivacyPage() {
               Le responsable du traitement des données personnelles collectées sur Syllabix est :
             </p>
             <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5 mt-3">
-              <p><strong>Afridigi</strong></p>
+              <p><strong>Syllabix</strong></p>
               <p>Plateforme EdTech de certification des compétences numériques</p>
               <p>Abidjan, Côte d'Ivoire</p>
-              <p>Email : <strong>contact@afridigi.com</strong></p>
+              <p>Email : <strong>contact@syllabix.com</strong></p>
               <p>Site : <strong>syllabix.com</strong></p>
             </div>
           </Section>
@@ -169,7 +169,7 @@ export default function PrivacyPage() {
             </p>
             <p>
               Les parents ou tuteurs légaux peuvent demander la suppression du compte d'un
-              mineur en nous contactant à <strong>contact@afridigi.com</strong> avec une
+              mineur en nous contactant à <strong>contact@syllabix.com</strong> avec une
               preuve de leur lien de parenté.
             </p>
           </Section>
@@ -226,7 +226,7 @@ export default function PrivacyPage() {
 
           <Section number="8" title="Sécurité des données">
             <p>
-              Afridigi met en œuvre des mesures techniques et organisationnelles appropriées
+              Syllabix met en œuvre des mesures techniques et organisationnelles appropriées
               pour protéger vos données personnelles contre tout accès non autorisé, perte,
               destruction ou altération :
             </p>
@@ -280,7 +280,7 @@ export default function PrivacyPage() {
             <p>
               Pour exercer ces droits, contactez-nous via la page{' '}
               <Link href="/contact" className="text-accent hover:underline">Contact</Link> ou
-              par email à <strong>contact@afridigi.com</strong>. Nous répondons dans un délai
+              par email à <strong>contact@syllabix.com</strong>. Nous répondons dans un délai
               maximum de <strong>30 jours</strong>.
             </p>
           </Section>
@@ -342,8 +342,8 @@ export default function PrivacyPage() {
                 Via la page{' '}
                 <Link href="/contact" className="text-accent hover:underline">Contact</Link> ;
               </li>
-              <li>Par email : <strong>contact@afridigi.com</strong> ;</li>
-              <li>Par courrier : Afridigi, Abidjan, Côte d'Ivoire.</li>
+              <li>Par email : <strong>contact@syllabix.com</strong> ;</li>
+              <li>Par courrier : Syllabix, Abidjan, Côte d'Ivoire.</li>
             </ul>
             <p className="mt-3">
               Si vous estimez que le traitement de vos données n'est pas conforme à la

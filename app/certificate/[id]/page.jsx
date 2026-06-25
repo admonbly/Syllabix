@@ -263,7 +263,7 @@ export default function CertificatePage() {
           <div className="px-12 py-4 flex items-center justify-between" style={{ background: '#eef0ff', borderTop: '1px solid #dde0f5' }}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1A237E' }}>
-                Syllabix — afridigi.com
+                Syllabix — syllabix.com
               </p>
               <p className="text-xs text-neutral-400 mt-0.5">
                 {c('verify')}

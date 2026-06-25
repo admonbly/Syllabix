@@ -34,7 +34,7 @@ export async function POST(request) {
     ? `${MODULE_NAMES[moduleId] || `Module ${moduleId}`}`
     : 'Certification Numérique Complète';
 
-  const certUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://syllabix.afridigi.com'}/certificate/${certId}`;
+  const certUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://syllabix.com'}/certificate/${certId}`;
   const name = displayName || email.split('@')[0];
 
   const html = `
@@ -97,7 +97,7 @@ export async function POST(request) {
         <tr><td style="background:#f8f9ff;padding:20px 40px;text-align:center;border-top:1px solid #e8ecff;">
           <p style="margin:0;color:#999;font-size:12px;">
             Syllabix — Plateforme de certification numérique<br>
-            <a href="https://syllabix.afridigi.com" style="color:#1A237E;">syllabix.afridigi.com</a>
+            <a href="https://syllabix.com" style="color:#1A237E;">syllabix.com</a>
           </p>
         </td></tr>
 
@@ -115,7 +115,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'certifications@syllabix.afridigi.com',
+        from: process.env.RESEND_FROM_EMAIL || 'certifications@syllabix.com',
         to: [email],
         subject: `🏆 Vous avez obtenu votre certificat ${certTitle} — Syllabix`,
         html,
