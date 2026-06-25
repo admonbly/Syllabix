@@ -43,9 +43,9 @@ const testimonialQuotesEn = [
 ];
 
 const blogPosts = [
-  { href: '/blog/ia-chat-gpt-2024',     badge: 'IA',       icon: Bot,        titleFr: "ChatGPT et l'IA en 2024",                   excerptFr: 'Comment utiliser les assistants IA dans votre quotidien professionnel et personnel.',   titleEn: 'ChatGPT & AI in 2024',                  excerptEn: 'How to use AI assistants in your professional and personal daily life.' },
-  { href: '/blog/securite-mots-passe',  badge: 'Sécurité', icon: ShieldCheck, titleFr: 'Mots de passe : les bonnes pratiques',      excerptFr: 'Les méthodes pour créer et gérer des mots de passe solides en 2024.',                  titleEn: 'Passwords: best practices',             excerptEn: 'Methods for creating and managing strong passwords in 2024.' },
-  { href: '/blog/google-avancee',       badge: 'Internet',  icon: Globe,       titleFr: 'Maîtriser la recherche Google',             excerptFr: "Les opérateurs avancés qui vous feront gagner des heures de recherche.",               titleEn: 'Master Google Search',                  excerptEn: 'Advanced operators that will save you hours of research.' },
+  { href: '/blog/ia-emploi-afrique-2026',              badge: 'IA',            icon: Bot,         titleFr: "IA et emploi en Afrique : menace ou opportunité ?",              excerptFr: "L'IA va-t-elle détruire les emplois africains ou en créer de nouveaux ? Analyse des secteurs concernés.",     titleEn: 'AI & jobs in Africa: threat or opportunity?',      excerptEn: 'Will AI destroy African jobs or create new ones? Analysis of impacted sectors.' },
+  { href: '/blog/cybersecurite-pme-afrique',           badge: 'Cybersécurité', icon: ShieldCheck, titleFr: "Cybersécurité pour PME africaines : les 6 erreurs qui coûtent cher", excerptFr: "Arnaques au CEO, phishing WhatsApp, faux virements… comment protéger votre entreprise.",                    titleEn: 'Cybersecurity for African SMEs: 6 costly mistakes', excerptEn: 'CEO fraud, WhatsApp phishing, fake transfers… how to protect your business.' },
+  { href: '/blog/mobile-money-competences-numeriques', badge: 'Internet',      icon: Globe,       titleFr: "Mobile Money et compétences numériques : le duo gagnant",        excerptFr: "MTN MoMo, Wave, Orange Money… quelles compétences numériques maîtriser pour en tirer le meilleur parti ?", titleEn: 'Mobile Money & digital skills: the winning duo',   excerptEn: 'MTN MoMo, Wave, Orange Money… what digital skills to master to make the most of them.' },
 ];
 
 /* ── Composant section header ──────────────────────────── */
