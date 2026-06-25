@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
-import { shuffleArray, randomizeAnswerOptions } from '@/lib/examService';
+import { shuffleArray, randomizeAnswerOptions, EXAM_CONFIG } from '@/lib/examService';
 import { getModuleById, getAllQuestions } from '@/lib/quizService';
 import { useLanguage } from '@/lib/LanguageContext';
 
@@ -214,7 +214,7 @@ function TextInput({ question, answered, userAnswer, inputVal, onChange, onSubmi
 
 const ADAPTIVE_STREAK_UP   = 2;
 const ADAPTIVE_STREAK_DOWN = 2;
-const SESSION_SIZE         = 5; // questions par session d'entraînement
+const SESSION_SIZE         = EXAM_CONFIG.TRAINING.SESSION_SIZE;
 
 export default function TrainingQuizComponent({ mode = 'module', moduleId = null }) {
   const { locale, t } = useLanguage();

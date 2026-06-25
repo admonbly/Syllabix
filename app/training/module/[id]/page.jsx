@@ -10,6 +10,7 @@ import { quizData } from '@/lib/quizData';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import { MODULE_LESSONS } from '@/lib/moduleLessons';
 import { getModuleById } from '@/lib/quizService';
+import { EXAM_CONFIG } from '@/lib/examService';
 
 function TrainingModuleContent() {
   const params = useParams();
@@ -53,7 +54,7 @@ function TrainingModuleContent() {
             📚 Entraînement: {module.module}
           </h1>
           <p className="text-lg text-neutral-600">
-            Pratiquez avec 5 questions aléatoires de ce module
+            Pratiquez avec {EXAM_CONFIG.TRAINING.SESSION_SIZE} questions aléatoires de ce module
           </p>
 
           {/* Compétences développées */}
@@ -88,19 +89,21 @@ function TrainingModuleContent() {
                 <div className="flex gap-6">
                   <div className="text-center">
                     <p className="text-xl font-bold text-primary">
-                      {questionCount ?? '…'}
+                      {EXAM_CONFIG.TRAINING.SESSION_SIZE}
                     </p>
-                    <p className="text-xs text-neutral-500">Questions</p>
+                    <p className="text-xs text-neutral-500">Questions / session</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-bold text-primary">
-                      ~{questionCount ? `${Math.ceil(questionCount * 1.5)} min` : '…'}
+                      ~{Math.ceil(EXAM_CONFIG.TRAINING.SESSION_SIZE * 1.5)} min
                     </p>
                     <p className="text-xs text-neutral-500">Durée estimée</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xl font-bold text-primary">Adaptatif</p>
-                    <p className="text-xs text-neutral-500">Difficulté</p>
+                    <p className="text-xl font-bold text-primary">
+                      {questionCount ?? '…'}
+                    </p>
+                    <p className="text-xs text-neutral-500">Questions au total</p>
                   </div>
                 </div>
                 <button
