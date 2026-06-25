@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ArrowRight, MapPin } from 'lucide-react';
+import { ArrowRight, MapPin, Linkedin } from 'lucide-react';
 import { useState } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
@@ -83,10 +83,19 @@ export default function Footer() {
             <p className="text-white/50 text-sm leading-relaxed mb-5">
               La plateforme de référence pour évaluer et certifier les compétences numériques à travers l&apos;Afrique.
             </p>
-            <div className="flex items-center gap-1.5 text-white/35 text-xs">
+            <div className="flex items-center gap-1.5 text-white/35 text-xs mb-4">
               <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
               <span>Afrique — Certifications reconnues</span>
             </div>
+            <a
+              href="https://www.linkedin.com/company/syllabix"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-white/40 hover:text-accent transition-colors text-sm"
+            >
+              <Linkedin className="w-4 h-4" />
+              <span>LinkedIn</span>
+            </a>
           </div>
 
           {/* Produits */}

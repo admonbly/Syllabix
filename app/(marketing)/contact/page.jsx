@@ -34,8 +34,8 @@ export default function ContactPage() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <Card icon="📧" title="Email" description="support@syllabix.io" />
-          <Card icon="💬" title="Chat" description="Réponse en moins d'1 heure" />
+          <Card icon="📧" title="Email" description="contact@syllabix.com" />
+          <Card icon="💼" title="LinkedIn" description={<a href="https://www.linkedin.com/company/syllabix" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">linkedin.com/company/syllabix</a>} />
           <Card icon="🕐" title="Horaires" description="Lun-Ven: 9h-18h UTC" />
         </div>
 
