@@ -214,6 +214,7 @@ function TextInput({ question, answered, userAnswer, inputVal, onChange, onSubmi
 
 const ADAPTIVE_STREAK_UP   = 2;
 const ADAPTIVE_STREAK_DOWN = 2;
+const SESSION_SIZE         = 5; // questions par session d'entraînement
 
 export default function TrainingQuizComponent({ mode = 'module', moduleId = null }) {
   const { locale, t } = useLanguage();
@@ -290,12 +291,12 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
 
   // ── Navigation ─────────────────────────────────────────────────────────────
   const goNext = () => {
-    // Si on a déjà pré-chargé la question suivante (retour arrière puis aller avant)
+    if (currentIdx >= total - 1) return; // session terminée
     if (currentIdx < questions.length - 1) { setCurrentIdx((i) => i + 1); return; }
 
     const usedSet = new Set(questions.map((q) => q._uid));
     const next    = pickFromPool(pool, difficulty, usedSet);
-    if (!next) return; // toutes les questions utilisées
+    if (!next) return;
     setQuestions((prev) => [...prev, randomizeAnswerOptions(next)]);
     setCurrentIdx((i) => i + 1);
   };
@@ -304,6 +305,7 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     setAnswers({}); setCurrentIdx(0); setShowResults(false);
     setDifficulty(1); setStreak(0); setWrongStreak(0);
     setSelectedMulti(new Set()); setInputVal('');
+    // Mélange le pool pour avoir 5 questions différentes à chaque relance
     const shuffled = [...pool];
     shuffleArray(shuffled);
     setPool(shuffled);
@@ -330,7 +332,7 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     );
   }
 
-  const total   = pool.length;
+  const total    = Math.min(SESSION_SIZE, pool.length);
   const answered = answers[currentIdx] !== undefined;
 
   // ── Résultats ──────────────────────────────────────────────────────────────
