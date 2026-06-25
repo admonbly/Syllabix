@@ -1,199 +1,248 @@
 'use client';
 
-import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import Card from '@/components/Card';
+import Link from 'next/link';
+
+const modules = [
+  {
+    id: 1,
+    emoji: '💻',
+    title: 'IT & Ordinateur',
+    description: 'Architecture, système d\'exploitation, gestion des fichiers et maintenance.',
+    topics: [
+      'Architecture d\'un ordinateur (processeur, RAM, stockage)',
+      'Systèmes d\'exploitation (Windows, macOS, Linux)',
+      'Installation et gestion de logiciels',
+      'Organisation des fichiers et dossiers',
+      'Maintenance et optimisation basique',
+    ],
+  },
+  {
+    id: 2,
+    emoji: '🌐',
+    title: 'Internet & Navigation',
+    description: 'Navigation, recherche avancée et sécurité web.',
+    topics: [
+      'Navigation web et comprendre les URLs',
+      'Moteurs de recherche et recherche avancée',
+      'Sécurité des sites web (HTTPS, certificats SSL)',
+      'Gestion des favoris et de l\'historique',
+      'Téléchargements sécurisés',
+    ],
+  },
+  {
+    id: 3,
+    emoji: '📧',
+    title: 'Email & Communication',
+    description: 'Maîtrise complète de la messagerie professionnelle.',
+    topics: [
+      'Création et gestion d\'un compte email',
+      'Rédaction et envoi d\'emails professionnels',
+      'Gestion des pièces jointes',
+      'Organisation des emails (dossiers, filtres)',
+      'Signature professionnelle et contacts',
+    ],
+  },
+  {
+    id: 4,
+    emoji: '📊',
+    title: 'Bureautique',
+    description: 'Traitement de texte, tableurs et présentations.',
+    topics: [
+      'Traitement de texte (Word, Google Docs)',
+      'Feuilles de calcul (Excel, Google Sheets)',
+      'Présentations (PowerPoint, Google Slides)',
+      'Mise en page et formatage professionnel',
+      'Collaboration et partage de documents',
+    ],
+  },
+  {
+    id: 5,
+    emoji: '🛡️',
+    title: 'Cybersécurité',
+    description: 'Protéger ses données et identifier les menaces en ligne.',
+    topics: [
+      'Mots de passe forts et gestionnaires',
+      'Hameçonnage (phishing) et arnaques en ligne',
+      'Malware, virus et ransomware',
+      'Sauvegarde et récupération des données',
+      'Confidentialité et vie privée en ligne',
+    ],
+  },
+  {
+    id: 6,
+    emoji: '🤖',
+    title: 'Intelligence Artificielle',
+    description: 'Comprendre et utiliser les outils IA au quotidien.',
+    topics: [
+      'Principes fondamentaux de l\'IA',
+      'Assistants IA (ChatGPT, Claude, Gemini)',
+      'Génération d\'images et de contenus',
+      'Applications pratiques de l\'IA au travail',
+      'Éthique et limites de l\'IA',
+    ],
+  },
+  {
+    id: 7,
+    emoji: '💼',
+    title: 'Employabilité Numérique',
+    description: 'Valoriser ses compétences et travailler à l\'ère digitale.',
+    topics: [
+      'Profil LinkedIn et personal branding',
+      'CV numérique et lettre de motivation',
+      'Communication professionnelle en ligne',
+      'Visiophonie et réunions à distance (Zoom, Teams)',
+      'Outils collaboratifs et travail en équipe',
+    ],
+  },
+];
+
+const steps = [
+  {
+    number: '01',
+    emoji: '🏋️',
+    title: 'S\'entraîner',
+    description: 'Accédez aux modules d\'entraînement gratuitement. 5 questions par module, sans limite de tentatives.',
+  },
+  {
+    number: '02',
+    emoji: '📝',
+    title: 'Passer l\'examen',
+    description: '35 questions en 35 minutes. Les questions sont tirées aléatoirement pour chaque tentative.',
+  },
+  {
+    number: '03',
+    emoji: '🏆',
+    title: 'Obtenir le certificat',
+    description: 'Un score ≥ 60% vous délivre un certificat numérique unique, vérifiable en ligne.',
+  },
+];
 
 export default function PresentationPage() {
-  const modules = [
-    {
-      module: 'IT (Ordinateur)',
-      topics: [
-        'Architecture d\'un ordinateur (processeur, RAM, disque dur)',
-        'Système d\'exploitation (Windows, Mac, Linux)',
-        'Installation et désinstallation de logiciels',
-        'Gestion des fichiers et dossiers',
-        'Maintenance et optimisation de l\'ordinateur',
-      ],
-    },
-    {
-      module: 'Internet & Google',
-      topics: [
-        'Navigation internet et URL',
-        'Moteurs de recherche (Google, Bing)',
-        'Recherche avancée et filtrages',
-        'Sécurité des sites web (HTTPS, certificats)',
-        'Favoris et historique',
-      ],
-    },
-    {
-      module: 'Email',
-      topics: [
-        'Créer un compte email (Gmail, Outlook)',
-        'Composer et envoyer des emails',
-        'Pièces jointes et formats',
-        'Organisation des emails (dossiers, libellés)',
-        'Gestion de la signature et des contacts',
-      ],
-    },
-    {
-      module: 'Bureautique',
-      topics: [
-        'Traitement de texte (Word, Google Docs)',
-        'Feuilles de calcul (Excel, Google Sheets)',
-        'Présentations (PowerPoint)',
-        'Formatage et mise en page',
-        'Collaboration et partage de documents',
-      ],
-    },
-    {
-      module: 'Cybersécurité',
-      topics: [
-        'Mots de passe forts et authentification',
-        'Hameçonnage et escroqueries en ligne',
-        'Malware, virus, et ransomware',
-        'Sauvegarde des données',
-        'Confidentialité en ligne',
-      ],
-    },
-    {
-      module: 'Intelligence Artificielle',
-      topics: [
-        'Définition et principes de l\'IA',
-        'Assistants IA (ChatGPT, Claude)',
-        'Génération d\'images (DALL-E, Midjourney)',
-        'Applications pratiques de l\'IA',
-        'Éthique et responsabilité de l\'IA',
-      ],
-    },
-    {
-      module: 'Employabilité',
-      topics: [
-        'Création de profil LinkedIn',
-        'CVs et lettres de motivation numériques',
-        'Communication professionnelle en ligne',
-        'Visiophonie et réunions en ligne',
-        'Outils collaboratifs (Teams, Slack, Zoom)',
-      ],
-    },
-  ];
-
   return (
-    <>
-      {/* Section 1: Présentation */}
-      <section className="py-20 bg-neutral-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="section-title">Certification des Compétences Numériques</h1>
+    <div className="bg-neutral-50 min-h-screen">
 
-          <div className="prose prose-lg max-w-none text-neutral-700">
-            <p className="text-xl leading-relaxed mb-8">
-              Syllabix offre une certification reconnue des compétences numériques essentielles.
-              Notre plateforme évalue vos compétences à travers 7 modules couvrant tous les domaines
-              critiques de l'informatique moderne.
-            </p>
-
-            <h2 className="text-3xl font-heading font-bold text-primary mt-12 mb-6">
-              Comment ça marche?
-            </h2>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 my-8">
-              <Card
-                icon="1️⃣"
-                title="S'entraîner"
-                description="Testez vos connaissances sur chaque module. Pas de limite, entraînez-vous autant que vous voulez."
-              />
-              <Card
-                icon="2️⃣"
-                title="Passer l'examen"
-                description="Quand vous êtes prêt, passez l'examen officiel. 35 questions randomisées, 35 minutes."
-              />
-              <Card
-                icon="3️⃣"
-                title="Obtenir le certificat"
-                description="Si vous obtenez 60%, vous recevez un certificat numérique que vous pouvez télécharger et partager."
-              />
-            </div>
-
-            <h2 className="text-3xl font-heading font-bold text-primary mt-12 mb-6">
-              Système de scoring
-            </h2>
-
-            <div className="bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/20 rounded-lg p-8 my-8">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div>
-                  <p className="text-2xl font-bold text-accent mb-2">80-100%</p>
-                  <p className="text-neutral-700 font-semibold">AVANCÉ</p>
-                  <p className="text-sm text-neutral-600">Certificat Premium</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-secondary mb-2">60-79%</p>
-                  <p className="text-neutral-700 font-semibold">INTERMÉDIAIRE</p>
-                  <p className="text-sm text-neutral-600">Certificat Standard</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-neutral-500 mb-2">&lt;60%</p>
-                  <p className="text-neutral-700 font-semibold">DÉBUTANT</p>
-                  <p className="text-sm text-neutral-600">Pas de certificat</p>
-                </div>
-              </div>
-            </div>
-
-            <h2 className="text-3xl font-heading font-bold text-primary mt-12 mb-6">
-              Prêt à commencer?
-            </h2>
-
-            <div className="flex flex-col sm:flex-row gap-4 my-8">
-              <CTAButton href="/training/mixed" size="lg">
-                🏋️ S'entraîner
-              </CTAButton>
-              <CTAButton href="/exam/global" variant="secondary" size="lg">
-                🎓 Passer l'examen
-              </CTAButton>
-            </div>
+      {/* Hero */}
+      <section className="bg-primary text-white py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <span className="inline-block px-4 py-1.5 bg-white/10 text-white/80 rounded-full text-sm font-semibold mb-6 tracking-wide uppercase">
+            Certification Syllabix
+          </span>
+          <h1 className="text-4xl md:text-5xl font-heading font-bold mb-6 leading-tight">
+            7 modules pour maîtriser<br />les compétences numériques
+          </h1>
+          <p className="text-white/70 text-lg max-w-2xl mx-auto mb-10">
+            Une certification concrète, vérifiable, reconnue — pensée pour les professionnels et étudiants africains.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <CTAButton href="/training/mixed" variant="white">
+              S'entraîner gratuitement
+            </CTAButton>
+            <CTAButton href="/certification" variant="outline-white">
+              Passer la certification
+            </CTAButton>
           </div>
         </div>
       </section>
 
-      {/* Section 2: Référentiel des Compétences */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="section-title">Référentiel de Compétences</h2>
-          <p className="section-subtitle mb-12">
-            Consultez les compétences evaluées dans chaque module
-          </p>
-
-          <div className="space-y-8">
-            {modules.map((item, index) => (
-              <Card key={index} variant="accent" className="p-8">
-                <h3 className="text-2xl font-heading font-bold text-primary mb-6">
-                  Module {index + 1}: {item.module}
-                </h3>
-
-                <ul className="space-y-3">
-                  {item.topics.map((topic, topicIndex) => (
-                    <li key={topicIndex} className="flex gap-3 text-neutral-700">
-                      <span className="text-accent font-bold">✓</span>
-                      <span>{topic}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Card>
+      {/* Chiffres clés */}
+      <section className="py-12 bg-white border-b border-neutral-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            {[
+              { value: '7', label: 'Modules' },
+              { value: '35', label: 'Questions' },
+              { value: '35 min', label: 'Durée' },
+              { value: '60%', label: 'Score requis' },
+            ].map(({ value, label }) => (
+              <div key={label}>
+                <p className="text-3xl font-heading font-bold text-primary">{value}</p>
+                <p className="text-sm text-neutral-500 mt-1">{label}</p>
+              </div>
             ))}
           </div>
-
-          <Card className="mt-12 bg-gradient-to-r from-accent/10 to-secondary/10">
-            <h3 className="text-xl font-heading font-bold text-primary mb-4">
-              📋 À savoir
-            </h3>
-            <ul className="space-y-2 text-neutral-700">
-              <li>✓ Chaque module contient 5 questions</li>
-              <li>✓ Total: 35 questions</li>
-              <li>✓ Temps limite: 35 minutes</li>
-              <li>✓ Score minimum pour certificat: 60%</li>
-              <li>✓ Les questions sont randomisées à chaque tentative</li>
-            </ul>
-          </Card>
         </div>
       </section>
-    </>
+
+      {/* Comment ça marche */}
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-heading font-bold text-primary text-center mb-4">
+            Comment ça marche ?
+          </h2>
+          <p className="text-neutral-500 text-center mb-12">Trois étapes simples pour obtenir votre certification.</p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {steps.map((step) => (
+              <div key={step.number} className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/8 text-3xl mb-4">
+                  {step.emoji}
+                </div>
+                <p className="text-xs font-bold text-accent uppercase tracking-widest mb-2">{step.number}</p>
+                <h3 className="text-lg font-heading font-bold text-primary mb-2">{step.title}</h3>
+                <p className="text-neutral-500 text-sm leading-relaxed">{step.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Modules */}
+      <section className="py-20 bg-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-heading font-bold text-primary text-center mb-4">
+            Les 7 modules de certification
+          </h2>
+          <p className="text-neutral-500 text-center mb-12">
+            Chaque module est évalué sur 5 questions ciblées.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {modules.map((mod) => (
+              <div key={mod.id} className="bg-neutral-50 border border-neutral-100 rounded-2xl p-6 hover:border-accent/30 hover:shadow-sm transition-all">
+                <div className="flex items-start gap-4">
+                  <div className="text-3xl flex-shrink-0">{mod.emoji}</div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-accent uppercase tracking-widest">Module {mod.id}</span>
+                    </div>
+                    <h3 className="text-lg font-heading font-bold text-primary mb-1">{mod.title}</h3>
+                    <p className="text-sm text-neutral-500 mb-4">{mod.description}</p>
+                    <ul className="space-y-1.5">
+                      {mod.topics.map((topic, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-neutral-600">
+                          <span className="text-accent font-bold mt-0.5 flex-shrink-0">✓</span>
+                          <span>{topic}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA final */}
+      <section className="py-20 bg-gradient-to-br from-primary to-primary/90 text-white text-center">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-heading font-bold mb-4">Prêt à vous certifier ?</h2>
+          <p className="text-white/70 mb-8">
+            Commencez par vous entraîner gratuitement, passez l'examen quand vous êtes prêt.
+          </p>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <CTAButton href="/training/mixed" variant="white">
+              S'entraîner d'abord
+            </CTAButton>
+            <CTAButton href="/certification" variant="outline-white">
+              Passer l'examen
+            </CTAButton>
+          </div>
+        </div>
+      </section>
+
+    </div>
   );
 }
