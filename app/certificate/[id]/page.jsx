@@ -3,9 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
+import { PARTNERS } from '@/lib/partners';
 
 const MODULE_NAMES = {
   0: 'IT & Ordinateur',
@@ -237,7 +239,28 @@ export default function CertificatePage() {
             </div>
           </div>
 
-          <div className="px-12 py-5 flex items-center justify-between" style={{ background: '#f8f9ff', borderTop: '2px solid #e8ecff' }}>
+          {/* Logos partenaires */}
+          <div className="px-12 py-6" style={{ background: '#f8f9ff', borderTop: '2px solid #e8ecff' }}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-center mb-4" style={{ color: '#1A237E' }}>
+              Partenaires institutionnels
+            </p>
+            <div className="flex items-center justify-center gap-8 flex-wrap">
+              {PARTNERS.map((partner) => (
+                <div key={partner.id} className="relative" style={{ width: 80, height: 48 }}>
+                  <Image
+                    src={partner.logo}
+                    alt={partner.shortName}
+                    fill
+                    className="object-contain"
+                    sizes="80px"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pied de page vérification */}
+          <div className="px-12 py-4 flex items-center justify-between" style={{ background: '#eef0ff', borderTop: '1px solid #dde0f5' }}>
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1A237E' }}>
                 Syllabix — afridigi.com
@@ -246,8 +269,8 @@ export default function CertificatePage() {
                 {c('verify')}
               </p>
             </div>
-            <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ background: '#1A237E' }}>
-              <span className="text-white text-2xl">✓</span>
+            <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: '#1A237E' }}>
+              <span className="text-white text-xl">✓</span>
             </div>
           </div>
 
