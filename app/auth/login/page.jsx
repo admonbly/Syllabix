@@ -14,13 +14,13 @@ const DIAL_CODES = [
 ];
 
 function redirect(url) {
-  document.cookie = 'syllabix_session=1; path=/; SameSite=Strict; Max-Age=604800';
   window.location.href = url;
 }
 
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/';
+  const sessionExpired = searchParams.get('reason') === 'session_expired';
   const { t } = useLanguage();
   const a = (k) => t(`auth.login.${k}`);
 
@@ -87,6 +87,12 @@ function LoginForm() {
   return (
     <section className="py-20 bg-neutral-50 min-h-screen flex items-center">
       <div className="w-full max-w-md mx-auto px-4">
+        {sessionExpired && (
+          <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 text-center">
+            ⏱ Votre session a expiré après 6h d'inactivité. Veuillez vous reconnecter.
+          </div>
+        )}
+
         <Card className="p-8">
           <h1 className="text-3xl font-heading font-bold text-primary text-center mb-6">
             {a('title')}
