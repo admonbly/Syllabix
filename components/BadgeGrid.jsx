@@ -4,7 +4,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 
 const MODULES = [
   { id: 0, icon: '💻', nameFr: 'IT & Ordinateur',          nameEn: 'IT & Computer' },
-  { id: 1, icon: '🌐', nameFr: 'Internet & Google',        nameEn: 'Internet & Google' },
+  { id: 1, icon: '🌐', nameFr: 'Internet',        nameEn: 'Internet' },
   { id: 2, icon: '📧', nameFr: 'Email',                    nameEn: 'Email' },
   { id: 3, icon: '📊', nameFr: 'Bureautique',              nameEn: 'Office Tools' },
   { id: 4, icon: '🔒', nameFr: 'Cybersécurité',            nameEn: 'Cybersecurity' },

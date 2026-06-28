@@ -19,9 +19,9 @@ const MODULES = [
   },
   {
     id: 1,
-    name: 'Internet & Google',
+    name: 'Internet',
     icon: '🌐',
-    description: 'Navigation web, recherche avancée, sécurité des sites et outils Google.',
+    description: 'Navigation web, recherche en ligne, sécurité des sites et évaluation des sources.',
     color: '#0277BD',
     bg: '#e1f5fe',
   },

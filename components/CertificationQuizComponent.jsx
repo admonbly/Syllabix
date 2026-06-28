@@ -193,7 +193,7 @@ export default function CertificationQuizComponent({
             if (moduleId !== null) {
               await userDB.saveUserProgress(firebaseUser.uid, String(moduleId), computed.percentage, []);
               // Attribuer le badge de module
-              const MODULE_NAMES = ['IT & Ordinateur','Internet & Google','Email','Bureautique','Cybersécurité','Intelligence Artificielle','Employabilité'];
+              const MODULE_NAMES = ['IT & Ordinateur','Internet','Email','Bureautique','Cybersécurité','Intelligence Artificielle','Employabilité'];
               await userDB.saveBadge(firebaseUser.uid, {
                 moduleId:   Number(moduleId),
                 moduleName: MODULE_NAMES[Number(moduleId)] ?? `Module ${moduleId}`,

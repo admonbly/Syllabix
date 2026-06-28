@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 const MODULE_NAMES = {
   0: 'IT & Ordinateur',
-  1: 'Internet & Google',
+  1: 'Internet',
   2: 'Email',
   3: 'Bureautique',
   4: 'Cybersécurité',

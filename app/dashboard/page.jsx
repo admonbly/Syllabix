@@ -30,7 +30,7 @@ function timeAgo(isoStr) {
 
 const MODULES = [
   { id: 0, name: 'IT (Ordinateur)' },
-  { id: 1, name: 'Internet & Google' },
+  { id: 1, name: 'Internet' },
   { id: 2, name: 'Email' },
   { id: 3, name: 'Bureautique' },
   { id: 4, name: 'Cybersécurité' },
