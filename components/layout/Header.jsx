@@ -23,7 +23,7 @@ export default function Header() {
     { href: '/training',      label: t('nav.training') },
     { href: '/certification', label: t('nav.certification') },
     { href: '/blog',           label: t('nav.news') },
-    { href: '/about',         label: 'À propos' },
+    { href: '/about',         label: t('nav.about') },
     { href: '/contact',       label: t('nav.contact') },
   ];
 

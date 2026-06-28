@@ -1,63 +1,27 @@
+'use client';
+
 import Link from 'next/link';
 import CTAButton from '@/components/CTAButton';
+import { useLanguage } from '@/lib/LanguageContext';
 
-export const metadata = {
-  title: 'À propos — Syllabix',
-  description: 'Découvrez Syllabix : notre mission, notre équipe et la reconnaissance de nos certifications numériques en Afrique.',
-};
-
-const STATS = [
-  { value: '5 000+', label: 'Apprenants actifs',    icon: '👥' },
-  { value: '7',      label: 'Modules certifiants',  icon: '📚' },
-  { value: '98%',    label: 'Taux de satisfaction', icon: '⭐' },
-  { value: '12+',    label: 'Pays représentés',     icon: '🌍' },
-];
-
-const TEAM = [
-  {
-    name: 'Équipe Pédagogique',
-    role: 'Conception des modules',
-    desc: 'Experts en compétences numériques et en formation professionnelle, nos concepteurs pédagogiques élaborent des contenus alignés sur les réalités du marché africain.',
-    icon: '🎓',
-  },
-  {
-    name: 'Équipe Technique',
-    role: 'Développement de la plateforme',
-    desc: 'Ingénieurs et développeurs passionnés, nous construisons une plateforme sécurisée, rapide et accessible depuis n\'importe quel appareil connecté.',
-    icon: '💻',
-  },
-  {
-    name: 'Équipe Partenariats',
-    role: 'Relations entreprises & institutions',
-    desc: 'Nous travaillons à faire reconnaître les certifications Syllabix auprès des employeurs, des universités et des institutions publiques africaines.',
-    icon: '🤝',
-  },
-];
-
-const RECOGNITION = [
-  {
-    title: 'Reconnues par les employeurs',
-    desc: 'Nos certificats sont conçus pour être directement valorisables sur un CV et sur LinkedIn. Chaque certificat est vérifiable en ligne via un lien unique.',
-    icon: '💼',
-  },
-  {
-    title: 'Alignées sur les standards internationaux',
-    desc: 'Les contenus sont alignés sur le cadre DIGCOMP (European Digital Competence Framework) adapté au contexte africain.',
-    icon: '🌐',
-  },
-  {
-    title: 'Certification vérifiable',
-    desc: 'Chaque certificat généré possède un identifiant unique. Les recruteurs peuvent vérifier son authenticité directement sur notre plateforme.',
-    icon: '🔍',
-  },
-  {
-    title: 'Partenariats institutionnels (en cours)',
-    desc: 'Nous travaillons activement avec des universités, des agences d\'emploi et des ministères en Afrique de l\'Ouest pour faire reconnaître officiellement nos certifications.',
-    icon: '🏛️',
-  },
-];
+const STAT_VALUES = ['5 000+', '7', '98%', '12+'];
+const STAT_ICONS  = ['👥', '📚', '⭐', '🌍'];
 
 export default function AboutPage() {
+  const { t } = useLanguage();
+  const ab = (k) => t(`about.${k}`);
+
+  const STATS = [
+    { value: STAT_VALUES[0], label: ab('stats.learners'),     icon: STAT_ICONS[0] },
+    { value: STAT_VALUES[1], label: ab('stats.modules'),      icon: STAT_ICONS[1] },
+    { value: STAT_VALUES[2], label: ab('stats.satisfaction'), icon: STAT_ICONS[2] },
+    { value: STAT_VALUES[3], label: ab('stats.countries'),    icon: STAT_ICONS[3] },
+  ];
+
+  const TEAM        = ab('team.members');
+  const RECOGNITION = ab('recognition.items');
+  const VALUES      = ab('values.items');
+  const FEATURES    = ab('why.features');
   return (
     <div className="min-h-screen bg-neutral-50">
 
@@ -65,13 +29,13 @@ export default function AboutPage() {
       <section className="py-20 bg-gradient-to-br from-primary to-[#283593] text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-sm font-medium mb-6">
-            <span>🌍</span> Notre mission
+            <span>🌍</span> {ab('missionTag')}
           </div>
           <h1 className="text-5xl font-heading font-bold mb-6 leading-tight">
-            Démocratiser la certification<br />des compétences numériques
+            {ab('hero.title')}
           </h1>
           <p className="text-xl text-white/80 max-w-2xl mx-auto">
-            Syllabix est né d'un constat simple : des millions de professionnels africains maîtrisent les outils numériques, mais n'ont aucun moyen de le prouver. Nous changeons ça.
+            {ab('hero.subtitle')}
           </p>
         </div>
       </section>
@@ -96,27 +60,14 @@ export default function AboutPage() {
         {/* Mission */}
         <section className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl font-heading font-bold text-primary mb-4">Pourquoi Syllabix ?</h2>
-            <p className="text-neutral-600 leading-relaxed mb-4">
-              En Afrique, le marché du travail évolue rapidement vers le numérique. Pourtant, la grande majorité des travailleurs n'ont pas accès à des formations certifiantes abordables et reconnues.
-            </p>
-            <p className="text-neutral-600 leading-relaxed mb-4">
-              Syllabix propose une solution 100% en ligne, accessible depuis un téléphone, conçue pour le contexte africain : cours courts, examen en moins de 35 minutes, certificat instantané.
-            </p>
-            <p className="text-neutral-600 leading-relaxed">
-              Notre objectif : permettre à <strong>1 million d'Africains</strong> de certifier leurs compétences numériques d'ici 2027.
-            </p>
+            <h2 className="text-3xl font-heading font-bold text-primary mb-4">{ab('why.title')}</h2>
+            <p className="text-neutral-600 leading-relaxed mb-4">{ab('why.p1')}</p>
+            <p className="text-neutral-600 leading-relaxed mb-4">{ab('why.p2')}</p>
+            <p className="text-neutral-600 leading-relaxed">{ab('why.p3')}</p>
           </div>
           <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-8 border border-primary/10">
             <div className="space-y-4">
-              {[
-                '✅ Gratuit pour s\'entraîner',
-                '✅ Examen en 35 minutes',
-                '✅ Certificat vérifiable en ligne',
-                '✅ Partageable sur LinkedIn',
-                '✅ Accessible sur mobile',
-                '✅ Contenu adapté à l\'Afrique',
-              ].map((item) => (
+              {FEATURES.map((item) => (
                 <p key={item} className="text-neutral-700 font-medium">{item}</p>
               ))}
             </div>
@@ -125,10 +76,8 @@ export default function AboutPage() {
 
         {/* Équipe */}
         <section>
-          <h2 className="text-3xl font-heading font-bold text-primary mb-3">Notre équipe</h2>
-          <p className="text-neutral-500 mb-10">
-            Une équipe pluridisciplinaire répartie en Afrique et en Europe, unie par la même mission.
-          </p>
+          <h2 className="text-3xl font-heading font-bold text-primary mb-3">{ab('team.title')}</h2>
+          <p className="text-neutral-500 mb-10">{ab('team.subtitle')}</p>
           <div className="grid md:grid-cols-3 gap-6">
             {TEAM.map((member) => (
               <div key={member.name} className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm">
@@ -143,10 +92,8 @@ export default function AboutPage() {
 
         {/* Reconnaissance des certificats */}
         <section>
-          <h2 className="text-3xl font-heading font-bold text-primary mb-3">Nos certifications sont-elles reconnues ?</h2>
-          <p className="text-neutral-500 mb-10">
-            La reconnaissance de nos certifications est au cœur de notre stratégie. Voici où nous en sommes.
-          </p>
+          <h2 className="text-3xl font-heading font-bold text-primary mb-3">{ab('recognition.title')}</h2>
+          <p className="text-neutral-500 mb-10">{ab('recognition.subtitle')}</p>
           <div className="grid md:grid-cols-2 gap-6">
             {RECOGNITION.map((item) => (
               <div key={item.title} className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm flex gap-4">
@@ -160,21 +107,15 @@ export default function AboutPage() {
           </div>
 
           <div className="mt-8 p-6 bg-amber-50 border border-amber-200 rounded-2xl">
-            <p className="text-amber-800 font-medium">
-              ⚠️ <strong>Transparence :</strong> Syllabix est une plateforme en croissance. Nos certifications ne sont pas encore officiellement reconnues par des organismes gouvernementaux. Nous travaillons activement à établir ces partenariats institutionnels. En attendant, nos certificats restent un excellent moyen de valoriser vos compétences et de les prouver à des recruteurs.
-            </p>
+            <p className="text-amber-800 font-medium">{ab('recognition.disclaimer')}</p>
           </div>
         </section>
 
         {/* Valeurs */}
         <section>
-          <h2 className="text-3xl font-heading font-bold text-primary mb-10">Nos valeurs</h2>
+          <h2 className="text-3xl font-heading font-bold text-primary mb-10">{ab('values.title')}</h2>
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { icon: '🎯', title: 'Accessibilité', desc: 'Des formations conçues pour être accessibles à tous, quel que soit le niveau ou la connexion.' },
-              { icon: '🌱', title: 'Impact réel',   desc: 'Chaque certification délivrée est un pas concret vers l\'employabilité numérique en Afrique.' },
-              { icon: '🔒', title: 'Intégrité',     desc: 'Des examens équitables, des scores calculés côté serveur, des certificats infalsifiables.' },
-            ].map((v) => (
+            {VALUES.map((v) => (
               <div key={v.title} className="text-center p-6 bg-white rounded-2xl border border-neutral-200 shadow-sm">
                 <div className="text-4xl mb-4">{v.icon}</div>
                 <h3 className="font-heading font-bold text-primary mb-2">{v.title}</h3>
@@ -187,13 +128,11 @@ export default function AboutPage() {
         {/* CTA */}
         <section className="bg-white rounded-2xl border border-neutral-200 p-10 text-center shadow-sm">
           <div className="text-4xl mb-4">💬</div>
-          <h3 className="text-2xl font-heading font-bold text-primary mb-3">Travaillons ensemble</h3>
-          <p className="text-neutral-600 mb-6 max-w-lg mx-auto">
-            Vous êtes une entreprise, une université, ou une institution publique ? Contactez-nous pour explorer un partenariat.
-          </p>
+          <h3 className="text-2xl font-heading font-bold text-primary mb-3">{ab('cta.title')}</h3>
+          <p className="text-neutral-600 mb-6 max-w-lg mx-auto">{ab('cta.desc')}</p>
           <div className="flex flex-wrap gap-3 justify-center">
-            <CTAButton href="/contact" variant="primary" size="lg">Nous contacter</CTAButton>
-            <CTAButton href="/certification" variant="outline" size="lg">Découvrir les certifications</CTAButton>
+            <CTAButton href="/contact" variant="primary" size="lg">{ab('cta.contact')}</CTAButton>
+            <CTAButton href="/certification" variant="outline" size="lg">{ab('cta.cert')}</CTAButton>
           </div>
         </section>
 

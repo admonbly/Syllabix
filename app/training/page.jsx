@@ -16,7 +16,7 @@ export default function TrainingPage() {
         title={tr('title')}
         subtitle={tr('subtitle')}
         icon="🏋️"
-        badge="Entraînement gratuit"
+        badge={tr('badgeFree')}
       />
 
       <div className="max-w-6xl mx-auto px-4 py-12">
@@ -32,24 +32,17 @@ export default function TrainingPage() {
                   <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
                 </svg>
               </div>
-              <span className="inline-block px-2.5 py-0.5 bg-secondary text-white text-[11px] font-bold rounded-full uppercase tracking-wide mb-2">Apprentissage</span>
+              <span className="inline-block px-2.5 py-0.5 bg-secondary text-white text-[11px] font-bold rounded-full uppercase tracking-wide mb-2">{tr('practice.badge')}</span>
               <h2 className="text-2xl font-heading font-bold text-primary mb-1">
-                {locale === 'fr' ? 'Entraînement par module' : 'Module training'}
+                {tr('practice.title')}
               </h2>
               <p className="text-sm text-neutral-600 leading-relaxed">
-                {locale === 'fr'
-                  ? 'Pratique à ton rythme, sans pression. Chaque réponse est expliquée. Reviens autant de fois que tu veux.'
-                  : 'Practice at your own pace, no pressure. Each answer is explained. Come back as many times as you want.'}
+                {tr('practice.desc')}
               </p>
             </div>
             <div className="px-7 py-5 flex-1 flex flex-col">
               <ul className="space-y-2.5 mb-6 flex-1">
-                {[
-                  locale === 'fr' ? '5 questions par session, sans timer' : '5 questions per session, no timer',
-                  locale === 'fr' ? 'Explication détaillée après chaque réponse' : 'Detailed explanation after each answer',
-                  locale === 'fr' ? 'Difficulté adaptative selon ton niveau' : 'Adaptive difficulty based on your level',
-                  locale === 'fr' ? 'Navigation libre · Recommençable à l\'infini' : 'Free navigation · Repeatable anytime',
-                ].map((feat, i) => (
+                {[tr('practice.feat1'), tr('practice.feat2'), tr('practice.feat3'), tr('practice.feat4')].map((feat, i) => (
                   <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
                     <svg className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -59,7 +52,7 @@ export default function TrainingPage() {
                 ))}
               </ul>
               <CTAButton href="#modules" variant="secondary" size="md" className="w-full">
-                {locale === 'fr' ? 'Choisir un module ↓' : 'Choose a module ↓'}
+                {tr('practice.cta')}
               </CTAButton>
             </div>
           </div>
@@ -73,29 +66,22 @@ export default function TrainingPage() {
                 </svg>
               </div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="inline-block px-2.5 py-0.5 bg-accent text-white text-[11px] font-bold rounded-full uppercase tracking-wide">Évaluation</span>
+                <span className="inline-block px-2.5 py-0.5 bg-accent text-white text-[11px] font-bold rounded-full uppercase tracking-wide">{tr('evaluation.badge')}</span>
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-semibold rounded-full">
                   <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                  {locale === 'fr' ? 'Recommandé avant la certification' : 'Recommended before certification'}
+                  {tr('evaluation.recommend')}
                 </span>
               </div>
               <h2 className="text-2xl font-heading font-bold text-primary mb-1">
-                {locale === 'fr' ? 'Évaluation de niveau' : 'Level assessment'}
+                {tr('evaluation.title')}
               </h2>
               <p className="text-sm text-neutral-600 leading-relaxed">
-                {locale === 'fr'
-                  ? 'Mesure ton niveau global avant de passer la certification. Tu sauras exactement où tu en es.'
-                  : 'Measure your overall level before taking the certification. You\'ll know exactly where you stand.'}
+                {tr('evaluation.desc')}
               </p>
             </div>
             <div className="px-7 py-5 flex-1 flex flex-col">
               <ul className="space-y-2.5 mb-6 flex-1">
-                {[
-                  locale === 'fr' ? '12 questions mixtes tous modules' : '12 mixed questions across all modules',
-                  locale === 'fr' ? '10 minutes chrono — conditions réelles' : '10 minutes timed — real conditions',
-                  locale === 'fr' ? 'Score indicatif + recommandation personnalisée' : 'Indicative score + personalized recommendation',
-                  locale === 'fr' ? 'Ne délivre pas de certificat (c\'est l\'étape d\'avant)' : 'Does not issue a certificate (that\'s the next step)',
-                ].map((feat, i) => (
+                {[tr('evaluation.feat1'), tr('evaluation.feat2'), tr('evaluation.feat3'), tr('evaluation.feat4')].map((feat, i) => (
                   <li key={i} className={`flex items-start gap-2.5 text-sm ${i === 3 ? 'text-neutral-400' : 'text-neutral-700'}`}>
                     <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${i === 3 ? 'text-neutral-300' : 'text-accent'}`} viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -105,7 +91,7 @@ export default function TrainingPage() {
                 ))}
               </ul>
               <CTAButton href="/evaluation" variant="primary" size="md" className="w-full">
-                {locale === 'fr' ? "Démarrer l'évaluation →" : 'Start assessment →'}
+                {tr('evaluation.cta')}
               </CTAButton>
             </div>
           </div>
@@ -115,12 +101,8 @@ export default function TrainingPage() {
         {/* ─── Modules + compétences — section unique ─────── */}
         <div id="modules">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-heading font-bold text-primary mb-2">{tr('modules.title')}</h2>
-            <p className="text-neutral-500 text-sm">
-              {locale === 'fr'
-                ? 'Chaque module développe 3 compétences concrètes, validées par un examen officiel.'
-                : 'Each module develops 3 concrete competencies, validated by an official exam.'}
-            </p>
+            <h2 className="text-3xl font-heading font-bold text-primary mb-2">{tr('modulesTitle')}</h2>
+            <p className="text-neutral-500 text-sm">{tr('modulesSubtitle')}</p>
           </div>
 
           <div className="space-y-4">
@@ -138,14 +120,14 @@ export default function TrainingPage() {
                         {locale === 'fr' ? mod.nameFr : mod.nameEn}
                       </p>
                       <p className="text-xs text-neutral-400">
-                        {locale === 'fr' ? '3 compétences' : '3 competencies'}
+                        {t('training.module.competenciesLabel')}
                       </p>
                     </div>
                     <Link
                       href={`/training/module/${mod.moduleId}`}
                       className={`flex-shrink-0 text-xs font-bold px-5 py-2.5 rounded-xl ${mod.color.badge} hover:opacity-80 transition-opacity`}
                     >
-                      {locale === 'fr' ? "S'entraîner →" : 'Practice →'}
+                      {t('training.module.practice')}
                     </Link>
                   </div>
 
@@ -191,6 +173,7 @@ export default function TrainingPage() {
               ? '✦ Référentiel inspiré du cadre européen DigComp, adapté aux réalités numériques africaines'
               : '✦ Framework inspired by the European DigComp standard, adapted to African digital realities'}
           </p>
+
         </div>
 
       </div>
