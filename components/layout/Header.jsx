@@ -22,7 +22,7 @@ export default function Header() {
   const navLinks = [
     { href: '/training',      label: t('nav.training') },
     { href: '/certification', label: t('nav.certification') },
-    { href: '/#actualites',   label: t('nav.news') },
+    { href: '/blog',           label: t('nav.news') },
     { href: '/about',         label: 'À propos' },
     { href: '/contact',       label: t('nav.contact') },
   ];
