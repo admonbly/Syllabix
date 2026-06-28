@@ -6,6 +6,7 @@ import TrainingQuizComponent from '@/components/TrainingQuizComponent';
 import ModuleLesson from '@/components/ModuleLesson';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import RequireAuth from '@/components/RequireAuth';
 import { quizData } from '@/lib/quizData';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import { MODULE_LESSONS } from '@/lib/moduleLessons';
@@ -114,8 +115,10 @@ function TrainingModuleContent() {
 
 export default function TrainingModulePage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <TrainingModuleContent />
-    </Suspense>
+    <RequireAuth>
+      <Suspense fallback={<div>Loading...</div>}>
+        <TrainingModuleContent />
+      </Suspense>
+    </RequireAuth>
   );
 }

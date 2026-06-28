@@ -5,12 +5,14 @@ import PageHeader from '@/components/PageHeader';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/LanguageContext';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
+import RequireAuth from '@/components/RequireAuth';
 
 export default function TrainingPage() {
   const { locale, t } = useLanguage();
   const tr = (k) => t(`training.${k}`);
 
   return (
+    <RequireAuth>
     <div className="min-h-screen bg-neutral-50">
       <PageHeader
         title={tr('title')}
@@ -178,5 +180,6 @@ export default function TrainingPage() {
 
       </div>
     </div>
+    </RequireAuth>
   );
 }

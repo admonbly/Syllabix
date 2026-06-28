@@ -4,6 +4,7 @@ import Link from 'next/link';
 import CTAButton from '@/components/CTAButton';
 import CertificationUserPanel from '@/components/CertificationUserPanel';
 import { useLanguage } from '@/lib/LanguageContext';
+import RequireAuth from '@/components/RequireAuth';
 
 const MODULE_DATA = [
   { id: 0, icon: '🖥️', key: 'it',         color: '#1A237E', bg: '#f0f3ff' },
@@ -54,6 +55,7 @@ export default function CertificationContent() {
   ];
 
   return (
+    <RequireAuth>
     <div className="min-h-screen bg-neutral-50">
 
       {/* Hero */}
@@ -219,5 +221,6 @@ export default function CertificationContent() {
 
       </div>
     </div>
+    </RequireAuth>
   );
 }
