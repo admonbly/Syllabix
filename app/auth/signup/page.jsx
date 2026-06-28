@@ -197,10 +197,12 @@ export default function SignupPage() {
                   setDateOfBirth(e.target.value);
                   setParentalConsent(false);
                 }}
-                className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors"
+                className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors cursor-pointer"
                 max={new Date().toISOString().split('T')[0]}
+                min="1900-01-01"
                 required
                 disabled={isLoading}
+                onFocus={(e) => { try { e.target.showPicker?.(); } catch {} }}
               />
               {tooYoung && (
                 <p className="text-red-600 text-xs mt-2">
@@ -235,20 +237,39 @@ export default function SignupPage() {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-primary mb-2">
+              <label className="block text-sm font-semibold text-primary mb-3">
                 Statut
               </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors"
-                disabled={isLoading}
-              >
-                <option value="student">👨‍🎓 Étudiant</option>
-                <option value="teacher">👨‍🏫 Enseignant</option>
-                <option value="professional">💼 Professionnel</option>
-                <option value="other">🤷 Autre</option>
-              </select>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'student',      icon: '👨‍🎓', label: 'Étudiant' },
+                  { value: 'teacher',      icon: '👨‍🏫', label: 'Enseignant' },
+                  { value: 'professional', icon: '💼',  label: 'Professionnel' },
+                  { value: 'other',        icon: '🤷',  label: 'Autre' },
+                ].map((opt) => {
+                  const selected = status === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => !isLoading && setStatus(opt.value)}
+                      disabled={isLoading}
+                      className={`flex items-center gap-2.5 px-3 py-3 rounded-xl border-2 text-sm font-medium transition-all text-left ${
+                        selected
+                          ? 'border-accent bg-accent/8 text-accent'
+                          : 'border-neutral-200 text-neutral-600 hover:border-accent/40'
+                      }`}
+                    >
+                      <span className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                        selected ? 'border-accent bg-accent' : 'border-neutral-300'
+                      }`}>
+                        {selected && <span className="w-2 h-2 rounded-full bg-white block" />}
+                      </span>
+                      <span>{opt.icon} {opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div>
@@ -311,9 +332,28 @@ export default function SignupPage() {
                 required
                 disabled={isLoading}
               />
-              <p className="text-xs text-neutral-500 mt-2">
-                Minimum 6 caractères
-              </p>
+              {password.length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  <div className="flex gap-1 h-1.5">
+                    {[1,2,3,4].map((level) => (
+                      <div key={level} className={`flex-1 rounded-full transition-all ${
+                        (password.length >= 6 && level <= 1) ||
+                        (password.length >= 8 && /[A-Z]/.test(password) && level <= 2) ||
+                        (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password) && level <= 3) ||
+                        (password.length >= 10 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password) && level <= 4)
+                          ? level <= 1 ? 'bg-red-400' : level <= 2 ? 'bg-orange-400' : level <= 3 ? 'bg-yellow-400' : 'bg-green-500'
+                          : 'bg-neutral-200'
+                      }`} />
+                    ))}
+                  </div>
+                  <p className="text-xs text-neutral-500">
+                    {password.length < 6 ? '❌ Trop court (min. 6 car.)' :
+                     password.length < 8 ? '⚠️ Faible — ajoutez majuscule et chiffre' :
+                     /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password) ? '✅ Mot de passe fort' :
+                     '👍 Correct — un symbole le renforcerait'}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>

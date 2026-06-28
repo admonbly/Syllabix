@@ -25,6 +25,16 @@
 /* ── Text selection ─────────────────────────────────── */
 ::selection { background: var(--accent); color: white; }
 
+/* ── Page transitions ───────────────────────────────── */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+main {
+  animation: page-enter 0.25s ease-out both;
+}
+
 /* ── Base ───────────────────────────────────────────── */
 @layer base {
   html { scroll-behavior: smooth; }
