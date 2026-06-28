@@ -76,34 +76,20 @@ function TrainingModuleContent() {
             <ModuleLesson lesson={lesson} onStartQuiz={() => setShowQuiz(true)} />
 
             {/* Info quiz */}
-            <Card className="mb-8 bg-blue-50 border-l-4 border-blue-500 p-5">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div className="flex gap-6">
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-primary">
-                      {EXAM_CONFIG.TRAINING.SESSION_SIZE}
-                    </p>
-                    <p className="text-xs text-neutral-500">Questions / session</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-primary">
-                      ~{Math.ceil(EXAM_CONFIG.TRAINING.SESSION_SIZE * 1.5)} min
-                    </p>
-                    <p className="text-xs text-neutral-500">Durée estimée</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-primary">Adaptatif</p>
-                    <p className="text-xs text-neutral-500">Difficulté</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowQuiz(true)}
-                  className="px-6 py-2.5 bg-secondary text-white font-bold rounded-xl hover:bg-green-700 transition-colors text-sm"
-                >
-                  🚀 Commencer le quiz
-                </button>
+            <div className="mb-8 flex flex-wrap gap-6 px-1">
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <span className="font-bold text-primary text-base">{EXAM_CONFIG.TRAINING.SESSION_SIZE}</span>
+                questions / session
               </div>
-            </Card>
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <span className="font-bold text-primary text-base">~{Math.ceil(EXAM_CONFIG.TRAINING.SESSION_SIZE * 1.5)} min</span>
+                durée estimée
+              </div>
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
+                <span className="font-bold text-primary text-base">Adaptatif</span>
+                difficulté
+              </div>
+            </div>
           </>
         ) : (
           <>
