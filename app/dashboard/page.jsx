@@ -9,6 +9,25 @@ import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 
+const SESSION_TYPE_LABEL = {
+  training:   { label: 'Entraînement', color: 'bg-blue-100 text-blue-700' },
+  evaluation: { label: 'Évaluation',   color: 'bg-purple-100 text-purple-700' },
+};
+
+const MODULE_NAMES_SHORT = ['IT', 'Internet', 'Email', 'Bureautique', 'Cybersec', 'IA', 'Emploi'];
+
+function timeAgo(isoStr) {
+  if (!isoStr) return '';
+  const diff = Date.now() - new Date(isoStr).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'À l\'instant';
+  if (m < 60) return `Il y a ${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `Il y a ${h}h`;
+  const d = Math.floor(h / 24);
+  return `Il y a ${d}j`;
+}
+
 const MODULES = [
   { id: 0, name: 'IT (Ordinateur)' },
   { id: 1, name: 'Internet & Google' },
@@ -41,33 +60,35 @@ export default function DashboardPage() {
   const [progress, setProgress] = useState([]);
   const [certificates, setCertificates] = useState([]);
   const [badges, setBadges] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    let unsubProgress, unsubCerts, unsubBadges, unsubSessions;
+
+    const unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
       if (!firebaseUser) {
         setLoading(false);
         return;
       }
       setUser(firebaseUser);
 
-      try {
-        const [prog, certs, bdgs] = await Promise.all([
-          userDB.getUserProgress(firebaseUser.uid),
-          userDB.getUserCertificates(firebaseUser.uid),
-          userDB.getUserBadges(firebaseUser.uid),
-        ]);
-        setProgress(prog || []);
-        setCertificates(certs || []);
-        setBadges(bdgs || []);
-      } catch (err) {
-        console.error('Dashboard load error:', err);
-      } finally {
-        setLoading(false);
-      }
+      // Listeners temps réel — se déclenchent dès qu'une donnée change dans Firestore
+      unsubProgress  = userDB.subscribeToProgress(firebaseUser.uid, (data) => setProgress(data));
+      unsubCerts     = userDB.subscribeToCertificates(firebaseUser.uid, (data) => setCertificates(data));
+      unsubBadges    = userDB.subscribeToBadges(firebaseUser.uid, (data) => setBadges(data));
+      unsubSessions  = userDB.subscribeToSessions(firebaseUser.uid, (data) => setSessions(data));
+
+      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubAuth();
+      unsubProgress?.();
+      unsubCerts?.();
+      unsubBadges?.();
+      unsubSessions?.();
+    };
   }, []);
 
   if (loading) {
@@ -262,6 +283,33 @@ export default function DashboardPage() {
             </Card>
           );
         })()}
+
+        {/* Activité récente */}
+        {sessions.length > 0 && (
+          <Card className="mb-8">
+            <h3 className="text-xl font-heading font-bold text-primary mb-5">📋 Activité récente</h3>
+            <div className="space-y-3">
+              {sessions.slice(0, 8).map((s) => {
+                const typeInfo = SESSION_TYPE_LABEL[s.type] ?? { label: s.type, color: 'bg-neutral-100 text-neutral-600' };
+                const modLabel = s.moduleId !== null && s.moduleId !== undefined
+                  ? MODULE_NAMES_SHORT[parseInt(s.moduleId)] ?? `Module ${s.moduleId}`
+                  : 'Mixte';
+                return (
+                  <div key={s.id} className="flex items-center gap-3 py-2 border-b border-neutral-100 last:border-0">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${typeInfo.color}`}>
+                      {typeInfo.label}
+                    </span>
+                    <span className="text-sm text-neutral-600 flex-1">{modLabel}</span>
+                    <span className={`text-sm font-bold ${s.score >= 60 ? 'text-green-600' : 'text-red-500'}`}>
+                      {s.score}%
+                    </span>
+                    <span className="text-xs text-neutral-400 whitespace-nowrap">{timeAgo(s.createdAt)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        )}
 
         {/* Badges */}
         <Card className="mb-8">

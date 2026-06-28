@@ -6,6 +6,7 @@ import CTAButton from '@/components/CTAButton';
 import { shuffleArray, randomizeAnswerOptions, EXAM_CONFIG } from '@/lib/examService';
 import { getModuleById, getAllQuestions } from '@/lib/quizService';
 import { useLanguage } from '@/lib/LanguageContext';
+import { auth, userDB } from '@/lib/firebase';
 
 const DIFFICULTY_UI = {
   1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dot: '🟢' },
@@ -238,7 +239,18 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   const [selectedMulti, setSelectedMulti] = useState(new Set());
   const [inputVal,      setInputVal]      = useState('');
 
+  // Signets
+  const [flagged, setFlagged] = useState(new Set());
+  const [showReview, setShowReview] = useState(false);
+
   useEffect(() => { setSelectedMulti(new Set()); setInputVal(''); }, [currentIdx]);
+
+  // Sauvegarde session quand résultats affichés
+  useEffect(() => {
+    if (!showResults || questions.length === 0) return;
+    const scoreData = scoreFromAnswers(answers, questions);
+    saveSessionToFirestore(scoreData);
+  }, [showResults]);
 
   // ── Chargement initial : tout le pool en un seul appel Firestore ───────────
   useEffect(() => {
@@ -301,10 +313,29 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     setCurrentIdx((i) => i + 1);
   };
 
+  const toggleFlag = (idx) => {
+    setFlagged((prev) => { const s = new Set(prev); s.has(idx) ? s.delete(idx) : s.add(idx); return s; });
+  };
+
+  const saveSessionToFirestore = async (scoreData) => {
+    const user = auth.currentUser;
+    if (!user) return;
+    await userDB.saveSession(user.uid, {
+      type: 'training',
+      mode,
+      moduleId: moduleId !== null ? String(moduleId) : null,
+      score: scoreData.percentage,
+      correct: scoreData.correct,
+      total: scoreData.total,
+      questionsCount: questions.length,
+    });
+  };
+
   const restart = () => {
-    setAnswers({}); setCurrentIdx(0); setShowResults(false);
+    setAnswers({}); setCurrentIdx(0); setShowResults(false); setShowReview(false);
     setDifficulty(1); setStreak(0); setWrongStreak(0);
     setSelectedMulti(new Set()); setInputVal('');
+    setFlagged(new Set());
     // Mélange le pool pour avoir 5 questions différentes à chaque relance
     const shuffled = [...pool];
     shuffleArray(shuffled);
@@ -334,6 +365,67 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
 
   const total    = Math.min(SESSION_SIZE, pool.length);
   const answered = answers[currentIdx] !== undefined;
+
+  const handleFinishTraining = () => {
+    const answeredCount = Object.keys(answers).length;
+    if (flagged.size > 0) {
+      setShowReview(true);
+    } else if (answeredCount < questions.length) {
+      // En entraînement, on alerte mais on laisse terminer
+      setShowResults(true);
+    } else {
+      setShowResults(true);
+    }
+  };
+
+  // ── Écran de révision des questions marquées ───────────────────────────────
+  if (showReview) {
+    const flaggedList = [...flagged].sort((a, b) => a - b);
+    return (
+      <section className="py-10 bg-neutral-50 min-h-screen">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="text-5xl mb-3">🚩</div>
+            <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
+            <p className="text-neutral-500">Tu as marqué {flaggedList.length} question{flaggedList.length > 1 ? 's' : ''}. Tu peux les revoir avant de voir les résultats.</p>
+          </div>
+          <div className="space-y-4 mb-8">
+            {flaggedList.map((idx) => {
+              const q = questions[idx];
+              const ua = answers[idx];
+              const correct = ua !== undefined && isAnswerCorrect(q, ua);
+              return (
+                <Card key={idx} className="p-5">
+                  <div className="flex justify-between items-start mb-3">
+                    <p className="font-semibold text-neutral-800 text-sm flex-1 pr-3">
+                      <span className="text-neutral-400 text-xs mr-2">Q{idx + 1}</span>{q.text}
+                    </p>
+                    <button onClick={() => { setCurrentIdx(idx); setShowReview(false); }} className="text-xs px-3 py-1.5 border border-accent text-accent rounded-lg font-semibold hover:bg-accent hover:text-white transition-colors whitespace-nowrap">
+                      Revoir
+                    </button>
+                  </div>
+                  {ua !== undefined && (
+                    <div className={`text-xs px-3 py-2 rounded-lg ${correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                      {correct ? '✅ Bonne réponse' : `❌ Réponse : ${q.options?.[ua] ?? ua} — Correct : ${correctAnswerLabel(q)}`}
+                    </div>
+                  )}
+                  {ua === undefined && <p className="text-xs text-orange-500">⚠️ Non répondu</p>}
+                </Card>
+              );
+            })}
+          </div>
+          <div className="flex gap-4 justify-center">
+            <button onClick={() => setShowReview(false)} className="px-6 py-3 bg-neutral-200 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-300">
+              Retour au quiz
+            </button>
+            <button onClick={() => { setShowResults(true); setShowReview(false); }} className="px-6 py-3 bg-secondary text-white rounded-xl font-semibold hover:bg-green-700">
+              Voir les résultats
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   // ── Résultats ──────────────────────────────────────────────────────────────
   if (showResults) {
@@ -447,8 +539,15 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
           </div>
 
           {/* Type + question */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center justify-between gap-2 mb-3">
             <TypeBadge type={qType} locale={locale} />
+            <button
+              onClick={() => toggleFlag(currentIdx)}
+              title={flagged.has(currentIdx) ? 'Retirer le signet' : 'Marquer cette question'}
+              className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm transition-all ${flagged.has(currentIdx) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-300 hover:border-orange-300 hover:text-orange-400'}`}
+            >
+              🚩
+            </button>
           </div>
           <p className="text-xl font-semibold text-neutral-800 mb-4 leading-relaxed">{question.text}</p>
 
@@ -515,23 +614,33 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
               {q('previous')}
             </button>
 
-            {isLast ? (
-              <button
-                onClick={() => setShowResults(true)}
-                disabled={!answered}
-                className={`px-5 py-3 rounded-xl font-semibold transition-colors ${answered ? 'bg-secondary text-white hover:bg-green-700' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
-              >
-                {q('submit')}
-              </button>
-            ) : (
-              <button
-                onClick={goNext}
-                disabled={!answered}
-                className="px-5 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors disabled:opacity-40"
-              >
-                {q('next')}
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {flagged.size > 0 && (
+                <button
+                  onClick={() => setShowReview(true)}
+                  className="px-3 py-2 border-2 border-orange-300 text-orange-500 rounded-xl text-xs font-semibold hover:bg-orange-50 transition-colors"
+                >
+                  🚩 {flagged.size}
+                </button>
+              )}
+              {isLast ? (
+                <button
+                  onClick={handleFinishTraining}
+                  disabled={!answered}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-colors ${answered ? 'bg-secondary text-white hover:bg-green-700' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
+                >
+                  {q('submit')}
+                </button>
+              ) : (
+                <button
+                  onClick={goNext}
+                  disabled={!answered}
+                  className="px-5 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors disabled:opacity-40"
+                >
+                  {q('next')}
+                </button>
+              )}
+            </div>
           </div>
 
         </Card>

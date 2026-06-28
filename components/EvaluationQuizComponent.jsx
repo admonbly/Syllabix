@@ -15,6 +15,7 @@ import {
   updateAdaptiveDifficulty,
 } from '@/lib/examService';
 import { useLanguage } from '@/lib/LanguageContext';
+import { auth, userDB } from '@/lib/firebase';
 
 const DIFFICULTY_UI = {
   1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dot: '🟢' },
@@ -36,6 +37,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
   const [answers,         setAnswers]         = useState({});
   const [timeLeft,        setTimeLeft]        = useState(EXAM_CONFIG.EVALUATION.DURATION);
   const [loading,         setLoading]         = useState(true);
+  const [flagged,         setFlagged]         = useState(new Set());
+  const [showReview,      setShowReview]      = useState(false);
+  const [showWarning,     setShowWarning]     = useState(false);
 
   // Adaptive state
   const [difficulty,  setDifficulty]  = useState(1);
@@ -112,10 +116,50 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     }
   };
 
+  const toggleFlag = (idx) => {
+    setFlagged((prev) => { const s = new Set(prev); s.has(idx) ? s.delete(idx) : s.add(idx); return s; });
+  };
+
+  const handleSubmitRequest = () => {
+    const answeredCount = Object.keys(answers).length;
+    const loadedCount = questions.length;
+    if (answeredCount < loadedCount) {
+      setShowWarning(true);
+    } else if (flagged.size > 0) {
+      setShowReview(true);
+    } else {
+      clearInterval(intervalRef.current);
+      setPhase('results');
+    }
+  };
+
   const handleSubmit = () => {
     clearInterval(intervalRef.current);
     setPhase('results');
   };
+
+  // Sauvegarde session quand résultats affichés
+  useEffect(() => {
+    if (phase !== 'results' || questions.length === 0) return;
+    const user = auth.currentUser;
+    if (!user) return;
+    const scoreData = calculateScore(
+      Object.entries(answers).map(([qIdx, ans]) => ({
+        questionId: questions[qIdx]?.id,
+        userAnswer: ans,
+      })),
+      questions
+    );
+    userDB.saveSession(user.uid, {
+      type: 'evaluation',
+      mode,
+      moduleId: moduleId !== null ? String(moduleId) : null,
+      score: scoreData.percentage,
+      correct: scoreData.correct,
+      total: scoreData.total,
+      questionsCount: questions.length,
+    });
+  }, [phase]);
 
   if (loading) {
     return (
@@ -224,6 +268,85 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     );
   }
 
+  // ——— Révision signets ———
+  if (showReview) {
+    const flaggedList = [...flagged].sort((a, b) => a - b);
+    return (
+      <section className="py-12 bg-neutral-50 min-h-screen">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="text-5xl mb-3">🚩</div>
+            <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
+            <p className="text-neutral-500">{flaggedList.length} question{flaggedList.length > 1 ? 's' : ''} à réviser</p>
+          </div>
+          <div className="space-y-4 mb-8">
+            {flaggedList.map((idx) => {
+              const q = questions[idx];
+              if (!q) return null;
+              const currentAns = answers[idx];
+              return (
+                <Card key={idx} className="p-5">
+                  <p className="font-semibold text-neutral-800 text-sm mb-3">
+                    <span className="text-neutral-400 text-xs mr-2">Q{idx + 1}</span>{q.text}
+                  </p>
+                  <div className="space-y-2">
+                    {q.options.map((opt, oi) => (
+                      <button
+                        key={oi}
+                        onClick={() => setAnswers((prev) => ({ ...prev, [idx]: oi }))}
+                        className={`w-full p-3 text-left rounded-lg border-2 text-sm font-medium transition-all ${
+                          answers[idx] === oi ? 'border-accent bg-accent/10 text-accent' : 'border-neutral-200 hover:border-accent/50'
+                        }`}
+                      >
+                        <span className="inline-block w-6 h-6 rounded-full bg-neutral-100 text-center text-xs font-bold mr-2 leading-6">{String.fromCharCode(65 + oi)}</span>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {currentAns === undefined && <p className="mt-2 text-xs text-orange-500 font-medium">⚠️ Non répondu</p>}
+                </Card>
+              );
+            })}
+          </div>
+          <div className="flex gap-4 justify-center">
+            <button onClick={() => setShowReview(false)} className="px-6 py-3 bg-neutral-200 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-300">Continuer l'évaluation</button>
+            <button onClick={() => { setShowReview(false); handleSubmit(); }} className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700">Terminer</button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ——— Avertissement questions non répondues ———
+  if (showWarning) {
+    const answeredCount = Object.keys(answers).length;
+    const unanswered = questions.length - answeredCount;
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4">
+          <Card className="p-8 text-center">
+            <div className="text-5xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-heading font-bold text-primary mb-3">Questions sans réponse</h2>
+            <p className="text-neutral-600 mb-6">Il reste <span className="font-bold text-orange-600">{unanswered} question{unanswered > 1 ? 's' : ''}</span> sans réponse.</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => setShowWarning(false)} className="w-full px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90">
+                Continuer et répondre
+              </button>
+              {flagged.size > 0 && (
+                <button onClick={() => { setShowWarning(false); setShowReview(true); }} className="w-full px-6 py-3 border-2 border-neutral-300 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-50">
+                  Voir les questions marquées
+                </button>
+              )}
+              <button onClick={() => { setShowWarning(false); handleSubmit(); }} className="w-full px-6 py-3 border-2 border-red-300 text-red-600 rounded-xl font-semibold hover:bg-red-50">
+                Terminer quand même
+              </button>
+            </div>
+          </Card>
+        </div>
+      </section>
+    );
+  }
+
   // ——— Quiz ———
   const question  = questions[currentQuestion];
   const answered  = answers[currentQuestion] !== undefined;
@@ -246,7 +369,14 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             )}
           </div>
           <span className="text-xl">⏱ {formatTime(timeLeft)}</span>
-          <span className="text-sm text-neutral-400">{answeredCount}/{total}</span>
+          <div className="flex items-center gap-2">
+            {flagged.size > 0 && (
+              <button onClick={() => setShowReview(true)} className="text-xs px-2 py-1 border border-orange-300 text-orange-500 rounded-lg font-semibold hover:bg-orange-50">
+                🚩 {flagged.size}
+              </button>
+            )}
+            <span className="text-sm text-neutral-400">{answeredCount}/{total}</span>
+          </div>
         </div>
 
         {/* Barre de progression */}
@@ -255,7 +385,16 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
         </div>
 
         <Card className="p-7">
-          <p className="text-xl font-semibold text-neutral-800 mb-4 leading-relaxed">{question.text}</p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <p className="text-xl font-semibold text-neutral-800 leading-relaxed flex-1">{question.text}</p>
+            <button
+              onClick={() => toggleFlag(currentQuestion)}
+              title={flagged.has(currentQuestion) ? 'Retirer le signet' : 'Marquer cette question'}
+              className={`flex-shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${flagged.has(currentQuestion) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-300 hover:border-orange-300 hover:text-orange-400'}`}
+            >
+              🚩
+            </button>
+          </div>
           {question.imageUrl && (
             <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200">
               <img
@@ -300,7 +439,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           {answered && isLast && (
             <div className="mt-6 text-center">
               <CTAButton
-                onClick={handleSubmit}
+                onClick={handleSubmitRequest}
                 size="lg"
                 className="w-full"
               >

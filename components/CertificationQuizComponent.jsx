@@ -29,6 +29,9 @@ export default function CertificationQuizComponent({
   const [answers, setAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const [flagged, setFlagged] = useState(new Set());
+  const [showReview, setShowReview] = useState(false);
+  const [showFinishWarning, setShowFinishWarning] = useState(false);
   const [isChildMode, setIsChildMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(EXAM_CONFIG.CERTIFICATION.DURATION);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -254,14 +257,32 @@ export default function CertificationQuizComponent({
   const handleNext = () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
-    } else {
-      setShowResults(true);
     }
   };
 
   const handlePrevious = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1);
+    }
+  };
+
+  const toggleFlag = (idx) => {
+    setFlagged((prev) => {
+      const s = new Set(prev);
+      s.has(idx) ? s.delete(idx) : s.add(idx);
+      return s;
+    });
+  };
+
+  const handleFinishRequest = () => {
+    const answeredCount = Object.keys(answers).length;
+    const unanswered = questions.length - answeredCount;
+    if (unanswered > 0) {
+      setShowFinishWarning(true);
+    } else if (flagged.size > 0) {
+      setShowReview(true);
+    } else {
+      setShowResults(true);
     }
   };
 
@@ -364,6 +385,101 @@ export default function CertificationQuizComponent({
 
   const question = questions[currentQuestion];
   const answered = answers[currentQuestion] !== undefined;
+  const answeredCount = Object.keys(answers).length;
+
+  // ÉCRAN DE RÉVISION DES QUESTIONS MARQUÉES
+  if (showReview) {
+    const flaggedList = [...flagged].sort((a, b) => a - b);
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="text-center mb-8">
+            <div className="text-5xl mb-3">🚩</div>
+            <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
+            <p className="text-neutral-500">Tu as marqué {flaggedList.length} question{flaggedList.length > 1 ? 's' : ''}. Révise-les avant de terminer.</p>
+          </div>
+          <div className="space-y-6 mb-8">
+            {flaggedList.map((idx) => {
+              const q = questions[idx];
+              const userAnswer = answers[idx];
+              return (
+                <Card key={idx} className="p-6">
+                  <div className="flex justify-between items-start mb-3">
+                    <p className="font-semibold text-neutral-800 text-base leading-relaxed flex-1 pr-3">
+                      <span className="text-neutral-400 text-sm mr-2">Q{idx + 1}</span>{q.text}
+                    </p>
+                    <button onClick={() => { setCurrentQuestion(idx); setShowReview(false); }} className="text-xs px-3 py-1.5 border border-accent text-accent rounded-lg font-semibold hover:bg-accent hover:text-white transition-colors whitespace-nowrap">
+                      Modifier
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {q.options.map((opt, oi) => (
+                      <button
+                        key={oi}
+                        onClick={() => setAnswers((prev) => ({ ...prev, [idx]: oi }))}
+                        className={`w-full p-3 text-left rounded-lg border-2 text-sm font-medium transition-all ${
+                          answers[idx] === oi
+                            ? 'border-accent bg-accent/10 text-accent'
+                            : 'border-neutral-200 hover:border-accent/50 hover:bg-accent/5'
+                        }`}
+                      >
+                        <span className="inline-block w-6 h-6 rounded-full bg-neutral-100 text-center text-xs font-bold mr-2 leading-6">{String.fromCharCode(65 + oi)}</span>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {userAnswer === undefined && (
+                    <p className="mt-2 text-xs text-orange-500 font-medium">⚠️ Non répondu</p>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+          <div className="flex gap-4 justify-center">
+            <button onClick={() => setShowReview(false)} className="px-6 py-3 bg-neutral-200 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-300 transition-colors">
+              Continuer l'examen
+            </button>
+            <button onClick={() => setShowResults(true)} className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors">
+              Terminer l'examen
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // AVERTISSEMENT QUESTIONS NON RÉPONDUES
+  if (showFinishWarning) {
+    const unanswered = questions.length - answeredCount;
+    const flaggedUnanswered = [...flagged].filter((i) => answers[i] === undefined);
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4">
+          <Card className="p-8 text-center">
+            <div className="text-5xl mb-4">⚠️</div>
+            <h2 className="text-2xl font-heading font-bold text-primary mb-3">Questions sans réponse</h2>
+            <p className="text-neutral-600 mb-6">
+              Il reste <span className="font-bold text-orange-600">{unanswered} question{unanswered > 1 ? 's' : ''}</span> sans réponse.<br />
+              Une question sans réponse compte comme fausse.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => { setShowFinishWarning(false); const first = [...Array(questions.length).keys()].find((i) => answers[i] === undefined); if (first !== undefined) setCurrentQuestion(first); }} className="w-full px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">
+                Répondre aux questions manquantes
+              </button>
+              {flagged.size > 0 ? (
+                <button onClick={() => { setShowFinishWarning(false); setShowReview(true); }} className="w-full px-6 py-3 border-2 border-neutral-300 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-50 transition-colors">
+                  Voir les questions marquées puis terminer
+                </button>
+              ) : null}
+              <button onClick={() => { setShowFinishWarning(false); setShowResults(true); }} className="w-full px-6 py-3 border-2 border-red-300 text-red-600 rounded-xl font-semibold hover:bg-red-50 transition-colors">
+                Terminer quand même ({unanswered} non répondue{unanswered > 1 ? 's' : ''})
+              </button>
+            </div>
+          </Card>
+        </div>
+      </section>
+    );
+  }
 
   // AFFICHER RÉSULTATS
   if (showResults) {
@@ -467,26 +583,40 @@ export default function CertificationQuizComponent({
       <div className="max-w-2xl mx-auto px-4">
         <Card className="p-8">
           {/* Header */}
-          <div className="flex justify-between items-center mb-8 pb-4 border-b">
-            <div>
-              <p className="text-sm text-neutral-600">
-                {t('quiz.question')} {currentQuestion + 1} / {questions.length}
-              </p>
-              <div className="mt-2 bg-neutral-200 rounded-full h-2">
+          <div className="flex justify-between items-center mb-4 pb-4 border-b">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-1">
+                <p className="text-sm text-neutral-600">
+                  {t('quiz.question')} {currentQuestion + 1} / {questions.length}
+                </p>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${answeredCount === questions.length ? 'bg-green-100 text-green-700' : 'bg-neutral-100 text-neutral-500'}`}>
+                  {answeredCount}/{questions.length} répondues
+                </span>
+              </div>
+              <div className="mt-1 bg-neutral-200 rounded-full h-2">
                 <div
                   className="bg-accent h-2 rounded-full transition-all"
-                  style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
+                  style={{ width: `${(answeredCount / questions.length) * 100}%` }}
                 ></div>
               </div>
             </div>
-            <div className={`text-lg font-bold ${isTimeCritical(timeLeft) ? 'text-red-600' : 'text-primary'}`}>
+            <div className={`text-lg font-bold ml-4 ${isTimeCritical(timeLeft) ? 'text-red-600' : 'text-primary'}`}>
               ⏱ {formatTime(timeLeft)}
             </div>
           </div>
 
           {/* Question */}
           <div className="mb-8">
-            <p className={`font-semibold text-neutral-800 mb-4 ${isChildMode ? 'text-2xl' : 'text-xl'}`}>{question.text}</p>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <p className={`font-semibold text-neutral-800 flex-1 ${isChildMode ? 'text-2xl' : 'text-xl'}`}>{question.text}</p>
+              <button
+                onClick={() => toggleFlag(currentQuestion)}
+                title={flagged.has(currentQuestion) ? 'Retirer le signet' : 'Marquer cette question'}
+                className={`flex-shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${flagged.has(currentQuestion) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-300 hover:border-orange-300 hover:text-orange-400'}`}
+              >
+                🚩
+              </button>
+            </div>
             {question.imageUrl && (
               <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200">
                 <img
@@ -516,7 +646,7 @@ export default function CertificationQuizComponent({
           </div>
 
           {/* Navigation */}
-          <div className="flex gap-4 justify-between">
+          <div className="flex gap-4 justify-between items-center">
             {currentQuestion > 0 && (
               <button
                 onClick={handlePrevious}
@@ -526,27 +656,26 @@ export default function CertificationQuizComponent({
               </button>
             )}
             <div className="flex-1" />
+            {/* Bouton signet raccourci */}
+            {flagged.size > 0 && (
+              <button
+                onClick={() => setShowReview(true)}
+                className="px-4 py-3 border-2 border-orange-300 text-orange-500 rounded-lg text-sm font-semibold hover:bg-orange-50 transition-colors"
+              >
+                🚩 {flagged.size}
+              </button>
+            )}
             {currentQuestion < questions.length - 1 ? (
               <button
                 onClick={handleNext}
-                disabled={!answered}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                  answered
-                    ? 'bg-accent text-white hover:shadow-lg cursor-pointer'
-                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                }`}
+                className="px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:shadow-lg transition-all cursor-pointer"
               >
                 {t('quiz.next')}
               </button>
             ) : (
               <button
-                onClick={() => setShowResults(true)}
-                disabled={!answered}
-                className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-                  answered
-                    ? 'bg-green-600 text-white hover:shadow-lg cursor-pointer'
-                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-                }`}
+                onClick={handleFinishRequest}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all cursor-pointer"
               >
                 {t('quiz.submit')}
               </button>
