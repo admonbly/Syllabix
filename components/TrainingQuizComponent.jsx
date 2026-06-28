@@ -353,8 +353,8 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
         <div className="max-w-xl mx-auto px-4 w-full">
           <Card className="p-8 text-center">
             <div className="text-5xl mb-4">🎯</div>
-            <h1 className="text-3xl font-heading font-bold text-primary mb-3">{q('training') || 'Entraînement'}</h1>
-            <p className="text-neutral-600 mb-6">{q('trainingDesc') || 'Réponds à 5 questions avec feedback immédiat pour progresser.'}</p>
+            <h1 className="text-3xl font-heading font-bold text-primary mb-3">{q('training')}</h1>
+            <p className="text-neutral-600 mb-6">{q('trainingDesc')}</p>
 
             <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="bg-accent/10 rounded-xl p-4">
