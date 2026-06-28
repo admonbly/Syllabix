@@ -1,5 +1,23 @@
 import { NextResponse } from 'next/server';
 
+// Rate limiting en mémoire (reset à chaque cold start Vercel)
+const rateLimitMap = new Map();
+const RATE_LIMIT = 5;       // max appels
+const RATE_WINDOW = 60_000; // par minute
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, start: now };
+  if (now - entry.start > RATE_WINDOW) {
+    rateLimitMap.set(ip, { count: 1, start: now });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT) return true;
+  entry.count++;
+  rateLimitMap.set(ip, entry);
+  return false;
+}
+
 const MODULE_NAMES = {
   0: 'IT & Ordinateur',
   1: 'Internet',
@@ -11,6 +29,24 @@ const MODULE_NAMES = {
 };
 
 export async function POST(request) {
+  // Vérification de l'origine — bloque les appels externes
+  const origin = request.headers.get('origin') || '';
+  const allowedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    'https://syllabix.com',
+    'https://syllabix-eight.vercel.app',
+    'http://localhost:3000',
+  ].filter(Boolean);
+  if (origin && !allowedOrigins.includes(origin)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  // Rate limiting par IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   // Si pas de clé Resend configurée, on skip silencieusement
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
@@ -28,6 +64,11 @@ export async function POST(request) {
 
   if (!email || !certId) {
     return NextResponse.json({ error: 'Missing email or certId' }, { status: 400 });
+  }
+
+  // Validation basique de l'email
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
   }
 
   const certTitle = moduleId !== null && moduleId !== undefined
