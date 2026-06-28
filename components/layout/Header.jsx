@@ -23,7 +23,7 @@ export default function Header() {
     { href: '/training',      label: t('nav.training') },
     { href: '/certification', label: t('nav.certification') },
     { href: '/#actualites',   label: t('nav.news') },
-    { href: '/partenariats',  label: t('nav.partners') },
+    { href: '/about',         label: 'À propos' },
     { href: '/contact',       label: t('nav.contact') },
   ];
 
@@ -78,7 +78,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
           <img
-            src="/syllabix-logo-sans%20fond.png"
+            src="/syllabix-logo-sansfond.png"
             alt="Syllabix"
             className={`h-28 w-auto transition-all duration-300 ${!isScrolled ? 'brightness-0 invert' : ''}`}
           />

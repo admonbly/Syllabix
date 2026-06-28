@@ -75,7 +75,7 @@ export default function Footer() {
           <div>
             <Link href="/" className="inline-block mb-5">
               <img
-                src="/syllabix-logo-sans%20fond.png"
+                src="/syllabix-logo-sansfond.png"
                 alt="Syllabix — Accueil"
                 className="h-28 w-auto brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
               />
