@@ -18,10 +18,23 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { auth, userDB } from '@/lib/firebase';
 
 const DIFFICULTY_UI = {
-  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dot: '🟢' },
-  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dot: '🟡' },
-  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dot: '🔴' },
+  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dotCls: 'bg-green-500' },
+  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dotCls: 'bg-yellow-500' },
+  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dotCls: 'bg-red-500' },
 };
+
+function CheckIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
+}
+function XIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>;
+}
+function FlagIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>;
+}
+function LightbulbIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="9" y1="18" x2="15" y2="18" /><line x1="10" y1="22" x2="14" y2="22" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14" /></svg>;
+}
 
 /** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = null }) {
@@ -206,8 +219,8 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
               </ul>
             </div>
             <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 text-left">
-              <p className="text-sm text-orange-800 font-semibold mb-1">🚩 Marquer les questions pour y revenir</p>
-              <p className="text-sm text-orange-700">Clique sur le drapeau 🚩 à côté d'une question pour la marquer. Le badge <strong>🚩 N</strong> dans la barre te permet de naviguer directement vers tes questions marquées à tout moment.</p>
+              <p className="text-sm text-orange-800 font-semibold mb-1 flex items-center gap-2"><FlagIcon className="w-4 h-4 flex-shrink-0" /> Marquer les questions pour y revenir</p>
+              <p className="text-sm text-orange-700">Clique sur l'icône drapeau à côté d'une question pour la marquer. Le compteur dans la barre te permet de naviguer directement vers tes questions marquées à tout moment.</p>
             </div>
             <CTAButton onClick={() => setPhase('quiz')} size="lg" className="w-full">
               {ev('start')}
@@ -264,7 +277,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           </Card>
 
           <Card className={`mb-5 border ${niveauBg}`}>
-            <p className={`font-semibold ${niveauColor}`}>💡 {conseil}</p>
+            <p className={`font-semibold flex items-start gap-2 ${niveauColor}`}>
+              <LightbulbIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              {conseil}
+            </p>
           </Card>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -284,7 +300,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex justify-between items-center mb-6">
             <div className="text-center flex-1">
-              <div className="text-5xl mb-3">🚩</div>
+              <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-3 mx-auto">
+                <FlagIcon className="w-7 h-7 text-orange-500" />
+              </div>
               <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
               <p className="text-neutral-500">{flaggedList.length} question{flaggedList.length > 1 ? 's' : ''} à réviser</p>
             </div>
@@ -316,7 +334,12 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                       </button>
                     ))}
                   </div>
-                  {currentAns === undefined && <p className="mt-2 text-xs text-orange-500 font-medium">⚠️ Non répondu</p>}
+                  {currentAns === undefined && (
+                    <p className="mt-2 text-xs text-orange-500 font-medium flex items-center gap-1">
+                      <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      Non répondu
+                    </p>
+                  )}
                 </Card>
               );
             })}
@@ -341,7 +364,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             ⏱ {formatTime(timeLeft)} restantes
           </div>
           <Card className="p-8 text-center">
-            <div className="text-5xl mb-4">⚠️</div>
+            <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-4 mx-auto">
+              <svg className="w-7 h-7 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+            </div>
             <h2 className="text-2xl font-heading font-bold text-primary mb-3">Questions sans réponse</h2>
             <p className="text-neutral-600 mb-6">Il reste <span className="font-bold text-orange-600">{unanswered} question{unanswered > 1 ? 's' : ''}</span> sans réponse.</p>
             <div className="flex flex-col gap-3">
@@ -379,16 +404,20 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           <div className="flex items-center gap-2">
             <span className="text-sm">{t('quiz.question')} {currentQuestion + 1}/{total}</span>
             {isAdaptive && (
-              <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
-                {DIFFICULTY_UI[difficulty].dot} {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
+              <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${DIFFICULTY_UI[difficulty].dotCls}`} />
+                {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
               </span>
             )}
           </div>
-          <span className="text-xl">⏱ {formatTime(timeLeft)}</span>
+          <div className="flex items-center gap-1.5">
+            <svg className="w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span className="font-mono">{formatTime(timeLeft)}</span>
+          </div>
           <div className="flex items-center gap-2">
             {flagged.size > 0 && (
-              <button onClick={() => setShowFlaggedPanel((v) => !v)} className="text-xs px-2 py-1 border border-orange-300 text-orange-500 rounded-lg font-semibold hover:bg-orange-50">
-                🚩 {flagged.size}
+              <button onClick={() => setShowFlaggedPanel((v) => !v)} className="text-xs px-2 py-1.5 border border-orange-300 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 flex items-center gap-1">
+                <FlagIcon className="w-3 h-3" /> {flagged.size}
               </button>
             )}
             <span className="text-sm text-neutral-400">{answeredCount}/{total}</span>
@@ -396,8 +425,8 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
         </div>
 
         {/* Barre de progression */}
-        <div className="w-full bg-neutral-200 rounded-full h-2 mb-6">
-          <div className="bg-accent h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+        <div className="w-full bg-neutral-200 rounded-full h-2 mb-6 overflow-hidden">
+          <div className="bg-accent h-2 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
         </div>
 
         <Card className="p-7">
@@ -406,9 +435,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             <button
               onClick={() => toggleFlag(currentQuestion)}
               title={flagged.has(currentQuestion) ? 'Retirer le signet' : 'Marquer cette question'}
-              className={`flex-shrink-0 w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${flagged.has(currentQuestion) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-300 hover:border-orange-300 hover:text-orange-400'}`}
+              aria-label={flagged.has(currentQuestion) ? 'Retirer le signet' : 'Marquer cette question'}
+              className={`flex-shrink-0 w-11 h-11 rounded-xl border-2 flex items-center justify-center transition-all ${flagged.has(currentQuestion) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-400 hover:border-orange-300 hover:text-orange-400 hover:bg-orange-50'}`}
             >
-              🚩
+              <FlagIcon className="w-4 h-4" />
             </button>
           </div>
           {question.imageUrl && (
@@ -472,8 +502,11 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           <div className="absolute inset-0 bg-black/30" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 z-10" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading font-bold text-primary text-base">🚩 Questions marquées ({flagged.size})</h3>
-              <button onClick={() => setShowFlaggedPanel(false)} className="text-neutral-400 hover:text-neutral-600 text-xl leading-none">×</button>
+              <h3 className="font-heading font-bold text-primary text-base flex items-center gap-2">
+                <FlagIcon className="w-4 h-4 text-orange-500" />
+                Questions marquées ({flagged.size})
+              </h3>
+              <button onClick={() => setShowFlaggedPanel(false)} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-600 rounded-lg hover:bg-neutral-100 transition-colors text-xl leading-none">×</button>
             </div>
             <p className="text-xs text-neutral-400 mb-3">Clique sur une question pour y aller directement.</p>
             <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -491,8 +524,8 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                       {idx + 1}
                     </span>
                     <span className="text-sm text-neutral-700 flex-1 line-clamp-2">{q.text}</span>
-                    <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500'}`}>
-                      {isAnswered ? '✓' : '—'}
+                    <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500'}`}>
+                      {isAnswered ? <CheckIcon className="w-3 h-3" /> : <span className="text-xs font-bold">–</span>}
                     </span>
                   </button>
                 );

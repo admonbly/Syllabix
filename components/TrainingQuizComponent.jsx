@@ -9,10 +9,39 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { auth, userDB } from '@/lib/firebase';
 
 const DIFFICULTY_UI = {
-  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dot: '🟢' },
-  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dot: '🟡' },
-  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dot: '🔴' },
+  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dotCls: 'bg-green-500' },
+  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dotCls: 'bg-yellow-500' },
+  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dotCls: 'bg-red-500' },
 };
+
+// ─── Icônes SVG légères ───────────────────────────────────────────────────────
+function CheckIcon({ className = 'w-4 h-4' }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function XIcon({ className = 'w-4 h-4' }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+    </svg>
+  );
+}
+function FlagIcon({ className = 'w-4 h-4', filled = false }) {
+  return filled
+    ? <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 4h16v10H4z" /><path d="M4 4v16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" /></svg>
+    : <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>;
+}
+function LightbulbIcon({ className = 'w-4 h-4' }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="9" y1="18" x2="15" y2="18" /><line x1="10" y1="22" x2="14" y2="22" />
+      <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14" />
+    </svg>
+  );
+}
 
 // ─── Helpers types de questions ───────────────────────────────────────────────
 
@@ -103,8 +132,8 @@ function SingleChoiceInput({ question, answered, userAnswer, onAnswer }) {
               {String.fromCharCode(65 + index)}
             </span>
             {option}
-            {answered && index === question.correct && <span className="float-right">✅</span>}
-            {answered && index === userAnswer && index !== question.correct && <span className="float-right">❌</span>}
+            {answered && index === question.correct && <CheckIcon className="float-right w-5 h-5 text-green-600 mt-0.5" />}
+            {answered && index === userAnswer && index !== question.correct && <XIcon className="float-right w-5 h-5 text-red-500 mt-0.5" />}
           </button>
         );
       })}
@@ -141,7 +170,9 @@ function MultiChoiceInput({ question, answered, selected, onToggle, onSubmit, lo
                   ? isCorrectOpt ? 'border-green-500 bg-green-500 text-white' : isSelected ? 'border-red-400 bg-red-400 text-white' : 'border-neutral-300'
                   : isSelected ? 'border-accent bg-accent text-white' : 'border-neutral-300'
               }`}>
-                {answered ? (isCorrectOpt ? '✓' : isSelected ? '✗' : '') : isSelected ? '✓' : ''}
+                {answered
+                  ? (isCorrectOpt ? <CheckIcon className="w-3 h-3" /> : isSelected ? <XIcon className="w-3 h-3" /> : null)
+                  : isSelected ? <CheckIcon className="w-3 h-3" /> : null}
               </span>
               <span className="flex-1">{option}</span>
             </button>
@@ -201,10 +232,9 @@ function TextInput({ question, answered, userAnswer, inputVal, onChange, onSubmi
       </div>
       {answered && (
         <div className="mt-3 flex items-center gap-2 text-sm font-medium text-neutral-600">
-          <span>{correct ? '✅' : '❌'}</span>
           {correct
-            ? <span>{locale === 'fr' ? 'Bonne réponse !' : 'Correct!'}</span>
-            : <span>{locale === 'fr' ? 'Réponse attendue : ' : 'Expected: '}<strong className="text-green-700">{correctAnswerLabel(question)}</strong></span>}
+            ? <><CheckIcon className="w-4 h-4 text-green-600 flex-shrink-0" /><span className="text-green-700">{locale === 'fr' ? 'Bonne réponse !' : 'Correct!'}</span></>
+            : <><XIcon className="w-4 h-4 text-red-500 flex-shrink-0" /><span>{locale === 'fr' ? 'Réponse attendue : ' : 'Expected: '}<strong className="text-green-700">{correctAnswerLabel(question)}</strong></span></>}
         </div>
       )}
     </div>
@@ -373,20 +403,26 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
 
             <div className="space-y-3 mb-8 text-left">
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <p className="text-sm text-blue-800 font-semibold mb-2">💡 Comment ça marche</p>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Réponds à chaque question avant de passer à la suivante</li>
-                  <li>• Le feedback s'affiche immédiatement après ta réponse</li>
-                  {mode === 'module' && <li>• La difficulté s'adapte automatiquement à ton niveau</li>}
-                  <li>• Tu peux revenir en arrière pour revoir tes réponses</li>
+                <p className="text-sm text-blue-800 font-semibold mb-2 flex items-center gap-2">
+                  <LightbulbIcon className="w-4 h-4 flex-shrink-0" />
+                  Comment ça marche
+                </p>
+                <ul className="text-sm text-blue-700 space-y-1.5">
+                  <li className="flex items-start gap-2"><CheckIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-500" />Réponds à chaque question avant de passer à la suivante</li>
+                  <li className="flex items-start gap-2"><CheckIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-500" />Le feedback s'affiche immédiatement après ta réponse</li>
+                  {mode === 'module' && <li className="flex items-start gap-2"><CheckIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-500" />La difficulté s'adapte automatiquement à ton niveau</li>}
+                  <li className="flex items-start gap-2"><CheckIcon className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-blue-500" />Tu peux revenir en arrière pour revoir tes réponses</li>
                 </ul>
               </div>
 
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-                <p className="text-sm text-orange-800 font-semibold mb-1">🚩 Marquer les questions</p>
+                <p className="text-sm text-orange-800 font-semibold mb-1 flex items-center gap-2">
+                  <FlagIcon className="w-4 h-4 flex-shrink-0" />
+                  Marquer les questions
+                </p>
                 <p className="text-sm text-orange-700">
-                  Clique sur le drapeau 🚩 à côté d'une question pour la marquer et y revenir plus tard.
-                  Le badge <strong>🚩 N</strong> te permet de naviguer vers tes questions marquées.
+                  Clique sur l'icône de drapeau à côté d'une question pour la marquer et y revenir plus tard.
+                  Le compteur dans la barre de navigation te permet de naviguer vers tes questions marquées.
                   Une question marquée sans réponse peut être passée — tu la retrouveras en révision avant les résultats.
                 </p>
               </div>
@@ -463,11 +499,18 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                     </button>
                   </div>
                   {ua !== undefined && (
-                    <div className={`text-xs px-3 py-2 rounded-lg ${correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-                      {correct ? '✅ Bonne réponse' : `❌ Réponse : ${q.options?.[ua] ?? ua} — Correct : ${correctAnswerLabel(q)}`}
+                    <div className={`text-xs px-3 py-2 rounded-lg flex items-center gap-1.5 ${correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                      {correct
+                        ? <><CheckIcon className="w-3 h-3 flex-shrink-0" /> Bonne réponse</>
+                        : <><XIcon className="w-3 h-3 flex-shrink-0" /> Réponse : {q.options?.[ua] ?? ua} — Correct : {correctAnswerLabel(q)}</>}
                     </div>
                   )}
-                  {ua === undefined && <p className="text-xs text-orange-500">⚠️ Non répondu</p>}
+                  {ua === undefined && (
+                    <p className="text-xs text-orange-500 flex items-center gap-1">
+                      <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      Non répondu
+                    </p>
+                  )}
                 </Card>
               );
             })}
@@ -524,8 +567,11 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                 return (
                   <div key={idx} className={`p-4 rounded-lg border-l-4 ${correct ? 'border-green-500 bg-green-50' : 'border-red-400 bg-red-50'}`}>
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="font-semibold text-sm text-neutral-800">
-                        {correct ? '✅' : '❌'} Q{idx + 1} — {ques.text}
+                      <p className="font-semibold text-sm text-neutral-800 flex items-start gap-1.5">
+                        {correct
+                          ? <CheckIcon className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                          : <XIcon className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />}
+                        Q{idx + 1} — {ques.text}
                       </p>
                       <div className="flex gap-1.5 flex-shrink-0">
                         <TypeBadge type={qType} locale={locale} />
@@ -543,7 +589,10 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                       </p>
                     )}
                     {ques.explanation && (
-                      <p className="text-xs text-neutral-500 mt-2 italic">💡 {ques.explanation}</p>
+                      <p className="text-xs text-neutral-500 mt-2 italic flex items-start gap-1.5">
+                        <LightbulbIcon className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                        {ques.explanation}
+                      </p>
                     )}
                   </div>
                 );
@@ -580,19 +629,15 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
               <p className="text-sm font-semibold text-neutral-500">
                 {q('question')} {currentIdx + 1} / {total}
               </p>
-              <div className="flex items-center gap-2">
-                {mode === 'module' && (
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
-                    {DIFFICULTY_UI[difficulty].dot} {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
-                  </span>
-                )}
-                <p className="text-sm text-secondary font-semibold">
-                  {currentIdx + 1} / {total}
-                </p>
-              </div>
+              {mode === 'module' && (
+                <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${DIFFICULTY_UI[difficulty].dotCls}`} />
+                  {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
+                </span>
+              )}
             </div>
-            <div className="w-full bg-neutral-200 rounded-full h-2">
-              <div className="bg-accent h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+            <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+              <div className="bg-accent h-2 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
             </div>
           </div>
 
@@ -602,9 +647,10 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
             <button
               onClick={() => toggleFlag(currentIdx)}
               title={flagged.has(currentIdx) ? 'Retirer le signet' : 'Marquer cette question'}
-              className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm transition-all ${flagged.has(currentIdx) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-300 hover:border-orange-300 hover:text-orange-400'}`}
+              aria-label={flagged.has(currentIdx) ? 'Retirer le signet' : 'Marquer cette question'}
+              className={`w-11 h-11 rounded-xl border-2 flex items-center justify-center transition-all ${flagged.has(currentIdx) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-400 hover:border-orange-300 hover:text-orange-400 hover:bg-orange-50'}`}
             >
-              🚩
+              <FlagIcon className="w-4 h-4" filled={flagged.has(currentIdx)} />
             </button>
           </div>
           <p className="text-xl font-semibold text-neutral-800 mb-4 leading-relaxed">{question.text}</p>
@@ -650,14 +696,17 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
 
           {/* Feedback + explication après réponse */}
           {answered && (
-            <div className={`p-4 rounded-xl mb-6 ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
-              <p className={`font-bold mb-1 ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
+            <div className={`p-4 rounded-xl mb-6 quiz-feedback-enter ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
+              <p className={`font-bold mb-1 flex items-center gap-2 ${isCorrect ? 'text-green-700' : 'text-orange-700'}`}>
                 {isCorrect
-                  ? `✅ ${q('correct')} !`
-                  : `❌ ${q('incorrect')} — ${q('correct')} : ${correctAnswerLabel(question)}`}
+                  ? <><CheckIcon className="w-5 h-5 flex-shrink-0" />{q('correct')} !</>
+                  : <><XIcon className="w-5 h-5 flex-shrink-0" />{q('incorrect')} — {q('correct')} : {correctAnswerLabel(question)}</>}
               </p>
               {question.explanation && (
-                <p className="text-sm text-neutral-700 leading-relaxed mt-1">💡 {question.explanation}</p>
+                <p className="text-sm text-neutral-700 leading-relaxed mt-2 flex items-start gap-2">
+                  <LightbulbIcon className="w-4 h-4 flex-shrink-0 mt-0.5 text-neutral-500" />
+                  {question.explanation}
+                </p>
               )}
             </div>
           )}
@@ -677,9 +726,9 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                 <div className="relative">
                   <button
                     onClick={() => setShowFlaggedPanel((v) => !v)}
-                    className="px-3 py-2 border-2 border-orange-300 text-orange-500 rounded-xl text-xs font-semibold hover:bg-orange-50 transition-colors"
+                    className="px-3 py-2 border-2 border-orange-300 text-orange-500 rounded-xl text-xs font-semibold hover:bg-orange-50 transition-colors flex items-center gap-1.5"
                   >
-                    🚩 {flagged.size}
+                    <FlagIcon className="w-3.5 h-3.5" /> {flagged.size}
                   </button>
                 </div>
               )}
@@ -712,8 +761,11 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
           <div className="absolute inset-0 bg-black/30" />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 z-10" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="font-heading font-bold text-primary text-base">🚩 Questions marquées ({flagged.size})</h3>
-              <button onClick={() => setShowFlaggedPanel(false)} className="text-neutral-400 hover:text-neutral-600 text-xl leading-none">×</button>
+              <h3 className="font-heading font-bold text-primary text-base flex items-center gap-2">
+                <FlagIcon className="w-4 h-4 text-orange-500" />
+                Questions marquées ({flagged.size})
+              </h3>
+              <button onClick={() => setShowFlaggedPanel(false)} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-600 rounded-lg hover:bg-neutral-100 transition-colors text-xl leading-none">×</button>
             </div>
             <p className="text-xs text-neutral-400 mb-3">Clique sur une question pour y aller directement.</p>
             <div className="space-y-2 max-h-64 overflow-y-auto">
