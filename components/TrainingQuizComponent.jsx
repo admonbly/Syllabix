@@ -528,7 +528,7 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                   </span>
                 )}
                 <p className="text-sm text-secondary font-semibold">
-                  {answered_count} {q('of')} {total}
+                  {currentIdx + 1} / {total}
                 </p>
               </div>
             </div>
