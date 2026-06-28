@@ -29,9 +29,10 @@ export default function CertificationQuizComponent({
   const [answers, setAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
-  const [flagged, setFlagged] = useState(new Set());
-  const [showReview, setShowReview] = useState(false);
-  const [showFinishWarning, setShowFinishWarning] = useState(false);
+  const [flagged,          setFlagged]          = useState(new Set());
+  const [showReview,       setShowReview]        = useState(false);
+  const [showFinishWarning,setShowFinishWarning] = useState(false);
+  const [showFlaggedPanel, setShowFlaggedPanel]  = useState(false);
   const [isChildMode, setIsChildMode] = useState(false);
   const [timeLeft, setTimeLeft] = useState(EXAM_CONFIG.CERTIFICATION.DURATION);
   const [timerStarted, setTimerStarted] = useState(false);
@@ -337,6 +338,11 @@ export default function CertificationQuizComponent({
               <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
                 <p className="font-semibold mb-2">📜 {ct('certificate')}</p>
                 <p>{ct('certVal')}</p>
+              </div>
+
+              <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
+                <p className="font-semibold mb-2">🚩 Signets — marquer pour revenir</p>
+                <p className="text-sm">Clique sur le drapeau 🚩 à côté de chaque question pour la marquer. Tu pourras naviguer vers toutes tes questions marquées depuis le badge <strong>🚩 N</strong> en bas, ou les réviser en lot avant de terminer.</p>
               </div>
 
               <div className="space-y-2 text-sm">
@@ -656,10 +662,10 @@ export default function CertificationQuizComponent({
               </button>
             )}
             <div className="flex-1" />
-            {/* Bouton signet raccourci */}
+            {/* Bouton signet raccourci — ouvre le popup de navigation */}
             {flagged.size > 0 && (
               <button
-                onClick={() => setShowReview(true)}
+                onClick={() => setShowFlaggedPanel((v) => !v)}
                 className="px-4 py-3 border-2 border-orange-300 text-orange-500 rounded-lg text-sm font-semibold hover:bg-orange-50 transition-colors"
               >
                 🚩 {flagged.size}
@@ -683,6 +689,49 @@ export default function CertificationQuizComponent({
           </div>
         </Card>
       </div>
+
+      {/* Popup — liste des questions marquées */}
+      {showFlaggedPanel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFlaggedPanel(false)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 z-10" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading font-bold text-primary text-base">🚩 Questions marquées ({flagged.size})</h3>
+              <button onClick={() => setShowFlaggedPanel(false)} className="text-neutral-400 hover:text-neutral-600 text-xl leading-none">×</button>
+            </div>
+            <p className="text-xs text-neutral-400 mb-3">Clique sur une question pour y aller directement.</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {[...flagged].sort((a, b) => a - b).map((idx) => {
+                const q = questions[idx];
+                if (!q) return null;
+                const isAnswered = answers[idx] !== undefined;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => { setCurrentQuestion(idx); setShowFlaggedPanel(false); }}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-neutral-100 hover:border-orange-300 hover:bg-orange-50 transition-all text-left"
+                  >
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 text-orange-500 text-xs font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm text-neutral-700 flex-1 line-clamp-2">{q.text}</span>
+                    <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500'}`}>
+                      {isAnswered ? '✓' : '—'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => { setShowFlaggedPanel(false); setShowReview(true); }}
+              className="mt-4 w-full py-2 text-sm font-semibold text-orange-500 border-2 border-orange-200 rounded-xl hover:bg-orange-50 transition-colors"
+            >
+              Réviser toutes les questions marquées →
+            </button>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 }

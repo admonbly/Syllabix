@@ -240,8 +240,9 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   const [inputVal,      setInputVal]      = useState('');
 
   // Signets
-  const [flagged, setFlagged] = useState(new Set());
-  const [showReview, setShowReview] = useState(false);
+  const [flagged,          setFlagged]          = useState(new Set());
+  const [showReview,       setShowReview]        = useState(false);
+  const [showFlaggedPanel, setShowFlaggedPanel]  = useState(false);
 
   useEffect(() => { setSelectedMulti(new Set()); setInputVal(''); }, [currentIdx]);
 
@@ -616,26 +617,28 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
 
             <div className="flex items-center gap-2">
               {flagged.size > 0 && (
-                <button
-                  onClick={() => setShowReview(true)}
-                  className="px-3 py-2 border-2 border-orange-300 text-orange-500 rounded-xl text-xs font-semibold hover:bg-orange-50 transition-colors"
-                >
-                  🚩 {flagged.size}
-                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => setShowFlaggedPanel((v) => !v)}
+                    className="px-3 py-2 border-2 border-orange-300 text-orange-500 rounded-xl text-xs font-semibold hover:bg-orange-50 transition-colors"
+                  >
+                    🚩 {flagged.size}
+                  </button>
+                </div>
               )}
               {isLast ? (
                 <button
                   onClick={handleFinishTraining}
-                  disabled={!answered}
-                  className={`px-5 py-3 rounded-xl font-semibold transition-colors ${answered ? 'bg-secondary text-white hover:bg-green-700' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
+                  disabled={!answered && !flagged.has(currentIdx)}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-colors ${(answered || flagged.has(currentIdx)) ? 'bg-secondary text-white hover:bg-green-700' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
                 >
                   {q('submit')}
                 </button>
               ) : (
                 <button
                   onClick={goNext}
-                  disabled={!answered}
-                  className="px-5 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors disabled:opacity-40"
+                  disabled={!answered && !flagged.has(currentIdx)}
+                  className={`px-5 py-3 rounded-xl font-semibold transition-colors ${(answered || flagged.has(currentIdx)) ? 'bg-accent text-white hover:bg-accent/90' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
                 >
                   {q('next')}
                 </button>
@@ -645,6 +648,46 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
 
         </Card>
       </div>
+
+      {/* Popup panel — liste des questions marquées */}
+      {showFlaggedPanel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFlaggedPanel(false)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 z-10" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading font-bold text-primary text-base">🚩 Questions marquées ({flagged.size})</h3>
+              <button onClick={() => setShowFlaggedPanel(false)} className="text-neutral-400 hover:text-neutral-600 text-xl leading-none">×</button>
+            </div>
+            <p className="text-xs text-neutral-400 mb-3">Clique sur une question pour y aller directement.</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {[...flagged].sort((a, b) => a - b).map((idx) => {
+                const q_ = questions[idx];
+                if (!q_) return null;
+                const isAnswered = answers[idx] !== undefined;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => { setCurrentIdx(idx); setShowFlaggedPanel(false); }}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-neutral-100 hover:border-orange-300 hover:bg-orange-50 transition-all text-left"
+                  >
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 text-orange-500 text-xs font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm text-neutral-700 flex-1 line-clamp-2">{q_.text}</span>
+                    <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500'}`}>
+                      {isAnswered ? '✓' : '—'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <button onClick={() => { setShowFlaggedPanel(false); setShowReview(true); }} className="mt-4 w-full py-2 text-sm font-semibold text-orange-500 border-2 border-orange-200 rounded-xl hover:bg-orange-50 transition-colors">
+              Voir le récap complet →
+            </button>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 }

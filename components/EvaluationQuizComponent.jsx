@@ -37,9 +37,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
   const [answers,         setAnswers]         = useState({});
   const [timeLeft,        setTimeLeft]        = useState(EXAM_CONFIG.EVALUATION.DURATION);
   const [loading,         setLoading]         = useState(true);
-  const [flagged,         setFlagged]         = useState(new Set());
-  const [showReview,      setShowReview]      = useState(false);
-  const [showWarning,     setShowWarning]     = useState(false);
+  const [flagged,          setFlagged]          = useState(new Set());
+  const [showReview,       setShowReview]       = useState(false);
+  const [showWarning,      setShowWarning]      = useState(false);
+  const [showFlaggedPanel, setShowFlaggedPanel] = useState(false);
 
   // Adaptive state
   const [difficulty,  setDifficulty]  = useState(1);
@@ -192,7 +193,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                 <p className="text-xs text-neutral-500 mt-1">{ev('typeDesc')}</p>
               </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
               <p className="text-sm text-blue-800 font-semibold mb-2">{ev('how')}</p>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• {ev('how1')}</li>
@@ -200,6 +201,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                 <li>• {ev('how3')}</li>
                 <li>• {ev('how4')}</li>
               </ul>
+            </div>
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 text-left">
+              <p className="text-sm text-orange-800 font-semibold mb-1">🚩 Marquer les questions pour y revenir</p>
+              <p className="text-sm text-orange-700">Clique sur le drapeau 🚩 à côté d'une question pour la marquer. Le badge <strong>🚩 N</strong> dans la barre te permet de naviguer directement vers tes questions marquées à tout moment.</p>
             </div>
             <CTAButton onClick={() => setPhase('quiz')} size="lg" className="w-full">
               {ev('start')}
@@ -371,7 +376,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           <span className="text-xl">⏱ {formatTime(timeLeft)}</span>
           <div className="flex items-center gap-2">
             {flagged.size > 0 && (
-              <button onClick={() => setShowReview(true)} className="text-xs px-2 py-1 border border-orange-300 text-orange-500 rounded-lg font-semibold hover:bg-orange-50">
+              <button onClick={() => setShowFlaggedPanel((v) => !v)} className="text-xs px-2 py-1 border border-orange-300 text-orange-500 rounded-lg font-semibold hover:bg-orange-50">
                 🚩 {flagged.size}
               </button>
             )}
@@ -449,6 +454,49 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           )}
         </Card>
       </div>
+
+      {/* Popup — liste des questions marquées */}
+      {showFlaggedPanel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFlaggedPanel(false)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 z-10" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading font-bold text-primary text-base">🚩 Questions marquées ({flagged.size})</h3>
+              <button onClick={() => setShowFlaggedPanel(false)} className="text-neutral-400 hover:text-neutral-600 text-xl leading-none">×</button>
+            </div>
+            <p className="text-xs text-neutral-400 mb-3">Clique sur une question pour y aller directement.</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {[...flagged].sort((a, b) => a - b).map((idx) => {
+                const q = questions[idx];
+                if (!q) return null;
+                const isAnswered = answers[idx] !== undefined;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => { setCurrentQuestion(idx); setShowFlaggedPanel(false); }}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-neutral-100 hover:border-orange-300 hover:bg-orange-50 transition-all text-left"
+                  >
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 text-orange-500 text-xs font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm text-neutral-700 flex-1 line-clamp-2">{q.text}</span>
+                    <span className={`flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500'}`}>
+                      {isAnswered ? '✓' : '—'}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => { setShowFlaggedPanel(false); setShowReview(true); }}
+              className="mt-4 w-full py-2 text-sm font-semibold text-orange-500 border-2 border-orange-200 rounded-xl hover:bg-orange-50 transition-colors"
+            >
+              Réviser toutes les questions marquées →
+            </button>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 }
