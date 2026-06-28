@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
-import { auth, userDB } from '@/lib/firebase';
+import { auth } from '@/lib/firebase';
 import { useLanguage } from '@/lib/LanguageContext';
 import {
   getModuleQuestionsWithRepeat,
@@ -15,8 +15,6 @@ import {
   randomizeAnswerOptions,
   EXAM_CONFIG,
 } from '@/lib/examService';
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 /** @param {{ mode?: string, moduleId?: string | number | null, certificateType?: string | null }} props */
 export default function CertificationQuizComponent({
@@ -39,6 +37,8 @@ export default function CertificationQuizComponent({
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [startTime, setStartTime] = useState(null);
+
+  const hasSubmitted = useRef(false);
 
   // Submission state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,129 +107,119 @@ export default function CertificationQuizComponent({
     if (!timerStarted || showResults) return;
 
     const interval = setInterval(() => {
-      localStorage.setItem('exam_backup', JSON.stringify({ questions, answers }));
+      localStorage.setItem('exam_backup', JSON.stringify({ answers }));
     }, 10000);
 
     return () => clearInterval(interval);
   }, [answers, timerStarted, showResults]);
 
-  // Soumission au backend + sauvegarde certificat quand les résultats s'affichent
+  // Soumission au serveur quand les résultats s'affichent
   useEffect(() => {
-    if (!showResults || questions.length === 0) return;
+    if (!showResults || questions.length === 0 || hasSubmitted.current) return;
+    hasSubmitted.current = true;
 
-    const computed = calculateScore(
-      Object.entries(answers).map(([qIdx, ans]) => ({
-        questionId: questions[qIdx].id,
-        userAnswer: ans,
-      })),
-      questions
-    );
-    setScoreData(computed);
-
-    const passed = isPassing(computed.percentage);
-    const durationSeconds = startTime ? Math.round((Date.now() - startTime) / 1000) : null;
-
-    const submitAndSaveCert = async () => {
+    const submitToServer = async () => {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      const payload = {
-        moduleId: moduleId !== null ? String(moduleId) : null,
-        examType: mode === 'module' ? 'CERTIFICATION_MODULE' : 'CERTIFICATION_GLOBAL',
-        answers: Object.entries(answers).map(([qIdx, answerIndex]) => ({
-          questionId: questions[qIdx].id,
-          userAnswerIndex: answerIndex,
-          timeSpentSeconds: null,
-        })),
-        score: computed.percentage,
-        durationSeconds,
-        submittedAt: new Date().toISOString(),
-      };
+      const firebaseUser = auth.currentUser;
+      if (!firebaseUser) {
+        setSubmitError('Utilisateur non connecté.');
+        setIsSubmitting(false);
+        return;
+      }
 
       try {
-        const firebaseUser = auth.currentUser;
-        if (firebaseUser) {
-          const token = await firebaseUser.getIdToken();
-          await fetch(`${API_BASE}/api/exams/submit`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(payload),
-          });
+        const token = await firebaseUser.getIdToken();
+
+        // Envoyer les réponses brutes — le score est calculé côté serveur
+        const rawAnswers = Object.entries(answers).map(([qIdx, answerIndex]) => ({
+          questionId: questions[parseInt(qIdx)].id,
+          userAnswerIndex: answerIndex,
+        }));
+
+        const res = await fetch('/api/exam/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            answers: rawAnswers,
+            moduleId: moduleId !== null ? moduleId : null,
+            examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          // Affichage local en fallback (score non certifié)
+          const fallback = calculateScore(
+            Object.entries(answers).map(([qIdx, ans]) => ({
+              questionId: questions[qIdx].id,
+              userAnswer: ans,
+            })),
+            questions
+          );
+          setScoreData(fallback);
+          setSubmitError(
+            res.status === 429
+              ? 'Cooldown actif. Vos résultats ne sont pas certifiés.'
+              : (data.error || 'Erreur serveur. Résultats non sauvegardés.')
+          );
+        } else {
+          setScoreData({ percentage: data.percentage, correct: data.correct, total: data.total });
+          if (data.certId) {
+            setCertId(data.certId);
+            // Notification email (non bloquant)
+            fetch('/api/notify/certificate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({
+                certId: data.certId,
+                email: firebaseUser.email,
+                displayName: firebaseUser.displayName || '',
+                score: data.percentage,
+                examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
+                moduleId: moduleId !== null ? moduleId : null,
+              }),
+            }).catch(() => {});
+          }
+          // Transmission à l'API externe si configurée
+          const apiBase = process.env.NEXT_PUBLIC_API_URL;
+          if (apiBase) {
+            fetch(`${apiBase}/api/exams/submit`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({
+                moduleId: moduleId !== null ? String(moduleId) : null,
+                examType: mode === 'module' ? 'CERTIFICATION_MODULE' : 'CERTIFICATION_GLOBAL',
+                score: data.percentage,
+                submittedAt: new Date().toISOString(),
+              }),
+            }).catch(() => {});
+          }
         }
       } catch (err) {
-        // Soumission API échouée — on continue quand même pour l'UX
-        setSubmitError('Résultats non synchronisés avec le serveur. Ils seront sauvegardés localement.');
-        console.error('API submission failed:', err);
+        console.error('Submission error:', err);
+        // Fallback affichage local uniquement
+        const fallback = calculateScore(
+          Object.entries(answers).map(([qIdx, ans]) => ({
+            questionId: questions[qIdx].id,
+            userAnswer: ans,
+          })),
+          questions
+        );
+        setScoreData(fallback);
+        setSubmitError('Erreur réseau. Résultats non certifiés. Contactez le support.');
       }
 
-      // Sauvegarder cooldown (toujours, même en cas d'échec)
-      const firebaseUser2 = auth.currentUser;
-      if (firebaseUser2) {
-        const examKey = mode === 'module' && moduleId !== null
-          ? `certification_module_${moduleId}`
-          : 'certification_global';
-        await userDB.saveCertAttempt(firebaseUser2.uid, examKey);
-      }
-
-      // Sauvegarder le certificat dans Firestore si réussi
-      if (passed) {
-        try {
-          const firebaseUser = auth.currentUser;
-          if (firebaseUser) {
-            const issuedAt = new Date().toISOString();
-            const id = await userDB.saveCertificate(firebaseUser.uid, {
-              displayName: firebaseUser.displayName || firebaseUser.email || 'Apprenant',
-              moduleId: moduleId !== null ? moduleId : null,
-              examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
-              score: computed.percentage,
-              issuedAt,
-            });
-            setCertId(id);
-
-            // Sauvegarder la progression du module
-            if (moduleId !== null) {
-              await userDB.saveUserProgress(firebaseUser.uid, String(moduleId), computed.percentage, []);
-              // Attribuer le badge de module
-              const MODULE_NAMES = ['IT & Ordinateur','Internet','Email','Bureautique','Cybersécurité','Intelligence Artificielle','Employabilité'];
-              await userDB.saveBadge(firebaseUser.uid, {
-                moduleId:   Number(moduleId),
-                moduleName: MODULE_NAMES[Number(moduleId)] ?? `Module ${moduleId}`,
-                score:      computed.percentage,
-              });
-            }
-
-            // Notification email (non bloquant)
-            try {
-              const token = await firebaseUser.getIdToken();
-              await fetch('/api/notify/certificate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                body: JSON.stringify({
-                  certId: id,
-                  email: firebaseUser.email,
-                  displayName: firebaseUser.displayName || '',
-                  score: computed.percentage,
-                  examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
-                  moduleId: moduleId !== null ? moduleId : null,
-                }),
-              });
-            } catch (_) { /* email optionnel */ }
-          }
-        } catch (err) {
-          console.error('Certificate save failed:', err);
-          setSubmitError('Certificat non sauvegardé. Contactez le support.');
-        }
-      }
-
-      // Nettoyer la sauvegarde locale
       localStorage.removeItem('exam_backup');
       setIsSubmitting(false);
     };
 
-    submitAndSaveCert();
+    submitToServer();
   }, [showResults]);
 
   // Décompte cooldown en temps réel
