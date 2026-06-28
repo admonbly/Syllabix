@@ -88,6 +88,9 @@ export default function CertificationQuizComponent({
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
+          // Forcer la sortie des écrans intermédiaires avant d'afficher les résultats
+          setShowReview(false);
+          setShowFinishWarning(false);
           setShowResults(true);
           clearInterval(interval);
           return 0;
@@ -399,10 +402,15 @@ export default function CertificationQuizComponent({
     return (
       <section className="py-20 bg-neutral-50 min-h-screen">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="text-center mb-8">
-            <div className="text-5xl mb-3">🚩</div>
-            <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
-            <p className="text-neutral-500">Tu as marqué {flaggedList.length} question{flaggedList.length > 1 ? 's' : ''}. Révise-les avant de terminer.</p>
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-center flex-1">
+              <div className="text-5xl mb-3">🚩</div>
+              <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
+              <p className="text-neutral-500">Tu as marqué {flaggedList.length} question{flaggedList.length > 1 ? 's' : ''}. Révise-les avant de terminer.</p>
+            </div>
+            <div className={`text-lg font-bold px-4 py-2 rounded-xl border ${isTimeCritical(timeLeft) ? 'border-red-300 bg-red-50 text-red-600' : 'border-neutral-200 bg-white text-primary'}`}>
+              ⏱ {formatTime(timeLeft)}
+            </div>
           </div>
           <div className="space-y-6 mb-8">
             {flaggedList.map((idx) => {
@@ -445,7 +453,7 @@ export default function CertificationQuizComponent({
             <button onClick={() => setShowReview(false)} className="px-6 py-3 bg-neutral-200 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-300 transition-colors">
               Continuer l'examen
             </button>
-            <button onClick={() => setShowResults(true)} className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors">
+            <button onClick={() => { setShowReview(false); setShowResults(true); }} className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-colors">
               Terminer l'examen
             </button>
           </div>
@@ -461,6 +469,9 @@ export default function CertificationQuizComponent({
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
         <div className="max-w-md mx-auto px-4">
+          <div className={`text-center mb-4 text-lg font-bold ${isTimeCritical(timeLeft) ? 'text-red-600' : 'text-primary'}`}>
+            ⏱ {formatTime(timeLeft)} restantes
+          </div>
           <Card className="p-8 text-center">
             <div className="text-5xl mb-4">⚠️</div>
             <h2 className="text-2xl font-heading font-bold text-primary mb-3">Questions sans réponse</h2>
@@ -638,13 +649,15 @@ export default function CertificationQuizComponent({
                 <button
                   key={index}
                   onClick={() => setAnswers({ ...answers, [currentQuestion]: index })}
-                  disabled={answered}
-                  className={`w-full p-4 text-left rounded-lg border-2 font-semibold transition-all ${
+                  className={`w-full p-4 text-left rounded-lg border-2 font-semibold transition-all hover:shadow-md ${
                     answers[currentQuestion] === index
-                      ? 'border-accent bg-accent/10'
+                      ? 'border-accent bg-accent/10 text-accent'
                       : 'border-neutral-200 hover:border-accent cursor-pointer'
-                  } ${answered ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'}`}
+                  }`}
                 >
+                  <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
+                    {String.fromCharCode(65 + index)}
+                  </span>
                   {option}
                 </button>
               ))}

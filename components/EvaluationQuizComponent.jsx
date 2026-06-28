@@ -74,6 +74,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(intervalRef.current);
+          // Forcer la sortie des écrans intermédiaires
+          setShowReview(false);
+          setShowWarning(false);
           setPhase('results');
           return 0;
         }
@@ -279,10 +282,15 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     return (
       <section className="py-12 bg-neutral-50 min-h-screen">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="text-center mb-8">
-            <div className="text-5xl mb-3">🚩</div>
-            <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
-            <p className="text-neutral-500">{flaggedList.length} question{flaggedList.length > 1 ? 's' : ''} à réviser</p>
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-center flex-1">
+              <div className="text-5xl mb-3">🚩</div>
+              <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
+              <p className="text-neutral-500">{flaggedList.length} question{flaggedList.length > 1 ? 's' : ''} à réviser</p>
+            </div>
+            <div className={`text-lg font-bold px-4 py-2 rounded-xl border flex-shrink-0 ${isTimeCritical(timeLeft) ? 'border-red-300 bg-red-50 text-red-600' : 'border-neutral-200 bg-white text-primary'}`}>
+              ⏱ {formatTime(timeLeft)}
+            </div>
           </div>
           <div className="space-y-4 mb-8">
             {flaggedList.map((idx) => {
@@ -329,6 +337,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
         <div className="max-w-md mx-auto px-4">
+          <div className={`text-center mb-4 text-lg font-bold ${isTimeCritical(timeLeft) ? 'text-red-600' : 'text-primary'}`}>
+            ⏱ {formatTime(timeLeft)} restantes
+          </div>
           <Card className="p-8 text-center">
             <div className="text-5xl mb-4">⚠️</div>
             <h2 className="text-2xl font-heading font-bold text-primary mb-3">Questions sans réponse</h2>

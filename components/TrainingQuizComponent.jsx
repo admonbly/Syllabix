@@ -368,12 +368,10 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   const answered = answers[currentIdx] !== undefined;
 
   const handleFinishTraining = () => {
-    const answeredCount = Object.keys(answers).length;
-    if (flagged.size > 0) {
+    const unansweredFlagged = [...flagged].some((idx) => answers[idx] === undefined);
+    if (unansweredFlagged) {
+      // Des questions marquées n'ont pas encore de réponse — afficher la révision
       setShowReview(true);
-    } else if (answeredCount < questions.length) {
-      // En entraînement, on alerte mais on laisse terminer
-      setShowResults(true);
     } else {
       setShowResults(true);
     }
