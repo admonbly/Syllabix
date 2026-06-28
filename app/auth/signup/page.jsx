@@ -9,21 +9,21 @@ import { authFunctions, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 const DIAL_CODES = [
-  { code: '+225', flag: '🇨🇮', label: 'Côte d\'Ivoire (+225)' },
-  { code: '+221', flag: '🇸🇳', label: 'Sénégal (+221)' },
-  { code: '+234', flag: '🇳🇬', label: 'Nigeria (+234)' },
-  { code: '+237', flag: '🇨🇲', label: 'Cameroun (+237)' },
-  { code: '+243', flag: '🇨🇩', label: 'RD Congo (+243)' },
-  { code: '+254', flag: '🇰🇪', label: 'Kenya (+254)' },
-  { code: '+233', flag: '🇬🇭', label: 'Ghana (+233)' },
-  { code: '+212', flag: '🇲🇦', label: 'Maroc (+212)' },
-  { code: '+216', flag: '🇹🇳', label: 'Tunisie (+216)' },
-  { code: '+213', flag: '🇩🇿', label: 'Algérie (+213)' },
-  { code: '+20',  flag: '🇪🇬', label: 'Égypte (+20)' },
-  { code: '+27',  flag: '🇿🇦', label: 'Afrique du Sud (+27)' },
-  { code: '+33',  flag: '🇫🇷', label: 'France (+33)' },
-  { code: '+32',  flag: '🇧🇪', label: 'Belgique (+32)' },
-  { code: '+41',  flag: '🇨🇭', label: 'Suisse (+41)' },
+  { code: '+225', flag: '🇨🇮' },
+  { code: '+221', flag: '🇸🇳' },
+  { code: '+234', flag: '🇳🇬' },
+  { code: '+237', flag: '🇨🇲' },
+  { code: '+243', flag: '🇨🇩' },
+  { code: '+254', flag: '🇰🇪' },
+  { code: '+233', flag: '🇬🇭' },
+  { code: '+212', flag: '🇲🇦' },
+  { code: '+216', flag: '🇹🇳' },
+  { code: '+213', flag: '🇩🇿' },
+  { code: '+20',  flag: '🇪🇬' },
+  { code: '+27',  flag: '🇿🇦' },
+  { code: '+33',  flag: '🇫🇷' },
+  { code: '+32',  flag: '🇧🇪' },
+  { code: '+41',  flag: '🇨🇭' },
 ];
 
 const FIREBASE_ERRORS = {
@@ -276,10 +276,10 @@ export default function SignupPage() {
                   value={dialCode}
                   onChange={(e) => setDialCode(e.target.value)}
                   disabled={isLoading}
-                  className="flex-shrink-0 px-3 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors bg-white text-sm font-medium"
+                  className="w-28 flex-shrink-0 px-2 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors bg-white text-sm font-medium"
                 >
                   {DIAL_CODES.map((d) => (
-                    <option key={d.code} value={d.code}>{d.flag} {d.label}</option>
+                    <option key={d.code} value={d.code}>{d.flag} {d.code}</option>
                   ))}
                 </select>
                 {/* Numéro local */}

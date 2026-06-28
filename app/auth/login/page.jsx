@@ -20,21 +20,21 @@ const FIREBASE_ERRORS = {
 };
 
 const DIAL_CODES = [
-  { code: '+225', flag: '🇨🇮', label: '+225' },
-  { code: '+221', flag: '🇸🇳', label: '+221' },
-  { code: '+234', flag: '🇳🇬', label: '+234' },
-  { code: '+237', flag: '🇨🇲', label: '+237' },
-  { code: '+243', flag: '🇨🇩', label: '+243' },
-  { code: '+254', flag: '🇰🇪', label: '+254' },
-  { code: '+233', flag: '🇬🇭', label: '+233' },
-  { code: '+212', flag: '🇲🇦', label: '+212' },
-  { code: '+216', flag: '🇹🇳', label: '+216' },
-  { code: '+213', flag: '🇩🇿', label: '+213' },
-  { code: '+20',  flag: '🇪🇬', label: '+20' },
-  { code: '+27',  flag: '🇿🇦', label: '+27' },
-  { code: '+33',  flag: '🇫🇷', label: '+33' },
-  { code: '+32',  flag: '🇧🇪', label: '+32' },
-  { code: '+41',  flag: '🇨🇭', label: '+41' },
+  { code: '+225', flag: '🇨🇮' },
+  { code: '+221', flag: '🇸🇳' },
+  { code: '+234', flag: '🇳🇬' },
+  { code: '+237', flag: '🇨🇲' },
+  { code: '+243', flag: '🇨🇩' },
+  { code: '+254', flag: '🇰🇪' },
+  { code: '+233', flag: '🇬🇭' },
+  { code: '+212', flag: '🇲🇦' },
+  { code: '+216', flag: '🇹🇳' },
+  { code: '+213', flag: '🇩🇿' },
+  { code: '+20',  flag: '🇪🇬' },
+  { code: '+27',  flag: '🇿🇦' },
+  { code: '+33',  flag: '🇫🇷' },
+  { code: '+32',  flag: '🇧🇪' },
+  { code: '+41',  flag: '🇨🇭' },
 ];
 
 function redirect(url) {
@@ -207,10 +207,10 @@ function LoginForm() {
                         value={dialCode}
                         onChange={(e) => setDialCode(e.target.value)}
                         disabled={phoneLoading}
-                        className="flex-shrink-0 px-3 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none bg-white text-sm font-medium"
+                        className="w-28 flex-shrink-0 px-2 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none bg-white text-sm font-medium"
                       >
                         {DIAL_CODES.map((d) => (
-                          <option key={d.code} value={d.code}>{d.flag} {d.label}</option>
+                          <option key={d.code} value={d.code}>{d.flag} {d.code}</option>
                         ))}
                       </select>
                       <input
