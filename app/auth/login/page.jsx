@@ -3,14 +3,38 @@
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
-import { authFunctions } from '@/lib/firebase';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useState, Suspense, useEffect } from 'react';
+import { authFunctions, auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
+
+const FIREBASE_ERRORS = {
+  'auth/user-not-found': 'Aucun compte trouvé avec cet email.',
+  'auth/wrong-password': 'Mot de passe incorrect.',
+  'auth/invalid-credential': 'Email ou mot de passe incorrect.',
+  'auth/invalid-email': 'Adresse email invalide.',
+  'auth/user-disabled': 'Ce compte a été désactivé.',
+  'auth/too-many-requests': 'Trop de tentatives. Réessayez dans quelques minutes.',
+  'auth/network-request-failed': 'Erreur réseau. Vérifiez votre connexion.',
+};
 
 const DIAL_CODES = [
   { code: '+225', flag: '🇨🇮', label: '+225' },
+  { code: '+221', flag: '🇸🇳', label: '+221' },
+  { code: '+234', flag: '🇳🇬', label: '+234' },
+  { code: '+237', flag: '🇨🇲', label: '+237' },
+  { code: '+243', flag: '🇨🇩', label: '+243' },
+  { code: '+254', flag: '🇰🇪', label: '+254' },
+  { code: '+233', flag: '🇬🇭', label: '+233' },
+  { code: '+212', flag: '🇲🇦', label: '+212' },
+  { code: '+216', flag: '🇹🇳', label: '+216' },
+  { code: '+213', flag: '🇩🇿', label: '+213' },
+  { code: '+20',  flag: '🇪🇬', label: '+20' },
+  { code: '+27',  flag: '🇿🇦', label: '+27' },
   { code: '+33',  flag: '🇫🇷', label: '+33' },
+  { code: '+32',  flag: '🇧🇪', label: '+32' },
+  { code: '+41',  flag: '🇨🇭', label: '+41' },
 ];
 
 function redirect(url) {
@@ -19,9 +43,17 @@ function redirect(url) {
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/';
+  const router = useRouter();
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
   const sessionExpired = searchParams.get('reason') === 'session_expired';
   const { t } = useLanguage();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) router.replace(redirectTo);
+    });
+    return unsub;
+  }, [router, redirectTo]);
   const a = (k) => t(`auth.login.${k}`);
 
   // Mode : 'email' | 'phone'
@@ -49,7 +81,8 @@ function LoginForm() {
       await authFunctions.signIn(email, password);
       redirect(redirectTo);
     } catch (err) {
-      setError(err.message || 'Erreur de connexion');
+      const code = err?.code;
+      setError(FIREBASE_ERRORS[code] || err.message || 'Erreur de connexion');
       setIsLoading(false);
     }
   };
@@ -256,12 +289,15 @@ function LoginForm() {
 
           </div>
 
-          <p className="text-sm text-neutral-600 text-center">
-            {a('noAccount')}{' '}
-            <Link href="/auth/signup" className="text-accent font-semibold hover:underline">
+          <div className="mt-6 pt-6 border-t border-neutral-100 text-center">
+            <p className="text-sm text-neutral-500 mb-3">{a('noAccount')}</p>
+            <Link
+              href="/auth/signup"
+              className="inline-flex items-center justify-center w-full px-4 py-3 border-2 border-accent text-accent font-semibold rounded-lg hover:bg-accent hover:text-white transition-all"
+            >
               {a('signUp')}
             </Link>
-          </p>
+          </div>
         </Card>
       </div>
     </section>

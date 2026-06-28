@@ -4,11 +4,13 @@ import CountUp from '@/components/CountUp';
 import { CheckCircle2, Circle, Award, ArrowRight } from 'lucide-react';
 
 const moduleProgress = [
-  { label: 'IT & Ordinateur',   done: true  },
-  { label: 'Internet', done: true  },
-  { label: 'Email',             done: true  },
-  { label: 'Bureautique',       done: false, active: true },
-  { label: 'Cybersécurité',     done: false },
+  { label: 'IT & Ordinateur',         done: true  },
+  { label: 'Internet',                done: true  },
+  { label: 'Email',                   done: true  },
+  { label: 'Bureautique',             done: false, active: true },
+  { label: 'Cybersécurité',           done: false },
+  { label: 'Intelligence Artificielle', done: false },
+  { label: 'Employabilité',           done: false },
 ];
 
 const heroStats = [

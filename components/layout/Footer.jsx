@@ -168,7 +168,7 @@ export default function Footer() {
                 {label}
               </Link>
             ))}
-            <span>Mentions légales</span>
+            <Link href="/mentions-legales" className="hover:text-white/60 transition-colors">Mentions légales</Link>
           </div>
         </div>
       </div>

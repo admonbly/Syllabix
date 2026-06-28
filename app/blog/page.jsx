@@ -17,7 +17,7 @@ function formatDate(dateStr) {
   }
 }
 
-const CATEGORIES = ['Tous', 'IA', 'Cybersécurité', 'Employabilité', 'Internet', 'Données'];
+const CATEGORIES = ['Tous', 'IA', 'Cybersécurité', 'Employabilité', 'Internet'];
 
 export default function BlogListPage() {
   const [articles, setArticles]   = useState([]);

@@ -4,8 +4,36 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { authFunctions } from '@/lib/firebase';
+import { useState, useEffect } from 'react';
+import { authFunctions, auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+
+const DIAL_CODES = [
+  { code: '+225', flag: '🇨🇮', label: 'Côte d\'Ivoire (+225)' },
+  { code: '+221', flag: '🇸🇳', label: 'Sénégal (+221)' },
+  { code: '+234', flag: '🇳🇬', label: 'Nigeria (+234)' },
+  { code: '+237', flag: '🇨🇲', label: 'Cameroun (+237)' },
+  { code: '+243', flag: '🇨🇩', label: 'RD Congo (+243)' },
+  { code: '+254', flag: '🇰🇪', label: 'Kenya (+254)' },
+  { code: '+233', flag: '🇬🇭', label: 'Ghana (+233)' },
+  { code: '+212', flag: '🇲🇦', label: 'Maroc (+212)' },
+  { code: '+216', flag: '🇹🇳', label: 'Tunisie (+216)' },
+  { code: '+213', flag: '🇩🇿', label: 'Algérie (+213)' },
+  { code: '+20',  flag: '🇪🇬', label: 'Égypte (+20)' },
+  { code: '+27',  flag: '🇿🇦', label: 'Afrique du Sud (+27)' },
+  { code: '+33',  flag: '🇫🇷', label: 'France (+33)' },
+  { code: '+32',  flag: '🇧🇪', label: 'Belgique (+32)' },
+  { code: '+41',  flag: '🇨🇭', label: 'Suisse (+41)' },
+];
+
+const FIREBASE_ERRORS = {
+  'auth/email-already-in-use': 'Cette adresse email est déjà utilisée.',
+  'auth/invalid-email': 'L\'adresse email n\'est pas valide.',
+  'auth/weak-password': 'Le mot de passe est trop faible (minimum 6 caractères).',
+  'auth/network-request-failed': 'Erreur réseau. Vérifiez votre connexion.',
+  'auth/too-many-requests': 'Trop de tentatives. Réessayez dans quelques minutes.',
+  'auth/operation-not-allowed': 'Cette méthode d\'inscription n\'est pas activée.',
+};
 
 function calculateAge(dateOfBirth) {
   const today = new Date();
@@ -20,6 +48,14 @@ function calculateAge(dateOfBirth) {
 
 export default function SignupPage() {
   const router = useRouter();
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) router.replace('/dashboard');
+    });
+    return unsub;
+  }, [router]);
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -96,7 +132,8 @@ export default function SignupPage() {
       });
       router.push('/auth/verify-email');
     } catch (err) {
-      setError(err.message || 'Erreur lors de l\'inscription');
+      const code = err?.code;
+      setError(FIREBASE_ERRORS[code] || err.message || 'Erreur lors de l\'inscription');
     } finally {
       setIsLoading(false);
     }
@@ -241,8 +278,9 @@ export default function SignupPage() {
                   disabled={isLoading}
                   className="flex-shrink-0 px-3 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors bg-white text-sm font-medium"
                 >
-                  <option value="+225">🇨🇮 +225</option>
-                  <option value="+33">🇫🇷 +33</option>
+                  {DIAL_CODES.map((d) => (
+                    <option key={d.code} value={d.code}>{d.flag} {d.label}</option>
+                  ))}
                 </select>
                 {/* Numéro local */}
                 <input
