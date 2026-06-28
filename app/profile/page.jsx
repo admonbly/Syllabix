@@ -1,18 +1,26 @@
 'use client';
 
-'use client';
-
 import { useState, useEffect } from 'react';
 import { auth, userDB, authFunctions } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import PageHeader from '@/components/PageHeader';
+import { SkeletonCard } from '@/components/SkeletonCard';
 import BadgeGrid from '@/components/BadgeGrid';
 import Link from 'next/link';
 
 const DIAL_CODES = [
   { code: '+225', flag: '🇨🇮', label: 'CI +225' },
-  { code: '+33',  flag: '🇫🇷', label: 'FR +33' },
+  { code: '+221', flag: '🇸🇳', label: 'SN +221' },
+  { code: '+234', flag: '🇳🇬', label: 'NG +234' },
+  { code: '+237', flag: '🇨🇲', label: 'CM +237' },
+  { code: '+243', flag: '🇨🇩', label: 'CD +243' },
+  { code: '+254', flag: '🇰🇪', label: 'KE +254' },
+  { code: '+233', flag: '🇬🇭', label: 'GH +233' },
+  { code: '+212', flag: '🇲🇦', label: 'MA +212' },
+  { code: '+33',  flag: '🇫🇷', label: 'FR +33'  },
+  { code: '+32',  flag: '🇧🇪', label: 'BE +32'  },
 ];
 
 function parsePhone(full = '') {
@@ -119,20 +127,25 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <p className="text-neutral-500">Chargement du profil...</p>
-      </section>
+      <div className="min-h-screen bg-neutral-50">
+        <div className="h-40 bg-gradient-to-br from-primary to-[#283593] animate-pulse" />
+        <div className="max-w-2xl mx-auto px-4 py-10 space-y-4">
+          <SkeletonCard lines={4} />
+          <SkeletonCard lines={3} />
+        </div>
+      </div>
     );
   }
 
   if (!firebaseUser) {
     return (
-      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-neutral-600 mb-4">Vous devez être connecté pour accéder à votre profil.</p>
-          <Link href="/auth/login" className="text-accent font-semibold hover:underline">Se connecter</Link>
+      <div className="min-h-screen bg-neutral-50">
+        <PageHeader title="Mon Profil" subtitle="Connectez-vous pour accéder à votre profil." icon="👤" />
+        <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+          <p className="text-neutral-600 mb-6">Vous devez être connecté.</p>
+          <CTAButton href="/auth/login" variant="primary" size="lg">Se connecter</CTAButton>
         </div>
-      </section>
+      </div>
     );
   }
 
@@ -142,9 +155,14 @@ export default function ProfilePage() {
   const authProvider = profile?.authProvider ?? 'email';
 
   return (
-    <section className="py-20 bg-neutral-50 min-h-screen">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6">
-        <h1 className="section-title">Mon Profil</h1>
+    <div className="min-h-screen bg-neutral-50">
+      <PageHeader
+        title="Mon Profil"
+        subtitle={`${firstName || ''} ${lastName || ''}`.trim() || firebaseUser.email}
+        icon="👤"
+        badge="Compte"
+      />
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-10">
 
         {/* Avatar + infos résumées */}
         <Card className="mb-8 flex items-center gap-6">
@@ -227,7 +245,7 @@ export default function ProfilePage() {
                 <select
                   value={dialCode}
                   onChange={(e) => setDialCode(e.target.value)}
-                  className="flex-shrink-0 px-3 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none bg-white text-sm font-medium"
+                  className="w-28 flex-shrink-0 px-2 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none bg-white text-sm font-medium"
                 >
                   {DIAL_CODES.map((d) => (
                     <option key={d.code} value={d.code}>{d.flag} {d.label}</option>
@@ -315,12 +333,12 @@ export default function ProfilePage() {
         )}
 
         {/* Navigation */}
-        <div className="flex gap-4 justify-center">
-          <Link href="/dashboard" className="px-6 py-3 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors">
+        <div className="flex gap-4 justify-center pb-8">
+          <Link href="/dashboard" className="px-6 py-3 border-2 border-primary text-primary rounded-xl font-semibold hover:bg-primary hover:text-white transition-colors">
             ← Tableau de bord
           </Link>
         </div>
       </div>
-    </section>
+    </div>
   );
 }

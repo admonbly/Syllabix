@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
+import PageHeader from '@/components/PageHeader';
 import Link from 'next/link';
 import { blogDB } from '@/lib/firebase';
 import { ARTICLES_SEED } from '@/lib/articlesSeed';
@@ -44,18 +45,15 @@ export default function BlogListPage() {
     : articles.filter(a => a.category === category);
 
   return (
-    <section className="py-20 bg-neutral-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-neutral-50">
+      <PageHeader
+        title="Blog & Actualités"
+        subtitle="Les dernières nouvelles et tutoriels sur les compétences numériques en Afrique"
+        icon="✍️"
+        badge="Ressources"
+      />
 
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-heading font-bold text-primary mb-4">
-            Blog & Actualités
-          </h1>
-          <p className="text-lg text-neutral-600 max-w-2xl mx-auto">
-            Les dernières nouvelles et tutoriels sur les compétences numériques en Afrique
-          </p>
-        </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Filtres catégories */}
         <div className="flex flex-wrap gap-2 justify-center mb-10">
@@ -128,6 +126,6 @@ export default function BlogListPage() {
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }

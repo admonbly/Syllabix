@@ -2,6 +2,7 @@
 
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import PageHeader from '@/components/PageHeader';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/LanguageContext';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
@@ -11,13 +12,15 @@ export default function TrainingPage() {
   const tr = (k) => t(`training.${k}`);
 
   return (
-    <section className="py-20 bg-neutral-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen bg-neutral-50">
+      <PageHeader
+        title={tr('title')}
+        subtitle={tr('subtitle')}
+        icon="🏋️"
+        badge="Entraînement gratuit"
+      />
 
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-heading font-bold text-primary mb-4">{tr('title')}</h1>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">{tr('subtitle')}</p>
-        </div>
+      <div className="max-w-6xl mx-auto px-4 py-12">
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {/* Canal 1 */}
@@ -157,6 +160,6 @@ export default function TrainingPage() {
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }

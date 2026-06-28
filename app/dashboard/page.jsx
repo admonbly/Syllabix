@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import BadgeGrid from '@/components/BadgeGrid';
+import PageHeader from '@/components/PageHeader';
+import { SkeletonStat, SkeletonCard } from '@/components/SkeletonCard';
 import Link from 'next/link';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -93,22 +95,28 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <p className="text-lg text-neutral-600">{d('loading')}</p>
-      </section>
+      <div className="min-h-screen bg-neutral-50">
+        <div className="h-40 bg-gradient-to-br from-primary to-[#283593] animate-pulse" />
+        <div className="max-w-6xl mx-auto px-4 py-10 space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <SkeletonStat key={i} />)}
+          </div>
+          <SkeletonCard lines={4} />
+          <SkeletonCard lines={3} />
+        </div>
+      </div>
     );
   }
 
   if (!user) {
     return (
-      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-lg text-neutral-600 mb-4">{d('notLoggedIn')}</p>
-          <Link href="/auth/login" className="text-accent font-semibold hover:underline">
-            {d('signIn')}
-          </Link>
+      <div className="min-h-screen bg-neutral-50">
+        <PageHeader title="Tableau de bord" subtitle="Connectez-vous pour accéder à votre espace personnel." icon="📊" />
+        <div className="max-w-6xl mx-auto px-4 py-16 text-center">
+          <p className="text-neutral-600 mb-6 text-lg">{d('notLoggedIn')}</p>
+          <CTAButton href="/auth/login" variant="primary" size="lg">{d('signIn')}</CTAButton>
         </div>
-      </section>
+      </div>
     );
   }
 
@@ -144,44 +152,44 @@ export default function DashboardPage() {
     : '';
 
   return (
-    <section className="py-20 bg-neutral-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="section-title">{d('title')}</h1>
+    <div className="min-h-screen bg-neutral-50">
 
-        <Card className="mb-8 flex justify-between items-center">
+      {/* Header premium */}
+      <PageHeader
+        title={d('title')}
+        icon="📊"
+        badge="Espace personnel"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-neutral-600">{d('welcome')}</p>
-            <p className="text-2xl font-heading font-bold text-primary">{displayName}</p>
-            {joinYear && (
-              <p className="text-sm text-neutral-500">{d('member')} {joinYear}</p>
-            )}
+            <p className="text-white/60 text-sm">{d('welcome')}</p>
+            <p className="text-xl font-heading font-bold text-white">{displayName}</p>
+            {joinYear && <p className="text-white/40 text-xs mt-0.5">{d('member')} {joinYear}</p>}
           </div>
-          <Link href="/profile" className="px-6 py-2 border-2 border-primary text-primary rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors">
-            {d('myProfile')}
+          <Link
+            href="/profile"
+            className="px-5 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white text-sm font-semibold hover:bg-white/20 transition-colors"
+          >
+            {d('myProfile')} →
           </Link>
-        </Card>
+        </div>
+      </PageHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card variant="accent">
-            <div className="text-4xl mb-2">🏆</div>
-            <p className="text-neutral-600 text-sm">{d('stats.completed')}</p>
-            <p className="text-3xl font-bold text-accent">{completedCount}/{MODULES.length}</p>
-          </Card>
-          <Card variant="secondary">
-            <div className="text-4xl mb-2">📜</div>
-            <p className="text-neutral-600 text-sm">{d('stats.certificates')}</p>
-            <p className="text-3xl font-bold text-secondary">{certificates.length}</p>
-          </Card>
-          <Card>
-            <div className="text-4xl mb-2">📊</div>
-            <p className="text-neutral-600 text-sm">{d('stats.rate')}</p>
-            <p className="text-3xl font-bold text-primary">{passRate > 0 ? `${passRate}%` : '-'}</p>
-          </Card>
-          <Card>
-            <div className="text-4xl mb-2">📝</div>
-            <p className="text-neutral-600 text-sm">{d('stats.attempted')}</p>
-            <p className="text-3xl font-bold">{attemptedCount}</p>
-          </Card>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: d('stats.completed'),    value: `${completedCount}/${MODULES.length}`, color: 'text-accent',     border: 'border-accent/20',     bg: 'bg-orange-50' },
+            { label: d('stats.certificates'), value: certificates.length,                   color: 'text-secondary',  border: 'border-secondary/20',  bg: 'bg-green-50' },
+            { label: d('stats.rate'),         value: passRate > 0 ? `${passRate}%` : '—',  color: 'text-primary',    border: 'border-primary/20',    bg: 'bg-blue-50' },
+            { label: d('stats.attempted'),    value: attemptedCount,                        color: 'text-neutral-700',border: 'border-neutral-200',   bg: 'bg-white' },
+          ].map((s) => (
+            <div key={s.label} className={`rounded-2xl border-2 ${s.border} ${s.bg} p-5`}>
+              <p className="text-xs text-neutral-500 mb-2 font-medium">{s.label}</p>
+              <p className={`text-3xl font-heading font-extrabold ${s.color}`}>{s.value}</p>
+            </div>
+          ))}
         </div>
 
         {/* Recommandations personnalisées */}
@@ -420,6 +428,6 @@ export default function DashboardPage() {
           <CTAButton href="/training/mixed" size="lg">{d('cta')}</CTAButton>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
