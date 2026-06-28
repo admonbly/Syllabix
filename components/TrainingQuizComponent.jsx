@@ -243,6 +243,7 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   const [flagged,          setFlagged]          = useState(new Set());
   const [showReview,       setShowReview]        = useState(false);
   const [showFlaggedPanel, setShowFlaggedPanel]  = useState(false);
+  const [showIntro,        setShowIntro]         = useState(true);
 
   useEffect(() => { setSelectedMulti(new Set()); setInputVal(''); }, [currentIdx]);
 
@@ -336,7 +337,7 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     setAnswers({}); setCurrentIdx(0); setShowResults(false); setShowReview(false);
     setDifficulty(1); setStreak(0); setWrongStreak(0);
     setSelectedMulti(new Set()); setInputVal('');
-    setFlagged(new Set());
+    setFlagged(new Set()); setShowIntro(true);
     // Mélange le pool pour avoir 5 questions différentes à chaque relance
     const shuffled = [...pool];
     shuffleArray(shuffled);
@@ -344,6 +345,64 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
     const first = pickFromPool(shuffled, 1, new Set());
     setQuestions(first ? [randomizeAnswerOptions(first)] : []);
   };
+
+  // ── Écran d'intro ──────────────────────────────────────────────────────────
+  if (showIntro && !loading) {
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center">
+        <div className="max-w-xl mx-auto px-4 w-full">
+          <Card className="p-8 text-center">
+            <div className="text-5xl mb-4">🎯</div>
+            <h1 className="text-3xl font-heading font-bold text-primary mb-3">{q('training') || 'Entraînement'}</h1>
+            <p className="text-neutral-600 mb-6">{q('trainingDesc') || 'Réponds à 5 questions avec feedback immédiat pour progresser.'}</p>
+
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="bg-accent/10 rounded-xl p-4">
+                <p className="text-2xl font-bold text-accent">{SESSION_SIZE}</p>
+                <p className="text-xs text-neutral-500 mt-1">Questions</p>
+              </div>
+              <div className="bg-primary/10 rounded-xl p-4">
+                <p className="text-2xl font-bold text-primary">∞</p>
+                <p className="text-xs text-neutral-500 mt-1">Temps</p>
+              </div>
+              <div className="bg-secondary/10 rounded-xl p-4">
+                <p className="text-2xl font-bold text-secondary">✅</p>
+                <p className="text-xs text-neutral-500 mt-1">Feedback</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 mb-8 text-left">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-blue-800 font-semibold mb-2">💡 Comment ça marche</p>
+                <ul className="text-sm text-blue-700 space-y-1">
+                  <li>• Réponds à chaque question avant de passer à la suivante</li>
+                  <li>• Le feedback s'affiche immédiatement après ta réponse</li>
+                  {mode === 'module' && <li>• La difficulté s'adapte automatiquement à ton niveau</li>}
+                  <li>• Tu peux revenir en arrière pour revoir tes réponses</li>
+                </ul>
+              </div>
+
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                <p className="text-sm text-orange-800 font-semibold mb-1">🚩 Marquer les questions</p>
+                <p className="text-sm text-orange-700">
+                  Clique sur le drapeau 🚩 à côté d'une question pour la marquer et y revenir plus tard.
+                  Le badge <strong>🚩 N</strong> te permet de naviguer vers tes questions marquées.
+                  Une question marquée sans réponse peut être passée — tu la retrouveras en révision avant les résultats.
+                </p>
+              </div>
+            </div>
+
+            <CTAButton onClick={() => setShowIntro(false)} size="lg" className="w-full">
+              Commencer l'entraînement
+            </CTAButton>
+            <p className="mt-4 text-sm">
+              <a href="/training" className="text-neutral-400 hover:text-accent underline">Retour</a>
+            </p>
+          </Card>
+        </div>
+      </section>
+    );
+  }
 
   // ── États de chargement ────────────────────────────────────────────────────
   if (loading) {
