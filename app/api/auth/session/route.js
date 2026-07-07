@@ -35,7 +35,12 @@ export async function POST(request) {
 
   try {
     await getAdminAuth().verifyIdToken(token);
-  } catch {
+  } catch (err) {
+    // Distinguer une mauvaise config serveur (clé Admin absente) d'un vrai token invalide
+    if (String(err?.message).includes('FIREBASE_SERVICE_ACCOUNT_KEY')) {
+      console.error('session: FIREBASE_SERVICE_ACCOUNT_KEY manquante');
+      return NextResponse.json({ error: 'Configuration serveur incomplète' }, { status: 500 });
+    }
     return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
   }
 
