@@ -15,9 +15,38 @@ const PUBLIC_EXCEPTIONS = [
 
 const SESSION_TIMEOUT_MS = 6 * 60 * 60 * 1000; // 6 heures d'inactivité
 
-const COOKIE_OPTIONS = 'path=/; SameSite=Strict; Secure; HttpOnly';
+/**
+ * Vérifie le cookie de session signé "<expirationMs>.<hmacSha256>".
+ * Sans SESSION_SECRET configuré, accepte l'ancienne valeur "1" (mode legacy).
+ */
+async function isValidSession(value: string | undefined): Promise<boolean> {
+  if (!value) return false;
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) return value === '1'; // legacy — définir SESSION_SECRET en prod
 
-export function middleware(request: NextRequest) {
+  const dot = value.lastIndexOf('.');
+  if (dot <= 0) return false;
+  const exp = value.slice(0, dot);
+  const sig = value.slice(dot + 1);
+
+  if (!/^\d+$/.test(exp) || Number(exp) < Date.now()) return false;
+
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(exp));
+  const expected = Array.from(new Uint8Array(mac))
+    .map((b) => b.toString(16).padStart(2, '0')).join('');
+
+  // Comparaison à temps constant
+  if (sig.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= sig.charCodeAt(i) ^ expected.charCodeAt(i);
+  return diff === 0;
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isException = PUBLIC_EXCEPTIONS.some((p) => pathname === p);
@@ -29,8 +58,8 @@ export function middleware(request: NextRequest) {
   const session = request.cookies.get('syllabix_session')?.value;
   const lastActivity = request.cookies.get('syllabix_last_activity')?.value;
 
-  // Pas de session → login
-  if (!session || session !== '1') {
+  // Pas de session valide → login
+  if (!(await isValidSession(session))) {
     return redirectToLogin(request, pathname);
   }
 

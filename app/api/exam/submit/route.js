@@ -1,22 +1,23 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb, getAdminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
+import {
+  EXAM, MODULE_NAMES, loadQuestionBank, isAnswerCorrectServer,
+} from '@/lib/examServer';
 
-const MIN_PASS_SCORE = 60;
-const COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24h
-
-const MODULE_NAMES = [
-  'IT & Ordinateur', 'Internet', 'Email', 'Bureautique',
-  'Cybersécurité', 'Intelligence Artificielle', 'Employabilité',
-];
-
+/**
+ * POST /api/exam/submit
+ * Note une session d'examen créée par /api/exam/questions.
+ * Body : { sessionId, answers: [{ key: 'moduleId:questionId', value }] }
+ * - Le total est imposé par la session serveur (pas par le client)
+ * - Les réponses sont comparées par VALEUR (insensible au mélange des options)
+ * - Anti-rejeu : une session ne peut être soumise qu'une fois (transaction)
+ */
 export async function POST(request) {
-  // 1. Vérification du token Firebase
+  // 1. Authentification
   const authHeader = request.headers.get('Authorization') || '';
   const token = authHeader.replace('Bearer ', '').trim();
-  if (!token) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  }
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   let uid;
   try {
@@ -26,72 +27,72 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Token invalide ou expiré' }, { status: 401 });
   }
 
-  // 2. Parsing du corps
+  // 2. Parsing
   let body;
-  try {
-    body = await request.json();
-  } catch {
+  try { body = await request.json(); } catch {
     return NextResponse.json({ error: 'Corps de requête invalide' }, { status: 400 });
   }
-
-  const { answers, moduleId, examType } = body;
-
-  if (!Array.isArray(answers) || answers.length === 0) {
-    return NextResponse.json({ error: 'Réponses manquantes' }, { status: 400 });
+  const { sessionId, answers } = body;
+  if (!sessionId || typeof sessionId !== 'string' || !Array.isArray(answers)) {
+    return NextResponse.json({ error: 'sessionId ou réponses manquants' }, { status: 400 });
   }
 
   const db = getAdminDb();
+  const sessionRef = db.doc(`users/${uid}/examSessions/${sessionId}`);
 
-  // 3. Vérification du cooldown côté serveur
-  const examKey = moduleId !== null && moduleId !== undefined
-    ? `certification_module_${moduleId}`
-    : 'certification_global';
-
-  const attemptRef = db.doc(`users/${uid}/examAttempts/${examKey}`);
-  const attemptSnap = await attemptRef.get();
-
-  if (attemptSnap.exists) {
-    const lastAttemptAt = new Date(attemptSnap.data().lastAttemptAt);
-    const elapsed = Date.now() - lastAttemptAt.getTime();
-    if (elapsed < COOLDOWN_MS) {
-      const remaining = Math.ceil((COOLDOWN_MS - elapsed) / 1000);
-      return NextResponse.json({ error: 'cooldown', remaining }, { status: 429 });
-    }
+  // 3. Validation + verrouillage de la session (anti-rejeu, anti-course)
+  let session;
+  try {
+    session = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(sessionRef);
+      if (!snap.exists) throw new Error('session_not_found');
+      const data = snap.data();
+      if (data.submitted) throw new Error('already_submitted');
+      if (new Date(data.expiresAt).getTime() < Date.now()) throw new Error('session_expired');
+      tx.update(sessionRef, { submitted: true, submittedAt: new Date().toISOString() });
+      return data;
+    });
+  } catch (err) {
+    const map = {
+      session_not_found: ['Session d\'examen introuvable', 404],
+      already_submitted: ['Session déjà soumise', 409],
+      session_expired:   ['Session expirée', 410],
+    };
+    const [msg, status] = map[err.message] ?? ['Erreur de session', 500];
+    return NextResponse.json({ error: msg }, { status });
   }
 
-  // 4. Récupération des questions depuis Firestore côté serveur
-  const moduleIds = moduleId !== null && moduleId !== undefined
-    ? [String(moduleId)]
-    : ['0', '1', '2', '3', '4', '5', '6'];
+  const { moduleId, examType, questionKeys } = session;
 
-  const questionMap = new Map();
-  await Promise.all(
-    moduleIds.map(async (mId) => {
-      const snap = await db.collection(`modules/${mId}/questions`).get();
-      snap.forEach((doc) => {
-        questionMap.set(String(doc.id), { ...doc.data(), id: String(doc.id) });
-      });
-    })
-  );
+  // 4. Rechargement des questions côté serveur
+  const moduleIds = [...new Set(questionKeys.map((k) => parseInt(k.split(':')[0], 10)))];
+  const bank = await loadQuestionBank(db, moduleIds);
 
-  // 5. Calcul du score côté serveur (jamais côté client)
+  // 5. Notation — le total est le nombre de questions de la SESSION
+  const answerMap = new Map();
+  for (const a of answers) {
+    if (a && typeof a.key === 'string') answerMap.set(a.key, a.value);
+  }
+
   let correct = 0;
-  const total = answers.length;
-
-  for (const answer of answers) {
-    const question = questionMap.get(String(answer.questionId));
-    if (question && question.correct === answer.userAnswerIndex) {
-      correct++;
-    }
+  const total = questionKeys.length;
+  for (const key of questionKeys) {
+    const question = bank.get(key);
+    if (!question) continue;
+    const value = answerMap.get(key);
+    if (value !== undefined && isAnswerCorrectServer(question, value)) correct++;
   }
 
   const percentage = total > 0 ? Math.round((correct / total) * 100) : 0;
-  const passed = percentage >= MIN_PASS_SCORE;
+  const passed = percentage >= EXAM.MIN_PASS_SCORE;
 
-  // 6. Enregistrement du cooldown
-  await attemptRef.set({ lastAttemptAt: new Date().toISOString() });
+  // 6. Cooldown
+  const examKey = moduleId !== null ? `certification_module_${moduleId}` : 'certification_global';
+  await db.doc(`users/${uid}/examAttempts/${examKey}`).set({
+    lastAttemptAt: new Date().toISOString(),
+  });
 
-  // 7. Sauvegarde du certificat si réussi
+  // 7. Certificat si réussi
   let certId = null;
   if (passed) {
     const userSnap = await db.doc(`users/${uid}`).get();
@@ -104,8 +105,8 @@ export async function POST(request) {
 
     const certData = {
       displayName,
-      moduleId: moduleId !== null && moduleId !== undefined ? moduleId : null,
-      examType: examType || (moduleId !== null && moduleId !== undefined ? 'MODULE' : 'GLOBAL'),
+      moduleId,
+      examType: examType || (moduleId !== null ? 'MODULE' : 'GLOBAL'),
       score: percentage,
       issuedAt,
       userId: uid,
@@ -114,16 +115,14 @@ export async function POST(request) {
 
     await certRef.set(certData);
     // Collection publique pour la vérification /certificate/[id]
-    await db.doc(`certificates/${certId}`).set({ ...certData, userId: uid });
+    await db.doc(`certificates/${certId}`).set(certData);
 
-    // Progression et badge si certification par module
-    if (moduleId !== null && moduleId !== undefined) {
+    if (moduleId !== null) {
       await db.doc(`users/${uid}/progress/${moduleId}`).set({
         moduleId: String(moduleId),
         score: percentage,
         completedAt: issuedAt,
       });
-
       await db.doc(`users/${uid}`).update({
         badges: FieldValue.arrayUnion({
           moduleId: Number(moduleId),

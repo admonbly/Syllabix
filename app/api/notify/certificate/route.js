@@ -1,4 +1,15 @@
 import { NextResponse } from 'next/server';
+import { getAdminDb, getAdminAuth } from '@/lib/firebaseAdmin';
+
+// Échappe le HTML pour empêcher toute injection dans le corps de l'email
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 // Rate limiting en mémoire (reset à chaque cold start Vercel)
 const rateLimitMap = new Map();
@@ -53,6 +64,19 @@ export async function POST(request) {
     return NextResponse.json({ skipped: true, reason: 'RESEND_API_KEY not configured' });
   }
 
+  // Authentification obligatoire — l'appelant doit être connecté
+  const authHeader = request.headers.get('Authorization') || '';
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  let decoded;
+  try {
+    decoded = await getAdminAuth().verifyIdToken(token);
+  } catch {
+    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+  }
+
   let body;
   try {
     body = await request.json();
@@ -60,23 +84,31 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { certId, email, displayName, score, examType, moduleId } = body;
-
-  if (!email || !certId) {
-    return NextResponse.json({ error: 'Missing email or certId' }, { status: 400 });
+  const { certId } = body;
+  if (!certId || typeof certId !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(certId)) {
+    return NextResponse.json({ error: 'Missing or invalid certId' }, { status: 400 });
   }
 
-  // Validation basique de l'email
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: 'Invalid email' }, { status: 400 });
+  // Le certificat doit exister ET appartenir à l'appelant —
+  // toutes les données de l'email viennent de la base, jamais du client
+  const certSnap = await getAdminDb().doc(`certificates/${certId}`).get();
+  if (!certSnap.exists || certSnap.data().userId !== decoded.uid) {
+    return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
+  }
+  const cert = certSnap.data();
+
+  const email = decoded.email;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ skipped: true, reason: 'No verified email on account' });
   }
 
+  const { score, moduleId, displayName } = cert;
   const certTitle = moduleId !== null && moduleId !== undefined
     ? `${MODULE_NAMES[moduleId] || `Module ${moduleId}`}`
     : 'Certification Numérique Complète';
 
   const certUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://syllabix.com'}/certificate/${certId}`;
-  const name = displayName || email.split('@')[0];
+  const name = escapeHtml(displayName || email.split('@')[0]);
 
   const html = `
 <!DOCTYPE html>

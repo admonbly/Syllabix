@@ -4,17 +4,22 @@ import { useState, useEffect, useRef } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import { auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 import {
-  getModuleQuestionsWithRepeat,
-  getMixedQuestions,
-  calculateScore,
   isPassing,
   formatTime,
   isTimeCritical,
-  randomizeAnswerOptions,
   EXAM_CONFIG,
 } from '@/lib/examService';
+
+// Attend que Firebase ait résolu l'état d'authentification
+function waitForUser() {
+  if (auth.currentUser) return Promise.resolve(auth.currentUser);
+  return new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
+  });
+}
 
 /** @param {{ mode?: string, moduleId?: string | number | null, certificateType?: string | null }} props */
 export default function CertificationQuizComponent({
@@ -41,6 +46,7 @@ export default function CertificationQuizComponent({
   const hasSubmitted = useRef(false);
 
   // Submission state
+  const [sessionId, setSessionId] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [certId, setCertId] = useState(null);
   const [submitError, setSubmitError] = useState(null);
@@ -61,8 +67,8 @@ export default function CertificationQuizComponent({
       // Détecter le rôle CHILD
       const profile = await userDB.getUserProfile(firebaseUser.uid);
       if (profile?.role === 'CHILD') {
+        // Affichage adapté uniquement — la durée réelle est fixée par le serveur
         setIsChildMode(true);
-        setTimeLeft(EXAM_CONFIG.CHILD.DURATION);
       }
 
       // Vérifier le cooldown (24h entre chaque tentative)
@@ -132,11 +138,12 @@ export default function CertificationQuizComponent({
       try {
         const token = await firebaseUser.getIdToken();
 
-        // Envoyer les réponses brutes — le score est calculé côté serveur
-        const rawAnswers = Object.entries(answers).map(([qIdx, answerIndex]) => ({
-          questionId: questions[parseInt(qIdx)].id,
-          userAnswerIndex: answerIndex,
-        }));
+        // Réponses envoyées par VALEUR d'option — insensible au mélange,
+        // le score est calculé exclusivement côté serveur
+        const rawAnswers = Object.entries(answers).map(([qIdx, answerIndex]) => {
+          const q = questions[parseInt(qIdx)];
+          return { key: q.key, value: q.options?.[answerIndex] };
+        });
 
         const res = await fetch('/api/exam/submit', {
           method: 'POST',
@@ -144,25 +151,12 @@ export default function CertificationQuizComponent({
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            answers: rawAnswers,
-            moduleId: moduleId !== null ? moduleId : null,
-            examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
-          }),
+          body: JSON.stringify({ sessionId, answers: rawAnswers }),
         });
 
         const data = await res.json();
 
         if (!res.ok) {
-          // Affichage local en fallback (score non certifié)
-          const fallback = calculateScore(
-            Object.entries(answers).map(([qIdx, ans]) => ({
-              questionId: questions[qIdx].id,
-              userAnswer: ans,
-            })),
-            questions
-          );
-          setScoreData(fallback);
           setSubmitError(
             res.status === 429
               ? 'Cooldown actif. Vos résultats ne sont pas certifiés.'
@@ -172,18 +166,12 @@ export default function CertificationQuizComponent({
           setScoreData({ percentage: data.percentage, correct: data.correct, total: data.total });
           if (data.certId) {
             setCertId(data.certId);
-            // Notification email (non bloquant)
+            // Notification email (non bloquant) — le serveur lit les données
+            // du certificat en base, seul le certId est transmis
             fetch('/api/notify/certificate', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-              body: JSON.stringify({
-                certId: data.certId,
-                email: firebaseUser.email,
-                displayName: firebaseUser.displayName || '',
-                score: data.percentage,
-                examType: certificateType || (mode === 'module' ? 'MODULE' : 'GLOBAL'),
-                moduleId: moduleId !== null ? moduleId : null,
-              }),
+              body: JSON.stringify({ certId: data.certId }),
             }).catch(() => {});
           }
           // Transmission à l'API externe si configurée
@@ -203,16 +191,7 @@ export default function CertificationQuizComponent({
         }
       } catch (err) {
         console.error('Submission error:', err);
-        // Fallback affichage local uniquement
-        const fallback = calculateScore(
-          Object.entries(answers).map(([qIdx, ans]) => ({
-            questionId: questions[qIdx].id,
-            userAnswer: ans,
-          })),
-          questions
-        );
-        setScoreData(fallback);
-        setSubmitError('Erreur réseau. Résultats non certifiés. Contactez le support.');
+        setSubmitError('Erreur réseau. Résultats non sauvegardés. Contactez le support.');
       }
 
       localStorage.removeItem('exam_backup');
@@ -234,11 +213,39 @@ export default function CertificationQuizComponent({
     return () => clearInterval(t);
   }, [cooldownRemaining]);
 
+  // Les questions viennent du serveur SANS les bonnes réponses.
+  // Une session d'examen est créée côté serveur (anti-triche, anti-rejeu).
   const loadQuestions = async () => {
-    let quizQuestions = mode === 'module' && moduleId !== null
-      ? await getModuleQuestionsWithRepeat(moduleId, EXAM_CONFIG.CERTIFICATION.QUESTIONS_COUNT)
-      : await getMixedQuestions(EXAM_CONFIG.CERTIFICATION.QUESTIONS_COUNT);
-    setQuestions(quizQuestions.map(randomizeAnswerOptions));
+    try {
+      const user = await waitForUser();
+      if (!user) { setLoading(false); return; }
+      const token = await user.getIdToken();
+
+      const res = await fetch('/api/exam/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ moduleId: mode === 'module' && moduleId !== null ? moduleId : null }),
+      });
+      const data = await res.json();
+
+      if (res.status === 429) {
+        setCooldownRemaining(data.remaining ?? null);
+        setLoading(false);
+        return;
+      }
+      if (!res.ok) {
+        setQuestions([]);
+        setLoading(false);
+        return;
+      }
+
+      setSessionId(data.sessionId);
+      setQuestions(data.questions);
+      if (data.duration) setTimeLeft(data.duration);
+    } catch (err) {
+      console.error('loadQuestions:', err);
+      setQuestions([]);
+    }
     setLoading(false);
   };
 
