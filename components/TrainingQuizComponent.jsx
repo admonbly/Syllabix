@@ -89,6 +89,74 @@ function correctAnswerLabel(question) {
   return '';
 }
 
+// ─── Épreuve pratique ─────────────────────────────────────────────────────────
+const PRACTICAL_APPS = {
+  excel:      { icon: '📊', color: 'border-green-300 bg-green-50',   chip: 'bg-green-600' },
+  word:       { icon: '📝', color: 'border-blue-300 bg-blue-50',     chip: 'bg-blue-600' },
+  powerpoint: { icon: '📽️', color: 'border-orange-300 bg-orange-50', chip: 'bg-orange-500' },
+  cmd:        { icon: '⬛', color: 'border-neutral-400 bg-neutral-100', chip: 'bg-neutral-700' },
+  explorer:   { icon: '📁', color: 'border-amber-300 bg-amber-50',   chip: 'bg-amber-600' },
+  email:      { icon: '📧', color: 'border-teal-300 bg-teal-50',     chip: 'bg-teal-600' },
+};
+
+function PracticalBlock({ question, locale, t }) {
+  const app  = PRACTICAL_APPS[question.app] ?? PRACTICAL_APPS.explorer;
+  const p    = (k) => t(`quiz.practical.${k}`);
+  const comp = question.competency?.[locale] ?? question.competency?.fr;
+
+  return (
+    <div className={`mb-6 rounded-2xl border-2 ${app.color} overflow-hidden`}>
+      {/* En-tête */}
+      <div className="px-5 py-3 flex flex-wrap items-center gap-2 border-b border-black/5">
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-white text-xs font-bold ${app.chip}`}>
+          🧪 {p('title')}
+        </span>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/70 text-neutral-700 text-xs font-semibold border border-black/5">
+          {app.icon} {p(`apps.${question.app}`) }
+        </span>
+        {comp && (
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold ml-auto">
+            🎯 {p('competency')} : {comp}
+          </span>
+        )}
+      </div>
+
+      {/* Instructions */}
+      <div className="px-5 py-4">
+        <p className="text-sm font-bold text-neutral-700 mb-3">{p('steps')}</p>
+        <ol className="space-y-2 mb-4">
+          {(question.instructions ?? []).map((step, i) => (
+            <li key={i} className="flex items-start gap-3 text-sm text-neutral-700">
+              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-white border border-black/10 text-xs font-bold flex items-center justify-center text-neutral-600">
+                {i + 1}
+              </span>
+              <span className="leading-relaxed pt-0.5">{step}</span>
+            </li>
+          ))}
+        </ol>
+
+        {question.fileUrl ? (
+          <div>
+            <a
+              href={question.fileUrl}
+              download
+              className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-sm hover:opacity-90 transition-opacity ${app.chip}`}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              {p('download')}
+            </a>
+            <p className="text-xs text-neutral-500 mt-2">{p('downloadHint')}</p>
+          </div>
+        ) : (
+          <p className="text-xs text-neutral-500">{p('noFileHint')}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Badge type ───────────────────────────────────────────────────────────────
 function TypeBadge({ type, locale }) {
   const labels = {
@@ -653,6 +721,10 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
               <FlagIcon className="w-4 h-4" filled={flagged.has(currentIdx)} />
             </button>
           </div>
+          {question.practical && (
+            <PracticalBlock question={question} locale={locale} t={t} />
+          )}
+
           <p className="text-xl font-semibold text-neutral-800 mb-4 leading-relaxed">{question.text}</p>
 
           {question.imageUrl && (

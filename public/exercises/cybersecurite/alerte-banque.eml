@@ -1,0 +1,26 @@
+From: "Banque Atlantique - Service Client" <support@atlantique-verification-compte.net>
+To: client@example.com
+Subject: URGENT : Votre compte sera suspendu dans 24h
+Date: Tue, 7 Jul 2026 22:47:03 +0000
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+
+<html>
+<body style="font-family: Arial, sans-serif;">
+  <div style="background:#00427A;color:white;padding:15px;font-size:20px;">
+    BANQUE ATLANTIQUE
+  </div>
+  <p>Cher client,</p>
+  <p>Suite a une activite suspecte, votre compte bancaire sera <b>SUSPENDU
+  dans les 24 heures</b> si vous ne confirmez pas immediatement vos informations.</p>
+  <p>Cliquez sur le lien ci-dessous pour verifier votre identite :</p>
+  <p style="text-align:center;">
+    <a href="http://atlantique-secure-login.xyz/verification?id=88412"
+       style="background:#E67E22;color:white;padding:12px 30px;text-decoration:none;font-weight:bold;">
+      www.banqueatlantique.net/verification
+    </a>
+  </p>
+  <p>Sans action de votre part, vos fonds seront geles definitivement.</p>
+  <p>Service Securite<br/>Banque Atlantique</p>
+</body>
+</html>
