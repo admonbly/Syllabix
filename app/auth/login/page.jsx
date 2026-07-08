@@ -4,7 +4,7 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState, Suspense, useEffect } from 'react';
+import { useState, Suspense, useEffect, useRef } from 'react';
 import { authFunctions, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -47,20 +47,32 @@ function LoginForm() {
   const sessionExpired = searchParams.get('reason') === 'session_expired';
   const { t } = useLanguage();
 
+  // Vrai pendant un flux OAuth (Google) — le handler du bouton gère alors
+  // lui-même la redirection (profil complet ou non), pas cet effet.
+  const oauthInProgress = useRef(false);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+      if (!user || oauthInProgress.current) return;
       // Toujours (re)poser le cookie de session AVANT de rediriger —
       // sinon le middleware renvoie ici et on boucle (Firebase connecté
       // mais cookie absent/expiré).
       try {
         const token = await user.getIdToken();
-        await fetch('/api/auth/session', {
+        const res = await fetch('/api/auth/session', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (!res.ok) {
+          // Config serveur cassée : on N'ENTRE PAS dans la boucle de redirection
+          const data = await res.json().catch(() => ({}));
+          console.error('session refresh:', res.status, data.error ?? '');
+          setError('Erreur serveur de session — contactez le support. (' + (data.error ?? res.status) + ')');
+          return;
+        }
       } catch (err) {
         console.error('session refresh:', err);
+        return;
       }
       // Rechargement complet pour que le middleware voie le nouveau cookie
       window.location.replace(redirectTo);
@@ -295,6 +307,7 @@ function LoginForm() {
               onClick={async () => {
                 setError('');
                 setOauthLoading(true);
+                oauthInProgress.current = true;
                 try {
                   const { profileComplete } = await authFunctions.signInWithGoogle();
                   if (!profileComplete) {
@@ -303,16 +316,30 @@ function LoginForm() {
                     redirect(redirectTo);
                   }
                 } catch (err) {
-                  if (!err.message?.includes('popup-closed-by-user')) {
+                  oauthInProgress.current = false;
+                  const msg = String(err?.code || err?.message || '');
+                  if (msg.includes('popup-closed-by-user') || msg.includes('cancelled-popup-request')) {
+                    // Fermeture volontaire — pas d'erreur affichée
+                  } else if (msg.includes('unauthorized-domain')) {
+                    setError('Ce domaine n\'est pas autorisé pour la connexion Google. Contactez le support.');
+                  } else if (msg.includes('popup-blocked')) {
+                    setError('Votre navigateur a bloqué la fenêtre Google. Autorisez les popups pour ce site puis réessayez.');
+                  } else {
                     setError(err.message || 'Erreur de connexion Google');
                   }
                   setOauthLoading(false);
                 }
               }}
               disabled={oauthLoading || isLoading || phoneLoading}
-              className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-3 disabled:opacity-50"
             >
-              <span>🔷</span> {oauthLoading ? a('submitting') : a('google')}
+              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              {oauthLoading ? a('submitting') : a('google')}
             </button>
 
           </div>
