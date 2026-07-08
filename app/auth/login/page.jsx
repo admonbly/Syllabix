@@ -3,7 +3,7 @@
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useState, Suspense, useEffect } from 'react';
 import { authFunctions, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -43,17 +43,30 @@ function redirect(url) {
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
   const sessionExpired = searchParams.get('reason') === 'session_expired';
   const { t } = useLanguage();
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (user) => {
-      if (user) router.replace(redirectTo);
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      // Toujours (re)poser le cookie de session AVANT de rediriger —
+      // sinon le middleware renvoie ici et on boucle (Firebase connecté
+      // mais cookie absent/expiré).
+      try {
+        const token = await user.getIdToken();
+        await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (err) {
+        console.error('session refresh:', err);
+      }
+      // Rechargement complet pour que le middleware voie le nouveau cookie
+      window.location.replace(redirectTo);
     });
     return unsub;
-  }, [router, redirectTo]);
+  }, [redirectTo]);
   const a = (k) => t(`auth.login.${k}`);
 
   // Mode : 'email' | 'phone'
