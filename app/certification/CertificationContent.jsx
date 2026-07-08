@@ -27,8 +27,8 @@ export default function CertificationContent() {
   }));
 
   const STATS = [
-    { label: c('stats.questions'), value: '35'     },
-    { label: c('stats.duration'),  value: '35 min' },
+    { label: c('stats.questions'), value: '32'     },
+    { label: c('stats.duration'),  value: '1h45'   },
     { label: c('stats.required'),  value: '60%'    },
     { label: c('stats.modules'),   value: '7'      },
   ];
@@ -167,8 +167,8 @@ export default function CertificationContent() {
                   </div>
                   <p className="text-sm text-neutral-600 mb-5 leading-relaxed">{module.description}</p>
                   <div className="flex gap-4 text-xs text-neutral-400 mb-5">
-                    <span>📋 35 {c('modules.questions')}</span>
-                    <span>⏱ 35 {c('modules.minutes')}</span>
+                    <span>📋 32 {c('modules.questions')}</span>
+                    <span>⏱ 1h45</span>
                     <span>✅ 60% {c('modules.required')}</span>
                   </div>
                   <div className="flex gap-2">

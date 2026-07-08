@@ -109,7 +109,7 @@ const steps = [
     number: '02',
     emoji: '📝',
     title: 'Passer l\'examen',
-    description: '35 questions en 35 minutes. Les questions sont tirées aléatoirement pour chaque tentative.',
+    description: '32 questions en 1h45, dont des épreuves pratiques sur de vrais fichiers. Les questions sont tirées aléatoirement pour chaque tentative.',
   },
   {
     number: '03',
@@ -152,8 +152,8 @@ export default function PresentationPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {[
               { value: '7', label: 'Modules' },
-              { value: '35', label: 'Questions' },
-              { value: '35 min', label: 'Durée' },
+              { value: '32', label: 'Questions' },
+              { value: '1h45', label: 'Durée' },
               { value: '60%', label: 'Score requis' },
             ].map(({ value, label }) => (
               <div key={label}>

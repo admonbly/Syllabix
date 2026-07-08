@@ -6,6 +6,7 @@ import CTAButton from '@/components/CTAButton';
 import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
+import { ExamPracticalBlock, ExamAnswerInput, hasAnswerValue } from '@/components/ExamAnswerInput';
 import {
   isPassing,
   formatTime,
@@ -52,7 +53,7 @@ export default function CertificationQuizComponent({
   const [submitError, setSubmitError] = useState(null);
   const [scoreData, setScoreData] = useState(null);
   const [cooldownRemaining, setCooldownRemaining] = useState(null);
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const ct = (k) => t(`quiz.cert.${k}`);
   const qt = (k) => t(`quiz.results.${k}`);
 
@@ -138,12 +139,11 @@ export default function CertificationQuizComponent({
       try {
         const token = await firebaseUser.getIdToken();
 
-        // Réponses envoyées par VALEUR d'option — insensible au mélange,
+        // Réponses envoyées par VALEUR — insensible au mélange,
         // le score est calculé exclusivement côté serveur
-        const rawAnswers = Object.entries(answers).map(([qIdx, answerIndex]) => {
-          const q = questions[parseInt(qIdx)];
-          return { key: q.key, value: q.options?.[answerIndex] };
-        });
+        const rawAnswers = questions
+          .map((q, idx) => ({ key: q.key, value: answers[idx] }))
+          .filter((a) => hasAnswerValue(a.value));
 
         const res = await fetch('/api/exam/submit', {
           method: 'POST',
@@ -276,7 +276,7 @@ export default function CertificationQuizComponent({
   };
 
   const handleFinishRequest = () => {
-    const answeredCount = Object.keys(answers).length;
+    const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
     const unanswered = questions.length - answeredCount;
     if (unanswered > 0) {
       setShowFinishWarning(true);
@@ -390,8 +390,8 @@ export default function CertificationQuizComponent({
   }
 
   const question = questions[currentQuestion];
-  const answered = answers[currentQuestion] !== undefined;
-  const answeredCount = Object.keys(answers).length;
+  const answered = hasAnswerValue(answers[currentQuestion]);
+  const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
 
   // ÉCRAN DE RÉVISION DES QUESTIONS MARQUÉES
   if (showReview) {
@@ -423,23 +423,16 @@ export default function CertificationQuizComponent({
                       Modifier
                     </button>
                   </div>
-                  <div className="space-y-2">
-                    {q.options.map((opt, oi) => (
-                      <button
-                        key={oi}
-                        onClick={() => setAnswers((prev) => ({ ...prev, [idx]: oi }))}
-                        className={`w-full p-3 text-left rounded-lg border-2 text-sm font-medium transition-all ${
-                          answers[idx] === oi
-                            ? 'border-accent bg-accent/10 text-accent'
-                            : 'border-neutral-200 hover:border-accent/50 hover:bg-accent/5'
-                        }`}
-                      >
-                        <span className="inline-block w-6 h-6 rounded-full bg-neutral-100 text-center text-xs font-bold mr-2 leading-6">{String.fromCharCode(65 + oi)}</span>
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                  {userAnswer === undefined && (
+                  {q.practical && (
+                    <ExamPracticalBlock question={q} locale={locale} t={t} />
+                  )}
+                  <ExamAnswerInput
+                    question={q}
+                    value={answers[idx]}
+                    onChange={(v) => setAnswers((prev) => ({ ...prev, [idx]: v }))}
+                    locale={locale}
+                  />
+                  {!hasAnswerValue(userAnswer) && (
                     <p className="mt-2 text-xs text-orange-500 font-medium">⚠️ Non répondu</p>
                   )}
                 </Card>
@@ -462,7 +455,7 @@ export default function CertificationQuizComponent({
   // AVERTISSEMENT QUESTIONS NON RÉPONDUES
   if (showFinishWarning) {
     const unanswered = questions.length - answeredCount;
-    const flaggedUnanswered = [...flagged].filter((i) => answers[i] === undefined);
+    const flaggedUnanswered = [...flagged].filter((i) => !hasAnswerValue(answers[i]));
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
         <div className="max-w-md mx-auto px-4">
@@ -477,7 +470,7 @@ export default function CertificationQuizComponent({
               Une question sans réponse compte comme fausse.
             </p>
             <div className="flex flex-col gap-3">
-              <button onClick={() => { setShowFinishWarning(false); const first = [...Array(questions.length).keys()].find((i) => answers[i] === undefined); if (first !== undefined) setCurrentQuestion(first); }} className="w-full px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">
+              <button onClick={() => { setShowFinishWarning(false); const first = [...Array(questions.length).keys()].find((i) => !hasAnswerValue(answers[i])); if (first !== undefined) setCurrentQuestion(first); }} className="w-full px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90 transition-colors">
                 Répondre aux questions manquantes
               </button>
               {flagged.size > 0 ? (
@@ -631,6 +624,10 @@ export default function CertificationQuizComponent({
                 🚩
               </button>
             </div>
+            {question.practical && (
+              <ExamPracticalBlock question={question} locale={locale} t={t} />
+            )}
+
             {question.imageUrl && (
               <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200">
                 <img
@@ -641,24 +638,12 @@ export default function CertificationQuizComponent({
               </div>
             )}
 
-            <div className="space-y-3">
-              {question.options.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => setAnswers({ ...answers, [currentQuestion]: index })}
-                  className={`w-full p-4 text-left rounded-lg border-2 font-semibold transition-all hover:shadow-md ${
-                    answers[currentQuestion] === index
-                      ? 'border-accent bg-accent/10 text-accent'
-                      : 'border-neutral-200 hover:border-accent cursor-pointer'
-                  }`}
-                >
-                  <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
-                    {String.fromCharCode(65 + index)}
-                  </span>
-                  {option}
-                </button>
-              ))}
-            </div>
+            <ExamAnswerInput
+              question={question}
+              value={answers[currentQuestion]}
+              onChange={(v) => setAnswers({ ...answers, [currentQuestion]: v })}
+              locale={locale}
+            />
           </div>
 
           {/* Navigation */}
@@ -714,7 +699,7 @@ export default function CertificationQuizComponent({
               {[...flagged].sort((a, b) => a - b).map((idx) => {
                 const q = questions[idx];
                 if (!q) return null;
-                const isAnswered = answers[idx] !== undefined;
+                const isAnswered = hasAnswerValue(answers[idx]);
                 return (
                   <button
                     key={idx}

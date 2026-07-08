@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import {
-  getModuleQuestions,
   getMixedQuestions,
-  calculateScore,
+  scoreByValue,
+  isAnswerCorrectByValue,
   randomizeAnswerOptions,
   formatTime,
   isTimeCritical,
@@ -16,6 +16,7 @@ import {
 } from '@/lib/examService';
 import { useLanguage } from '@/lib/LanguageContext';
 import { auth, userDB } from '@/lib/firebase';
+import { ExamPracticalBlock, ExamAnswerInput, hasAnswerValue } from '@/components/ExamAnswerInput';
 
 const DIFFICULTY_UI = {
   1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dotCls: 'bg-green-500' },
@@ -99,19 +100,19 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     return () => clearInterval(intervalRef.current);
   }, [phase]);
 
-  const handleAnswer = async (index) => {
-    if (answers[currentQuestion] !== undefined) return;
-    setAnswers((prev) => ({ ...prev, [currentQuestion]: index }));
+  // Passe à la question suivante (avec logique adaptative en mode module).
+  // La réponse courante (par VALEUR) doit déjà être dans `answers`.
+  const advance = async (valueOverride) => {
+    const value = valueOverride !== undefined ? valueOverride : answers[currentQuestion];
 
     if (!isAdaptive) {
       if (currentQuestion < questions.length - 1) {
-        setTimeout(() => setCurrentQuestion((q) => q + 1), 600);
+        setTimeout(() => setCurrentQuestion((q) => q + 1), 400);
       }
       return;
     }
 
-    // Adaptive: update difficulty
-    const isCorrect = index === questions[currentQuestion].correct;
+    const isCorrect = isAnswerCorrectByValue(questions[currentQuestion], value);
     const newStreak      = isCorrect ? streak + 1 : 0;
     const newWrongStreak = isCorrect ? 0 : wrongStreak + 1;
     const updated = updateAdaptiveDifficulty(difficulty, newStreak, newWrongStreak);
@@ -121,7 +122,6 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
     const nextIdx = currentQuestion + 1;
     if (nextIdx < total) {
-      // Load next adaptive question after 600ms
       setTimeout(async () => {
         const next = await getAdaptiveQuestion(moduleId, updated.difficulty, usedIds);
         if (next) {
@@ -129,8 +129,15 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           setUsedIds((prev) => [...prev, next.id ?? next.text]);
         }
         setCurrentQuestion(nextIdx);
-      }, 600);
+      }, 400);
     }
+  };
+
+  // Choix unique : un clic répond et enchaîne (verrouillé ensuite)
+  const handleSingleAnswer = (value) => {
+    if (hasAnswerValue(answers[currentQuestion])) return;
+    setAnswers((prev) => ({ ...prev, [currentQuestion]: value }));
+    advance(value);
   };
 
   const toggleFlag = (idx) => {
@@ -138,7 +145,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
   };
 
   const handleSubmitRequest = () => {
-    const answeredCount = Object.keys(answers).length;
+    const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
     const loadedCount = questions.length;
     if (answeredCount < loadedCount) {
       setShowWarning(true);
@@ -160,13 +167,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     if (phase !== 'results' || questions.length === 0) return;
     const user = auth.currentUser;
     if (!user) return;
-    const scoreData = calculateScore(
-      Object.entries(answers).map(([qIdx, ans]) => ({
-        questionId: questions[qIdx]?.id,
-        userAnswer: ans,
-      })),
-      questions
-    );
+    const scoreData = scoreByValue(answers, questions);
     userDB.saveSession(user.uid, {
       type: 'evaluation',
       mode,
@@ -201,7 +202,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                 <p className="text-xs text-neutral-500 mt-1">{ev('questions')}</p>
               </div>
               <div className="bg-primary/10 rounded-xl p-4">
-                <p className="text-2xl font-bold text-primary">10 min</p>
+                <p className="text-2xl font-bold text-primary">{Math.round(EXAM_CONFIG.EVALUATION.DURATION / 60)} min</p>
                 <p className="text-xs text-neutral-500 mt-1">{ev('duration')}</p>
               </div>
               <div className="bg-secondary/10 rounded-xl p-4">
@@ -236,13 +237,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
   // ——— Résultats ———
   if (phase === 'results') {
-    const scoreData = calculateScore(
-      Object.entries(answers).map(([qIdx, ans]) => ({
-        questionId: questions[qIdx]?.id,
-        userAnswer: ans,
-      })),
-      questions
-    );
+    const scoreData = scoreByValue(answers, questions);
 
     const pct = scoreData.percentage;
     let niveau, niveauColor, niveauBg, conseil;
@@ -320,21 +315,16 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                   <p className="font-semibold text-neutral-800 text-sm mb-3">
                     <span className="text-neutral-400 text-xs mr-2">Q{idx + 1}</span>{q.text}
                   </p>
-                  <div className="space-y-2">
-                    {q.options.map((opt, oi) => (
-                      <button
-                        key={oi}
-                        onClick={() => setAnswers((prev) => ({ ...prev, [idx]: oi }))}
-                        className={`w-full p-3 text-left rounded-lg border-2 text-sm font-medium transition-all ${
-                          answers[idx] === oi ? 'border-accent bg-accent/10 text-accent' : 'border-neutral-200 hover:border-accent/50'
-                        }`}
-                      >
-                        <span className="inline-block w-6 h-6 rounded-full bg-neutral-100 text-center text-xs font-bold mr-2 leading-6">{String.fromCharCode(65 + oi)}</span>
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                  {currentAns === undefined && (
+                  {q.practical && (
+                    <ExamPracticalBlock question={q} locale={locale} t={t} />
+                  )}
+                  <ExamAnswerInput
+                    question={q}
+                    value={answers[idx]}
+                    onChange={(v) => setAnswers((prev) => ({ ...prev, [idx]: v }))}
+                    locale={locale}
+                  />
+                  {!hasAnswerValue(currentAns) && (
                     <p className="mt-2 text-xs text-orange-500 font-medium flex items-center gap-1">
                       <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
                       Non répondu
@@ -355,7 +345,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
   // ——— Avertissement questions non répondues ———
   if (showWarning) {
-    const answeredCount = Object.keys(answers).length;
+    const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
     const unanswered = questions.length - answeredCount;
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
@@ -390,9 +380,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
   // ——— Quiz ———
   const question  = questions[currentQuestion];
-  const answered  = answers[currentQuestion] !== undefined;
+  const qType     = question.type || 'single';
+  const answered  = hasAnswerValue(answers[currentQuestion]);
   const progress  = Math.round(((currentQuestion + 1) / total) * 100);
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
   const isLast    = currentQuestion === total - 1;
 
   return (
@@ -441,6 +432,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
               <FlagIcon className="w-4 h-4" />
             </button>
           </div>
+          {question.practical && (
+            <ExamPracticalBlock question={question} locale={locale} t={t} />
+          )}
+
           {question.imageUrl && (
             <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200">
               <img
@@ -451,35 +446,54 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             </div>
           )}
 
-          <div className="space-y-3">
-            {question.options.map((option, index) => {
-              let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
-              if (answered) {
-                if (index === answers[currentQuestion]) {
-                  style = 'border-accent bg-accent/10';
-                } else {
-                  style = 'border-neutral-100 opacity-40';
+          {qType === 'single' ? (
+            <div className="space-y-3">
+              {(question.options ?? []).map((option, index) => {
+                const isSel = answers[currentQuestion] === option;
+                let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
+                if (answered) {
+                  style = isSel ? 'border-accent bg-accent/10' : 'border-neutral-100 opacity-40';
                 }
-              }
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleAnswer(index)}
-                  disabled={answered}
-                  className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
-                >
-                  <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
-                    {String.fromCharCode(65 + index)}
-                  </span>
-                  {option}
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleSingleAnswer(option)}
+                    disabled={answered}
+                    className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
+                  >
+                    <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <ExamAnswerInput
+              question={question}
+              value={answers[currentQuestion]}
+              onChange={(v) => setAnswers((prev) => ({ ...prev, [currentQuestion]: v }))}
+              locale={locale}
+            />
+          )}
 
           {/* En mode évaluation : pas d'explication immédiate */}
-          {answered && !isLast && (
+          {qType === 'single' && answered && !isLast && (
             <p className="text-center text-xs text-neutral-400 mt-4">{t('quiz.autoNext')}</p>
+          )}
+
+          {/* Types à saisie : bouton explicite pour passer à la suite */}
+          {qType !== 'single' && !isLast && (
+            <div className="mt-6 text-right">
+              <button
+                onClick={() => advance()}
+                disabled={!answered}
+                className={`px-6 py-3 rounded-xl font-semibold transition-colors ${answered ? 'bg-accent text-white hover:bg-accent/90' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
+              >
+                {t('quiz.next')}
+              </button>
+            </div>
           )}
 
           {answered && isLast && (
@@ -513,7 +527,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
               {[...flagged].sort((a, b) => a - b).map((idx) => {
                 const q = questions[idx];
                 if (!q) return null;
-                const isAnswered = answers[idx] !== undefined;
+                const isAnswered = hasAnswerValue(answers[idx]);
                 return (
                   <button
                     key={idx}

@@ -101,11 +101,11 @@ export default function CGUPage() {
                 accessibles de manière illimitée et gratuite.
               </li>
               <li>
-                <strong>Évaluation diagnostique :</strong> test de 12 questions permettant d'identifier
+                <strong>Évaluation diagnostique :</strong> test de 16 questions permettant d'identifier
                 le niveau de l'utilisateur avant certification.
               </li>
               <li>
-                <strong>Certification par module :</strong> examen de 35 questions par domaine de
+                <strong>Certification par module :</strong> examen de 32 questions par domaine de
                 compétences, avec délivrance d'un certificat numérique en cas de réussite (score ≥ 60%).
               </li>
               <li>
@@ -139,7 +139,7 @@ export default function CGUPage() {
             </p>
             <p>Les règles applicables aux examens de certification sont les suivantes :</p>
             <ul className="list-disc list-inside space-y-2 ml-2">
-              <li>Durée de l'examen : 35 minutes pour 35 questions ;</li>
+              <li>Durée de l'examen : 1h45 pour 32 questions, épreuves pratiques incluses ;</li>
               <li>Score minimal de réussite : 60% (21 bonnes réponses sur 35) ;</li>
               <li>Aucune aide extérieure, IA ou document n'est autorisé pendant l'examen ;</li>
               <li>En cas d'échec, l'utilisateur peut repasser l'examen après un délai raisonnable ;</li>
