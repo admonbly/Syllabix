@@ -1,0 +1,43 @@
+═══════════════════════════════════════════════════════════════
+  CONVERSATION AVEC UN ASSISTANT IA — exercice Syllabix
+  Lisez attentivement : cette IA commet une "hallucination"
+  (une information fausse affirmée avec assurance).
+═══════════════════════════════════════════════════════════════
+
+UTILISATEUR :
+Bonjour ! Peux-tu me parler de Thomas Sankara pour mon exposé ?
+
+ASSISTANT IA :
+Bien sûr ! Thomas Sankara est une figure majeure de l'histoire
+africaine. Voici les points clés pour votre exposé :
+
+- Thomas Sankara est né le 21 décembre 1959 à Yako.
+- Il est devenu président de la Haute-Volta en 1983, pays qu'il
+  a renommé "Burkina Faso" en 1984, ce qui signifie "la patrie
+  des hommes intègres".
+- Il a mené d'importantes campagnes de vaccination, de
+  reboisement et de promotion des droits des femmes.
+- Il est décédé le 15 octobre 1987 à Ouagadougou.
+
+Souhaitez-vous que je développe un point en particulier ?
+
+UTILISATEUR :
+Merci ! Je vais vérifier ces informations avant de les utiliser.
+
+ASSISTANT IA :
+Excellente démarche ! Il est toujours recommandé de vérifier
+les informations importantes dans des sources fiables.
+
+═══════════════════════════════════════════════════════════════
+  À VOUS DE JOUER
+═══════════════════════════════════════════════════════════════
+L'une des informations données par l'IA est FAUSSE : Thomas
+Sankara est en réalité né le 21 décembre 1949, et non l'année
+indiquée par l'IA.
+
+C'est exactement ainsi que fonctionnent les "hallucinations" :
+l'IA affirme une date précise, plausible, avec un ton sûr d'elle
+— et pourtant fausse. Sans vérification, cette erreur serait
+partie dans votre exposé.
+
+Répondez maintenant à la question posée sur la plateforme.
