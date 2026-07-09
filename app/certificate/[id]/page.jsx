@@ -4,10 +4,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Great_Vibes } from 'next/font/google';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PARTNERS } from '@/lib/partners';
+
+// Police calligraphique — nom du lauréat et signature manuscrite
+const greatVibes = Great_Vibes({ subsets: ['latin'], weight: '400', display: 'swap' });
 
 const MODULE_NAMES = {
   0: 'IT & Ordinateur',
@@ -157,125 +161,141 @@ export default function CertificatePage() {
           </div>
         </div>
 
-        {/* Certificat visuel */}
+        {/* Certificat visuel — style diplôme */}
         <div
           id="certificate-printable"
           ref={printRef}
-          className="max-w-3xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden"
-          style={{ border: '8px solid #1A237E' }}
+          className="max-w-3xl mx-auto shadow-2xl"
+          style={{ background: '#fffdf8', border: '10px double #1A237E', padding: '10px' }}
         >
-          {/* Bande décorative top */}
-          <div style={{ background: 'linear-gradient(135deg, #1A237E 0%, #283593 60%, #E67E22 100%)', height: '12px' }} />
+          {/* Cadre intérieur doré avec coins ornementaux */}
+          <div className="relative" style={{ border: '1.5px solid #c9a227', padding: '40px 48px 32px' }}>
 
-          {/* En-tête */}
-          <div className="px-12 pt-10 pb-6 text-center" style={{ borderBottom: '2px solid #f0f0f0' }}>
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: '#1A237E' }}>
-                <span className="text-white font-bold text-lg">S</span>
+            {/* Coins ornementaux */}
+            {[
+              { top: -2, left: -2, borderWidth: '4px 0 0 4px' },
+              { top: -2, right: -2, borderWidth: '4px 4px 0 0' },
+              { bottom: -2, left: -2, borderWidth: '0 0 4px 4px' },
+              { bottom: -2, right: -2, borderWidth: '0 4px 4px 0' },
+            ].map((pos, i) => (
+              <div key={i} className="absolute" style={{ ...pos, width: 34, height: 34, borderStyle: 'solid', borderColor: '#c9a227' }} />
+            ))}
+
+            {/* En-tête : logo officiel */}
+            <div className="text-center mb-6">
+              <div className="relative mx-auto mb-3" style={{ width: 210, height: 64 }}>
+                <Image
+                  src="/syllabix-logo-with-name.png"
+                  alt="Syllabix"
+                  fill
+                  className="object-contain"
+                  sizes="210px"
+                  priority
+                />
               </div>
-              <span className="text-3xl font-bold tracking-tight" style={{ color: '#1A237E' }}>Syllabix</span>
-            </div>
-            <p className="text-sm uppercase tracking-widest" style={{ color: '#E67E22', fontWeight: 600 }}>
-              Plateforme de Certification Numérique
-            </p>
-          </div>
-
-          {/* Corps du certificat */}
-          <div className="px-12 py-10 text-center">
-            <p className="text-base uppercase tracking-widest text-neutral-500 mb-3">
-              {examLabel}
-            </p>
-
-            <h1 className="text-4xl font-bold mb-1" style={{ color: '#1A237E', fontFamily: 'Georgia, serif' }}>
-              {certTitle}
-            </h1>
-
-            <div className="w-24 h-1 mx-auto my-6 rounded-full" style={{ background: '#E67E22' }} />
-
-            <p className="text-lg text-neutral-500 mb-2">Décerné à</p>
-            <h2 className="text-3xl font-bold mb-8" style={{ color: '#1A237E', fontFamily: 'Georgia, serif' }}>
-              {cert.displayName || 'Apprenant'}
-            </h2>
-
-            <p className="text-neutral-600 max-w-lg mx-auto mb-10 leading-relaxed">
-              {c('desc')} <strong>{certTitle}</strong> {c('desc2')}
-            </p>
-
-            {/* Score + Niveau */}
-            <div className="flex justify-center gap-8 mb-10">
-              <div className="text-center">
-                <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg"
-                  style={{ background: `${level.color}15`, border: `3px solid ${level.color}` }}
-                >
-                  <span className="text-2xl font-bold" style={{ color: level.color }}>
-                    {cert.score}%
-                  </span>
-                </div>
-                <p className="text-sm font-semibold text-neutral-500">{c('score')}</p>
-              </div>
-              <div className="text-center">
-                <div
-                  className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg"
-                  style={{ background: `${level.color}15`, border: `3px solid ${level.color}` }}
-                >
-                  <span className="text-sm font-bold text-center leading-tight px-2" style={{ color: level.color }}>
-                    {level.label}
-                  </span>
-                </div>
-                <p className="text-sm font-semibold text-neutral-500">{c('level')}</p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-6 text-sm text-neutral-500 pt-6" style={{ borderTop: '1px solid #f0f0f0' }}>
-              <div className="text-left">
-                <p className="font-semibold text-neutral-700 mb-1">{c('issueDate')}</p>
-                <p>{formatDate(cert.issuedAt)}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-neutral-700 mb-1">{c('uniqueId')}</p>
-                <p className="font-mono text-xs break-all">{cert.id || id}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Logos partenaires */}
-          <div className="px-12 py-6" style={{ background: '#f8f9ff', borderTop: '2px solid #e8ecff' }}>
-            <p className="text-xs font-semibold uppercase tracking-widest text-center mb-4" style={{ color: '#1A237E' }}>
-              Partenaires institutionnels
-            </p>
-            <div className="flex items-center justify-center gap-8 flex-wrap">
-              {PARTNERS.map((partner) => (
-                <div key={partner.id} className="relative" style={{ width: 80, height: 48 }}>
-                  <Image
-                    src={partner.logo}
-                    alt={partner.shortName}
-                    fill
-                    className="object-contain"
-                    sizes="80px"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Pied de page vérification */}
-          <div className="px-12 py-4 flex items-center justify-between" style={{ background: '#eef0ff', borderTop: '1px solid #dde0f5' }}>
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#1A237E' }}>
-                Syllabix — syllabix.com
-              </p>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                {c('verify')}
+              <p className="text-xs uppercase" style={{ color: '#c9a227', fontWeight: 600, letterSpacing: '0.35em' }}>
+                Plateforme de Certification Numérique
               </p>
             </div>
-            <div className="w-14 h-14 rounded-full flex items-center justify-center" style={{ background: '#1A237E' }}>
-              <span className="text-white text-xl">✓</span>
-            </div>
-          </div>
 
-          {/* Bande décorative bottom */}
-          <div style={{ background: 'linear-gradient(135deg, #E67E22 0%, #1A237E 100%)', height: '12px' }} />
+            {/* Titre du diplôme */}
+            <div className="text-center">
+              <h1 className="text-5xl mb-1" style={{ color: '#1A237E', fontFamily: 'Georgia, serif', fontWeight: 700, letterSpacing: '0.02em' }}>
+                Certificat de Réussite
+              </h1>
+              <p className="text-sm uppercase tracking-widest text-neutral-400 mt-2">{examLabel}</p>
+
+              {/* Filet décoratif */}
+              <div className="flex items-center justify-center gap-3 my-6">
+                <div style={{ height: 1, width: 90, background: '#c9a227' }} />
+                <span style={{ color: '#c9a227', fontSize: 18 }}>❖</span>
+                <div style={{ height: 1, width: 90, background: '#c9a227' }} />
+              </div>
+
+              <p className="text-base text-neutral-500" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+                Le présent certificat est décerné à
+              </p>
+
+              {/* Nom du lauréat en calligraphie */}
+              <p className={greatVibes.className} style={{ fontSize: 58, color: '#1A237E', lineHeight: 1.3, marginTop: 4 }}>
+                {cert.displayName || 'Apprenant'}
+              </p>
+              <div className="mx-auto" style={{ height: 1, width: 320, background: '#d8d3c2', marginTop: -4 }} />
+
+              <p className="text-neutral-600 max-w-xl mx-auto leading-relaxed mt-6" style={{ fontFamily: 'Georgia, serif' }}>
+                {c('desc')} <strong style={{ color: '#1A237E' }}>{certTitle}</strong> {c('desc2')}
+              </p>
+
+              {/* Score + niveau, discrets comme une mention de diplôme */}
+              <p className="mt-5 text-base" style={{ fontFamily: 'Georgia, serif', color: '#444' }}>
+                avec un score de{' '}
+                <strong style={{ color: level.color, fontSize: 20 }}>{cert.score}%</strong>
+                {' '}— mention <strong style={{ color: level.color }}>{level.label}</strong>
+              </p>
+            </div>
+
+            {/* Bas du diplôme : date · sceau · signature */}
+            <div className="grid grid-cols-3 items-end gap-4 mt-12">
+              {/* Date */}
+              <div className="text-center">
+                <p style={{ fontFamily: 'Georgia, serif', color: '#333', fontSize: 15 }}>{formatDate(cert.issuedAt)}</p>
+                <div style={{ height: 1, background: '#999', margin: '6px 12px 6px' }} />
+                <p className="text-xs uppercase tracking-wider text-neutral-400">{c('issueDate')}</p>
+              </div>
+
+              {/* Sceau officiel */}
+              <div className="flex justify-center">
+                <div
+                  className="rounded-full flex flex-col items-center justify-center text-center"
+                  style={{
+                    width: 104, height: 104,
+                    background: 'radial-gradient(circle at 35% 30%, #26308f, #1A237E 70%)',
+                    border: '3px solid #c9a227',
+                    boxShadow: '0 3px 10px rgba(26,35,126,.35)',
+                  }}
+                >
+                  <span style={{ color: '#c9a227', fontSize: 22, lineHeight: 1 }}>★</span>
+                  <span className="text-white font-bold" style={{ fontSize: 13, letterSpacing: '0.12em' }}>SYLLABIX</span>
+                  <span style={{ color: '#c9a227', fontSize: 8, letterSpacing: '0.2em' }}>CERTIFIÉ ✓</span>
+                  <span className="text-white" style={{ fontSize: 7, opacity: .8, marginTop: 2 }}>syllabix.com</span>
+                </div>
+              </div>
+
+              {/* Signature manuscrite */}
+              <div className="text-center">
+                <p className={greatVibes.className} style={{ fontSize: 34, color: '#1a2a6c', transform: 'rotate(-3deg)', marginBottom: -6 }}>
+                  Syllabix
+                </p>
+                <div style={{ height: 1, background: '#999', margin: '6px 12px 6px' }} />
+                <p className="text-xs uppercase tracking-wider text-neutral-400">La Direction de la Certification</p>
+              </div>
+            </div>
+
+            {/* Partenaires institutionnels */}
+            <div className="mt-10 pt-5" style={{ borderTop: '1px solid #e8e2d0' }}>
+              <p className="text-[10px] font-semibold uppercase text-center mb-3" style={{ color: '#c9a227', letterSpacing: '0.3em' }}>
+                Partenaires institutionnels
+              </p>
+              <div className="flex items-center justify-center gap-8 flex-wrap">
+                {PARTNERS.map((partner) => (
+                  <div key={partner.id} className="relative" style={{ width: 72, height: 42 }}>
+                    <Image
+                      src={partner.logo}
+                      alt={partner.shortName}
+                      fill
+                      className="object-contain"
+                      sizes="72px"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Vérification */}
+            <p className="text-center text-[10px] text-neutral-400 mt-5">
+              {c('verify')} — {c('uniqueId')} : <span className="font-mono">{cert.id || id}</span>
+            </p>
+          </div>
         </div>
 
         {/* Partage social supplémentaire */}
