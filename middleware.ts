@@ -13,7 +13,7 @@ const PUBLIC_EXCEPTIONS = [
   '/certification/presentation',
 ];
 
-const SESSION_TIMEOUT_MS = 6 * 60 * 60 * 1000; // 6 heures d'inactivité
+const SESSION_TIMEOUT_MS = 3 * 60 * 60 * 1000; // 3 heures d'inactivité
 
 /**
  * Vérifie le cookie de session signé "<expirationMs>.<hmacSha256>".

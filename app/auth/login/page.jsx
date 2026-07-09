@@ -51,9 +51,18 @@ function LoginForm() {
   // lui-même la redirection (profil complet ou non), pas cet effet.
   const oauthInProgress = useRef(false);
 
+  // Session expirée par inactivité → VRAIE déconnexion Firebase,
+  // sinon l'effet ci-dessous recrée une session sans redemander le mot de passe
+  // et l'utilisateur reste connecté indéfiniment.
+  useEffect(() => {
+    if (sessionExpired) {
+      authFunctions.signOut().catch(() => {});
+    }
+  }, [sessionExpired]);
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
-      if (!user || oauthInProgress.current) return;
+      if (!user || oauthInProgress.current || sessionExpired) return;
       // Toujours (re)poser le cookie de session AVANT de rediriger —
       // sinon le middleware renvoie ici et on boucle (Firebase connecté
       // mais cookie absent/expiré).
@@ -147,7 +156,7 @@ function LoginForm() {
       <div className="w-full max-w-md mx-auto px-4">
         {sessionExpired && (
           <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 text-center">
-            ⏱ Votre session a expiré après 6h d'inactivité. Veuillez vous reconnecter.
+            ⏱ Votre session a expiré après 3h d'inactivité. Veuillez vous reconnecter.
           </div>
         )}
 

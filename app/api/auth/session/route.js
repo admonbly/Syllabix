@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 import { getAdminAuth } from '@/lib/firebaseAdmin';
 
-const SESSION_TIMEOUT_S = 6 * 60 * 60; // 6h en secondes
+const SESSION_TIMEOUT_S = 3 * 60 * 60; // 3h en secondes
 
 const COOKIE_BASE = {
   path: '/',
