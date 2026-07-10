@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Great_Vibes } from 'next/font/google';
+import QRCode from 'qrcode';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -74,7 +75,20 @@ export default function CertificatePage() {
   const [cert, setCert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [qrUrl, setQrUrl] = useState(null);
   const printRef = useRef(null);
+
+  // QR code de vérification — pointe vers cette page publique
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    QRCode.toDataURL(`${window.location.origin}/certificate/${id}`, {
+      width: 200,
+      margin: 1,
+      color: { dark: '#1A237E', light: '#ffffff' },
+    })
+      .then(setQrUrl)
+      .catch(() => {});
+  }, [id]);
 
   useEffect(() => {
     const load = async () => {
@@ -153,6 +167,10 @@ export default function CertificatePage() {
     <>
       {/* Styles print uniquement — A4 paysage */}
       <style>{`
+        #certificate-printable, #certificate-printable * {
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
         @media print {
           @page { size: A4 landscape; margin: 0; }
           body * { visibility: hidden !important; }
@@ -192,166 +210,202 @@ export default function CertificatePage() {
           </div>
         </div>
 
-        {/* Certificat visuel — carte paysage à deux panneaux */}
+        {/* Certificat visuel — signature graphique Syllabix */}
         <div
           id="certificate-printable"
           ref={printRef}
-          className="max-w-5xl mx-auto shadow-2xl rounded-2xl overflow-hidden lg:aspect-[1.414/1] flex flex-col lg:flex-row bg-white relative"
+          className="max-w-5xl mx-auto shadow-2xl rounded-xl overflow-hidden lg:aspect-[1.414/1] flex flex-col lg:flex-row relative"
+          style={{ background: '#ffffff' }}
         >
-          {/* ══════════ PANNEAU GAUCHE — blanc ══════════ */}
-          <div className="relative flex-1 flex flex-col px-10 py-8 lg:pr-8" style={{ background: '#ffffff' }}>
+          {/* ── Bande tissée verticale (motif d'inspiration kente) ── */}
+          <svg
+            className="hidden lg:block flex-shrink-0 h-full"
+            style={{ width: 46, background: '#111a5e' }}
+            viewBox="0 0 46 700"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <pattern id="kente" x="0" y="0" width="46" height="92" patternUnits="userSpaceOnUse">
+                <rect width="46" height="92" fill="#111a5e" />
+                <path d="M0 0 L23 20 L46 0 V10 L23 30 L0 10 Z" fill="#E67E22" />
+                <path d="M0 34 L23 50 L46 34 V40 L23 56 L0 40 Z" fill="#c9a227" />
+                <path d="M0 62 L23 78 L46 62 V68 L23 84 L0 68 Z" fill="#27AE60" />
+                <circle cx="23" cy="90" r="1.6" fill="#c9a227" />
+              </pattern>
+            </defs>
+            <rect width="46" height="700" fill="url(#kente)" />
+          </svg>
 
-            {/* Vague décorative haut-gauche */}
-            <svg className="absolute top-0 left-0 pointer-events-none" style={{ width: 220, height: 110 }} viewBox="0 0 220 110" fill="none" aria-hidden="true">
-              <path d="M0 0 H220 C 150 8, 90 30, 60 70 C 40 96, 15 106, 0 108 Z" fill="#1A237E" opacity="0.06" />
-              <path d="M0 0 H150 C 100 6, 60 24, 40 55 C 26 76, 10 84, 0 86 Z" fill="#E67E22" opacity="0.10" />
-            </svg>
+          {/* ══════════ PANNEAU PRINCIPAL — ivoire ══════════ */}
+          <div className="relative flex-1 flex flex-col px-9 py-7" style={{ background: '#fffdf9' }}>
 
-            {/* Logo */}
-            <div className="relative mb-6" style={{ width: 170, height: 50 }}>
-              <Image
-                src="/syllabix-logo-with-name.png"
-                alt="Syllabix"
-                fill
-                className="object-contain object-left"
-                sizes="170px"
-                priority
-              />
+            {/* Filet doré discret encadrant le panneau */}
+            <div className="absolute pointer-events-none" style={{ inset: 10, border: '1px solid #e6d9b8', borderRadius: 6 }} aria-hidden="true" />
+
+            {/* Filigrane logo en fond */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden="true">
+              <div className="relative" style={{ width: 340, height: 340, opacity: 0.045 }}>
+                <Image src="/syllabix-logo-simple.png" alt="" fill className="object-contain" sizes="340px" />
+              </div>
+            </div>
+
+            {/* En-tête : logo + numéro */}
+            <div className="relative flex items-start justify-between">
+              <div className="relative" style={{ width: 165, height: 48 }}>
+                <Image
+                  src="/syllabix-logo-with-name.png"
+                  alt="Syllabix"
+                  fill
+                  className="object-contain object-left"
+                  sizes="165px"
+                  priority
+                />
+              </div>
+              <div className="text-right">
+                <p className="text-[9px] uppercase tracking-widest text-neutral-400">Certificat n°</p>
+                <p className="font-mono text-[11px] font-bold" style={{ color: '#1A237E' }}>{cert.id || id}</p>
+              </div>
             </div>
 
             {/* Titre */}
-            <h1 className="font-heading font-extrabold leading-tight" style={{ color: '#1A237E', fontSize: 40 }}>
-              Certificat de Compétences Numériques
-            </h1>
-            <p className="text-sm text-neutral-500 mt-2">
-              {isGlobal
-                ? 'Certification globale — examen couvrant les 7 domaines du référentiel Syllabix'
-                : <>Certification de module : <strong style={{ color: '#1A237E' }}>{moduleName}</strong></>}
-            </p>
-
-            {/* Lauréat */}
-            <div className="mt-7">
-              <p className="text-sm text-neutral-500 mb-1">délivré à</p>
-              <div className="flex items-center gap-3">
-                <span aria-hidden="true" style={{ color: '#E67E22', fontSize: 30, fontWeight: 800, lineHeight: 1 }}>&raquo;</span>
-                <p className="font-heading font-extrabold" style={{ color: '#1A237E', fontSize: 32 }}>
-                  {cert.displayName || 'Apprenant'}
-                </p>
+            <div className="relative mt-5">
+              <p className="text-[11px] uppercase font-bold" style={{ color: '#E67E22', letterSpacing: '0.45em' }}>
+                {isGlobal ? 'Certification globale' : 'Certification de module'}
+              </p>
+              <h1 className="font-heading font-extrabold leading-[1.08] mt-1" style={{ color: '#1A237E', fontSize: 42 }}>
+                Certificat de<br />Compétences Numériques
+              </h1>
+              <div className="flex items-center gap-2 mt-3">
+                <div style={{ height: 3, width: 46, background: '#E67E22', borderRadius: 2 }} />
+                <div style={{ height: 3, width: 14, background: '#c9a227', borderRadius: 2 }} />
+                <div style={{ height: 3, width: 6, background: '#27AE60', borderRadius: 2 }} />
               </div>
+              <p className="text-[13px] text-neutral-500 mt-3">
+                {isGlobal
+                  ? 'Examen global couvrant les 7 domaines du référentiel Syllabix, épreuves pratiques incluses.'
+                  : <>Examen dédié au domaine <strong style={{ color: '#1A237E' }}>{moduleName}</strong> du référentiel Syllabix.</>}
+              </p>
             </div>
 
-            {/* Date + signature */}
-            <div className="mt-auto pt-6">
-              <p className="text-sm text-neutral-600">le {formatDate(cert.issuedAt)}</p>
-              <p className={greatVibes.className} style={{ fontSize: 40, color: '#1a2a6c', transform: 'rotate(-4deg)', width: 'fit-content', margin: '2px 0 -6px 8px' }}>
-                Syllabix
+            {/* Lauréat */}
+            <div className="relative mt-5">
+              <p className="text-[12px] uppercase tracking-widest text-neutral-400">est décerné à</p>
+              <p className={greatVibes.className} style={{ fontSize: 52, color: '#1A237E', lineHeight: 1.15, marginTop: 2 }}>
+                {cert.displayName || 'Apprenant'}
               </p>
-              <p className="text-sm text-neutral-500">La Direction de la Certification — Syllabix</p>
+              <div style={{ height: 1, width: 300, background: 'linear-gradient(to right, #c9a227, transparent)', marginTop: -2 }} />
+            </div>
 
-              {/* Encadré de vérification */}
-              <div className="mt-4 inline-flex items-center gap-3 rounded-xl px-4 py-3" style={{ border: '1.5px solid #c7cbe8' }}>
-                <div
-                  className="rounded-lg flex items-center justify-center flex-shrink-0"
-                  style={{ width: 46, height: 46, background: '#1A237E' }}
-                >
-                  <span className="text-white" style={{ fontSize: 22 }}>✓</span>
-                </div>
-                <div>
-                  <p className="font-mono font-bold text-sm" style={{ color: '#1A237E' }}>{cert.id || id}</p>
-                  <p className="text-[11px] text-neutral-500 leading-snug">
-                    Pour vérifier l'authenticité de ce certificat, utilisez ce code sur<br />
-                    syllabix.com/certificate
-                  </p>
-                </div>
+            {/* Pied : date + signature + partenaires */}
+            <div className="relative mt-auto pt-4 flex items-end justify-between gap-6">
+              <div>
+                <p className="text-[13px] text-neutral-600">Fait le {formatDate(cert.issuedAt)}</p>
+                <p className={greatVibes.className} style={{ fontSize: 34, color: '#1a2a6c', transform: 'rotate(-4deg)', width: 'fit-content', margin: '4px 0 -4px 6px' }}>
+                  Syllabix
+                </p>
+                <div style={{ height: 1, width: 170, background: '#bbb' }} />
+                <p className="text-[10px] uppercase tracking-wider text-neutral-400 mt-1">La Direction de la Certification</p>
               </div>
 
-              {/* Partenaires institutionnels */}
-              <div className="mt-5 flex items-center gap-5 flex-wrap">
-                <p className="text-[9px] font-semibold uppercase text-neutral-400" style={{ letterSpacing: '0.2em' }}>
-                  Partenaires<br />institutionnels
+              <div className="text-right">
+                <p className="text-[8px] font-semibold uppercase text-neutral-400 mb-1.5" style={{ letterSpacing: '0.2em' }}>
+                  Partenaires institutionnels
                 </p>
-                {PARTNERS.map((partner) => (
-                  <div key={partner.id} className="relative" style={{ width: 56, height: 32 }}>
-                    <Image
-                      src={partner.logo}
-                      alt={partner.shortName}
-                      fill
-                      className="object-contain"
-                      sizes="56px"
-                    />
-                  </div>
-                ))}
+                <div className="flex items-center justify-end gap-4 flex-wrap">
+                  {PARTNERS.map((partner) => (
+                    <div key={partner.id} className="relative" style={{ width: 52, height: 30 }}>
+                      <Image
+                        src={partner.logo}
+                        alt={partner.shortName}
+                        fill
+                        className="object-contain"
+                        sizes="52px"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ══════════ PANNEAU DROIT — teinté ══════════ */}
+          {/* ══════════ PANNEAU DROIT — bleu nuit ══════════ */}
           <div
-            className="relative lg:w-[38%] flex flex-col items-center px-8 py-8"
-            style={{ background: 'linear-gradient(160deg, #eef1fc 0%, #f7f4ee 100%)' }}
+            className="relative lg:w-[36%] flex flex-col items-center px-7 py-7 text-center"
+            style={{ background: 'linear-gradient(165deg, #161f6d 0%, #1A237E 45%, #10154a 100%)' }}
           >
-            {/* Vague décorative bas-droite */}
-            <svg className="absolute bottom-0 right-0 pointer-events-none" style={{ width: 200, height: 100 }} viewBox="0 0 200 100" fill="none" aria-hidden="true">
-              <path d="M200 100 H0 C 70 92, 120 72, 150 40 C 168 20, 188 8, 200 4 Z" fill="#1A237E" opacity="0.07" />
-            </svg>
+            {/* Texture de fond : fines diagonales */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              aria-hidden="true"
+              style={{ background: 'repeating-linear-gradient(135deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 9px)' }}
+            />
+            {/* Halo doré derrière l'anneau */}
+            <div
+              className="absolute pointer-events-none"
+              aria-hidden="true"
+              style={{ top: 24, left: '50%', transform: 'translateX(-50%)', width: 190, height: 190, borderRadius: '50%', background: 'radial-gradient(circle, rgba(201,162,39,0.22), transparent 65%)' }}
+            />
 
-            {/* Badge hexagonal du score */}
-            <div className="relative" style={{ width: 168, height: 188 }}>
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: '#E67E22',
-                  clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                }}
-              />
-              <div
-                className="absolute flex flex-col items-center justify-center text-center"
-                style={{
-                  inset: 5,
-                  background: '#ffffff',
-                  clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                }}
-              >
-                <p className="text-xs font-bold tracking-widest" style={{ color: '#1A237E' }}>SYLLABIX</p>
-                <p className="font-heading font-extrabold" style={{ color: '#1A237E', fontSize: 52, lineHeight: 1.05 }}>
-                  {cert.score}<span style={{ fontSize: 26 }}>%</span>
+            {/* Anneau de score */}
+            <div className="relative" style={{ width: 158, height: 158 }}>
+              <svg viewBox="0 0 120 120" className="w-full h-full" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.14)" strokeWidth="9" />
+                <circle
+                  cx="60" cy="60" r="52" fill="none"
+                  stroke={level.color === '#1A237E' ? '#c9a227' : level.color}
+                  strokeWidth="9"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(cert.score / 100) * 326.7} 326.7`}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="font-heading font-extrabold text-white" style={{ fontSize: 42, lineHeight: 1 }}>
+                  {cert.score}<span style={{ fontSize: 20 }}>%</span>
                 </p>
-                <div style={{ height: 1.5, width: 64, background: '#d9dcef', margin: '4px 0' }} />
-                <p className="text-sm text-neutral-500">de réussite</p>
+                <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.65)' }}>de réussite</p>
               </div>
             </div>
 
             {/* Niveau */}
-            <p className="text-sm font-semibold text-neutral-600 mt-4">
-              {isGlobal ? 'Niveau global' : 'Niveau du module'}
-            </p>
             <span
-              className="mt-2 px-6 py-1.5 rounded-full font-bold text-white text-lg"
-              style={{ background: level.color }}
+              className="relative mt-3 px-6 py-1.5 rounded-full font-bold text-white text-base"
+              style={{ background: level.color === '#1A237E' ? '#c9a227' : level.color, boxShadow: '0 3px 12px rgba(0,0,0,0.3)' }}
             >
-              {level.label}
+              Niveau {level.label}
             </span>
 
-            {/* Signification du niveau */}
-            <div className="mt-6 relative">
-              <p className="font-bold text-[15px] mb-2" style={{ color: '#1A237E' }}>
-                Votre niveau signifie que :
+            {/* Signification */}
+            <div className="relative mt-5 text-left">
+              <p className="font-bold text-[13px] mb-1.5" style={{ color: '#c9a227' }}>
+                Ce niveau atteste que :
               </p>
-              <p className="text-[13px] leading-relaxed text-neutral-700 text-justify">
+              <p className="text-[12px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.85)' }}>
                 {meaning}
               </p>
-              {!isGlobal && (
-                <p className="text-[11px] text-neutral-500 mt-3 leading-relaxed">
-                  Ce certificat porte sur un module du référentiel. La certification globale, qui évalue les 7 domaines
-                  en un seul examen, donne lieu au Certificat de Compétences Numériques complet.
+              <p className="text-[10px] mt-2.5 leading-relaxed" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                {isGlobal
+                  ? 'Certification globale : 32 questions dont des épreuves pratiques, en conditions contrôlées, sur les 7 domaines du référentiel.'
+                  : 'Certification de module : la certification globale, qui évalue les 7 domaines en un seul examen, complète ce certificat.'}
+              </p>
+            </div>
+
+            {/* QR code de vérification */}
+            <div className="relative mt-auto pt-4 flex items-center gap-3">
+              <div className="bg-white rounded-lg p-1.5 flex-shrink-0" style={{ width: 76, height: 76 }}>
+                {qrUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={qrUrl} alt="QR code de vérification" className="w-full h-full" />
+                ) : (
+                  <div className="w-full h-full rounded" style={{ background: '#eceffc' }} />
+                )}
+              </div>
+              <div className="text-left">
+                <p className="text-[11px] font-bold text-white">Certificat vérifiable</p>
+                <p className="text-[10px] leading-snug" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                  Scannez ce code ou saisissez<br />l'identifiant sur syllabix.com
                 </p>
-              )}
-              {isGlobal && (
-                <p className="text-[11px] text-neutral-500 mt-3 leading-relaxed">
-                  Ce certificat atteste la réussite de l'examen global : 32 questions, dont des épreuves pratiques,
-                  couvrant les 7 domaines du référentiel Syllabix en conditions contrôlées.
-                </p>
-              )}
+              </div>
             </div>
           </div>
         </div>
