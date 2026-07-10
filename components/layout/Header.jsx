@@ -73,14 +73,16 @@ export default function Header() {
           : 'bg-[#1A237E]'
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-28 flex items-center justify-between">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
 
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
           <img
             src="/syllabix-logo-sansfond.png"
             alt="Syllabix"
-            className={`h-28 w-auto transition-all duration-300 ${!isScrolled ? 'brightness-0 invert' : ''}`}
+            width={2816}
+            height={1536}
+            className={`h-10 sm:h-12 w-auto max-w-[150px] object-contain transition-all duration-300 ${!isScrolled ? 'brightness-0 invert' : ''}`}
           />
         </Link>
 
