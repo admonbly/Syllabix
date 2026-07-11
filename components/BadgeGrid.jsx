@@ -1,16 +1,12 @@
 'use client';
 
 import { useLanguage } from '@/lib/LanguageContext';
+import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 
-const MODULES = [
-  { id: 0, icon: '💻', nameFr: 'IT & Ordinateur',          nameEn: 'IT & Computer' },
-  { id: 1, icon: '🌐', nameFr: 'Internet',        nameEn: 'Internet' },
-  { id: 2, icon: '📧', nameFr: 'Email',                    nameEn: 'Email' },
-  { id: 3, icon: '📊', nameFr: 'Bureautique',              nameEn: 'Office Tools' },
-  { id: 4, icon: '🔒', nameFr: 'Cybersécurité',            nameEn: 'Cybersecurity' },
-  { id: 5, icon: '🤖', nameFr: 'Intelligence Artificielle', nameEn: 'Artificial Intelligence' },
-  { id: 6, icon: '💼', nameFr: 'Employabilité',            nameEn: 'Employability' },
-];
+// Noms bilingues et icônes dérivés de la source unique du référentiel
+const MODULES = MODULE_COMPETENCIES.map((m) => ({
+  id: m.moduleId, icon: m.icon, nameFr: m.nameFr, nameEn: m.nameEn,
+}));
 
 function formatDate(isoStr, locale) {
   if (!isoStr) return '';

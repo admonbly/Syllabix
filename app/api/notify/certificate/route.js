@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb, getAdminAuth } from '@/lib/firebaseAdmin';
+import { getModuleName } from '@/lib/moduleNames';
 
 // Échappe le HTML pour empêcher toute injection dans le corps de l'email
 function escapeHtml(str) {
@@ -10,34 +11,6 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
-
-// Rate limiting en mémoire (reset à chaque cold start Vercel)
-const rateLimitMap = new Map();
-const RATE_LIMIT = 5;       // max appels
-const RATE_WINDOW = 60_000; // par minute
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip) || { count: 0, start: now };
-  if (now - entry.start > RATE_WINDOW) {
-    rateLimitMap.set(ip, { count: 1, start: now });
-    return false;
-  }
-  if (entry.count >= RATE_LIMIT) return true;
-  entry.count++;
-  rateLimitMap.set(ip, entry);
-  return false;
-}
-
-const MODULE_NAMES = {
-  0: 'IT & Ordinateur',
-  1: 'Internet',
-  2: 'Email',
-  3: 'Bureautique',
-  4: 'Cybersécurité',
-  5: 'Intelligence Artificielle',
-  6: 'Employabilité',
-};
 
 export async function POST(request) {
   // Vérification de l'origine — bloque les appels externes
@@ -50,12 +23,6 @@ export async function POST(request) {
   ].filter(Boolean);
   if (origin && !allowedOrigins.includes(origin)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-  }
-
-  // Rate limiting par IP
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  if (isRateLimited(ip)) {
-    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
   // Si pas de clé Resend configurée, on skip silencieusement
@@ -91,7 +58,8 @@ export async function POST(request) {
 
   // Le certificat doit exister ET appartenir à l'appelant —
   // toutes les données de l'email viennent de la base, jamais du client
-  const certSnap = await getAdminDb().doc(`certificates/${certId}`).get();
+  const certRef = getAdminDb().doc(`certificates/${certId}`);
+  const certSnap = await certRef.get();
   if (!certSnap.exists || certSnap.data().userId !== decoded.uid) {
     return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
   }
@@ -102,10 +70,16 @@ export async function POST(request) {
     return NextResponse.json({ skipped: true, reason: 'No verified email on account' });
   }
 
+  // Garde-fou durable (survit aux cold starts) : un email de félicitations
+  // n'est envoyé qu'une seule fois par certificat
+  if (cert.emailSentAt) {
+    return NextResponse.json({ skipped: true, reason: 'already sent' });
+  }
+
   const { score, moduleId, displayName } = cert;
   const certTitle = moduleId !== null && moduleId !== undefined
-    ? `${MODULE_NAMES[moduleId] || `Module ${moduleId}`}`
-    : 'Certification Numérique Complète';
+    ? getModuleName(moduleId)
+    : 'Certificat de Compétences Numériques';
 
   const certUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://syllabix.com'}/certificate/${certId}`;
   const name = escapeHtml(displayName || email.split('@')[0]);
@@ -201,6 +175,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email sending failed' }, { status: 500 });
     }
 
+    // Marque l'envoi pour empêcher tout doublon ultérieur
+    await certRef.update({ emailSentAt: new Date().toISOString() });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Notify certificate error:', err);

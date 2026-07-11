@@ -11,19 +11,10 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PARTNERS } from '@/lib/partners';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
+import { getModuleName } from '@/lib/moduleNames';
 
 // Police calligraphique — nom du lauréat et signature manuscrite
 const greatVibes = Great_Vibes({ subsets: ['latin'], weight: '400', display: 'swap' });
-
-const MODULE_NAMES = {
-  0: 'IT & Ordinateur',
-  1: 'Internet',
-  2: 'Email',
-  3: 'Bureautique',
-  4: 'Cybersécurité',
-  5: 'Intelligence Artificielle',
-  6: 'Employabilité',
-};
 
 function formatDate(isoStr) {
   if (!isoStr) return '';
@@ -127,7 +118,7 @@ export default function CertificatePage() {
     const issueDate = cert.issuedAt ? new Date(cert.issuedAt) : new Date();
     const certName = encodeURIComponent(
       cert.moduleId !== null && cert.moduleId !== undefined
-        ? `Syllabix — Certificat de Compétences Numériques : ${MODULE_NAMES[cert.moduleId] || `Module ${cert.moduleId}`}`
+        ? `Syllabix — Certificat de Compétences Numériques : ${getModuleName(cert.moduleId)}`
         : 'Syllabix — Certificat de Compétences Numériques'
     );
     const certUrl = encodeURIComponent(`${window.location.origin}/certificate/${id}`);
@@ -160,7 +151,7 @@ export default function CertificatePage() {
 
   const level = getLevel(cert.score);
   const isGlobal = cert.moduleId === null || cert.moduleId === undefined;
-  const moduleName = isGlobal ? null : (MODULE_NAMES[cert.moduleId] || `Module ${cert.moduleId}`);
+  const moduleName = isGlobal ? null : getModuleName(cert.moduleId);
   const meaning = getMeaning(cert, level);
 
   return (

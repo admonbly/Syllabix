@@ -5,18 +5,13 @@ import Link from 'next/link';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import CTAButton from '@/components/CTAButton';
+import { getModuleName } from '@/lib/moduleNames';
 
 const MIN_PASS = 60;
 
-const MODULES = [
-  { id: 0, name: 'IT & Ordinateur',          color: '#1A237E' },
-  { id: 1, name: 'Internet',                  color: '#0277BD' },
-  { id: 2, name: 'Email',                     color: '#00695C' },
-  { id: 3, name: 'Bureautique',               color: '#E65100' },
-  { id: 4, name: 'Cybersécurité',             color: '#B71C1C' },
-  { id: 5, name: 'Intelligence Artificielle', color: '#4A148C' },
-  { id: 6, name: 'Employabilité',             color: '#1B5E20' },
-];
+// Couleurs par module ; le nom vient de la source unique (lib/moduleNames)
+const MODULE_COLORS = ['#1A237E', '#0277BD', '#00695C', '#E65100', '#B71C1C', '#4A148C', '#1B5E20'];
+const MODULES = MODULE_COLORS.map((color, id) => ({ id, name: getModuleName(id), color }));
 
 export default function CertificationUserPanel() {
   const [user, setUser]               = useState(null);

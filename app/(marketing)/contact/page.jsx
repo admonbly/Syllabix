@@ -22,8 +22,7 @@ export default function ContactPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    // Here you would integrate with Supabase to save the contact
+    // TODO : brancher l'envoi réel du message (email/back-office)
     alert(ct('form.success'));
     setFormData({ name: '', email: '', subject: '', message: '' });
   };
