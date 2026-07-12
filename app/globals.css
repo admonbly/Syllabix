@@ -199,8 +199,13 @@ html.dyslexia-font a {
 /* Bouton à reflet */
 .sx-shimmer { background-size: 200% 100%; animation: sx-shimmer 3.5s linear infinite; }
 
+/* Reflet continu sur un bouton .btn-shine (CTA vedette) */
+@keyframes sx-sheen { 0% { left: -60%; } 55%,100% { left: 150%; } }
+.btn-shine-auto::before { animation: sx-sheen 3.8s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .ph-float, .ph-float-rev, .sx-marquee-track, .sx-shimmer { animation: none !important; }
+  .ph-float, .ph-float-rev, .sx-marquee-track, .sx-shimmer,
+  .btn-shine-auto::before { animation: none !important; }
   .reveal { opacity: 1; transform: none; transition: none; }
 }
 

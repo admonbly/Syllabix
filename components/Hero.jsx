@@ -65,7 +65,7 @@ export default function Hero({ title, subtitle, cta }) {
             <div className="flex flex-col sm:flex-row gap-3 mb-14 anim-fade-up delay-300">
               {cta ?? (
                 <>
-                  <CTAButton href="/auth/signup" variant="primary" size="lg">
+                  <CTAButton href="/auth/signup" variant="primary" size="lg" className="btn-shine-auto">
                     Commencer gratuitement
                     <ArrowRight className="w-4 h-4" />
                   </CTAButton>

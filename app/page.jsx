@@ -104,6 +104,27 @@ export default function HomePage() {
         subtitle={h('hero.subtitle')}
       />
 
+      {/* ─── Bandeau défilant des 7 domaines ──────── */}
+      <div className="sx-marquee-mask relative bg-primary border-y border-white/10 py-4 overflow-hidden">
+        <div aria-hidden className="absolute inset-y-0 left-0 w-20 z-10 bg-gradient-to-r from-primary to-transparent pointer-events-none" />
+        <div aria-hidden className="absolute inset-y-0 right-0 w-20 z-10 bg-gradient-to-l from-primary to-transparent pointer-events-none" />
+        <div className="sx-marquee-track">
+          {[0, 1].map((dup) => (
+            <div key={dup} className="flex items-center gap-3 pr-3" aria-hidden={dup === 1}>
+              {modules.map((mod) => {
+                const Icon = mod.icon;
+                return (
+                  <span key={`${dup}-${mod.id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 border border-white/12 text-white/80 text-sm font-display font-medium whitespace-nowrap">
+                    <Icon className="w-4 h-4 text-accent flex-shrink-0" strokeWidth={2} />
+                    {mod.title}
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* ─── 2. Comment ça marche ──────────────────── */}
       <section className="py-24 bg-white">
         <div className="container-max">
@@ -123,7 +144,7 @@ export default function HomePage() {
               const Icon = step.icon;
               return (
                 <Reveal key={step.number} direction="up" delay={i * 130}>
-                  <div className="group relative p-6 rounded-2xl bg-surface border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300">
+                  <div className="lift group relative p-6 rounded-2xl bg-surface border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300">
                     <div className="flex items-center gap-4 mb-5">
                       <div className="w-11 h-11 rounded-full border-2 border-accent/25 bg-accent/8 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:bg-accent group-hover:border-accent">
                         <Icon className="w-5 h-5 text-accent group-hover:text-white transition-colors" strokeWidth={2} />
@@ -160,7 +181,7 @@ export default function HomePage() {
                   title={mod.title}
                   description={mod.description}
                   number={mod.id}
-                  className="h-full"
+                  className="h-full lift"
                 />
               </Reveal>
             ))}
@@ -203,7 +224,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((tm, i) => (
               <Reveal key={i} direction="up" delay={i * 110}>
-                <div className="group relative bg-white rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-neutral-100 hover:border-accent/20 flex flex-col h-full">
+                <div className="lift group relative bg-white rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-neutral-100 hover:border-accent/20 flex flex-col h-full">
                   <Quote className="w-8 h-8 text-accent/20 mb-4 flex-shrink-0 group-hover:text-accent/35 transition-colors" strokeWidth={1.5} />
                   <p className="text-neutral-600 text-sm leading-relaxed flex-1 italic mb-6">
                     &ldquo;{quotes[i]}&rdquo;
@@ -240,7 +261,7 @@ export default function HomePage() {
               return (
                 <Reveal key={href} direction="up" delay={i * 100}>
                   <Link href={href} className="group block h-full rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
-                    <div className="h-full bg-white rounded-2xl shadow-card border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col">
+                    <div className="lift h-full bg-white rounded-2xl shadow-card border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col">
                       <div className="h-1 bg-gradient-to-r from-accent to-accent-light flex-shrink-0" />
                       <div className="p-6 flex flex-col flex-1">
                         <div className="flex items-center justify-between mb-5">
@@ -274,8 +295,8 @@ export default function HomePage() {
       {/* ─── 7. CTA Final ──────────────────────────── */}
       <section className="py-24 dark-section relative overflow-hidden">
         <div aria-hidden className="absolute inset-0 hero-dots opacity-20 pointer-events-none" />
-        <div aria-hidden className="absolute top-0 right-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-        <div aria-hidden className="absolute bottom-0 left-0 w-60 h-60 bg-secondary/8 rounded-full blur-3xl" />
+        <div aria-hidden className="ph-float absolute top-0 right-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+        <div aria-hidden className="ph-float-rev absolute bottom-0 left-0 w-60 h-60 bg-secondary/8 rounded-full blur-3xl" />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <Reveal direction="up">
