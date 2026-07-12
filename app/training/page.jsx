@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/lib/LanguageContext';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import RequireAuth from '@/components/RequireAuth';
+import Reveal from '@/components/Reveal';
 
 export default function TrainingPage() {
   const { locale, t } = useLanguage();
@@ -108,11 +109,12 @@ export default function TrainingPage() {
           </div>
 
           <div className="space-y-4">
-            {MODULE_COMPETENCIES.map((mod) => {
+            {MODULE_COMPETENCIES.map((mod, idx) => {
               return (
-                <div
+                <Reveal
                   key={mod.moduleId}
-                  className={`rounded-2xl border-2 ${mod.color.bg} ${mod.color.border} overflow-hidden hover:shadow-md transition-shadow`}
+                  delay={idx * 60}
+                  className={`lift rounded-2xl border-2 ${mod.color.bg} ${mod.color.border} overflow-hidden`}
                 >
                   {/* En-tête : navigation */}
                   <div className="flex items-center gap-4 px-6 py-4 border-b border-black/5">
@@ -149,7 +151,7 @@ export default function TrainingPage() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Reveal>
               );
             })}
 

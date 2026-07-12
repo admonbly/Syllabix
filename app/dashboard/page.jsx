@@ -5,6 +5,7 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import BadgeGrid from '@/components/BadgeGrid';
 import PageHeader from '@/components/PageHeader';
+import Reveal from '@/components/Reveal';
 import { SkeletonStat, SkeletonCard } from '@/components/SkeletonCard';
 import Link from 'next/link';
 import { auth, userDB } from '@/lib/firebase';
@@ -180,15 +181,18 @@ export default function DashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: d('stats.completed'),    value: `${completedCount}/${MODULES.length}`, color: 'text-accent',     border: 'border-accent/20',     bg: 'bg-orange-50' },
-            { label: d('stats.certificates'), value: certificates.length,                   color: 'text-secondary',  border: 'border-secondary/20',  bg: 'bg-green-50' },
-            { label: d('stats.rate'),         value: passRate > 0 ? `${passRate}%` : '—',  color: 'text-primary',    border: 'border-primary/20',    bg: 'bg-blue-50' },
-            { label: d('stats.attempted'),    value: attemptedCount,                        color: 'text-neutral-700',border: 'border-neutral-200',   bg: 'bg-white' },
-          ].map((s) => (
-            <div key={s.label} className={`rounded-2xl border-2 ${s.border} ${s.bg} p-5`}>
-              <p className="text-xs text-neutral-500 mb-2 font-medium">{s.label}</p>
+            { label: d('stats.completed'),    value: `${completedCount}/${MODULES.length}`, color: 'text-accent',     border: 'border-accent/20',     bg: 'bg-orange-50',  icon: '🎯' },
+            { label: d('stats.certificates'), value: certificates.length,                   color: 'text-secondary',  border: 'border-secondary/20',  bg: 'bg-green-50',   icon: '🏆' },
+            { label: d('stats.rate'),         value: passRate > 0 ? `${passRate}%` : '—',  color: 'text-primary',    border: 'border-primary/20',    bg: 'bg-blue-50',    icon: '📈' },
+            { label: d('stats.attempted'),    value: attemptedCount,                        color: 'text-neutral-700',border: 'border-neutral-200',   bg: 'bg-white',      icon: '📝' },
+          ].map((s, i) => (
+            <Reveal key={s.label} delay={i * 70} className={`lift rounded-2xl border-2 ${s.border} ${s.bg} p-5`}>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs text-neutral-500 font-medium">{s.label}</p>
+                <span className="text-lg opacity-70" aria-hidden>{s.icon}</span>
+              </div>
               <p className={`text-3xl font-heading font-extrabold ${s.color}`}>{s.value}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
 

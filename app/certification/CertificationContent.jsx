@@ -5,6 +5,7 @@ import CTAButton from '@/components/CTAButton';
 import CertificationUserPanel from '@/components/CertificationUserPanel';
 import { useLanguage } from '@/lib/LanguageContext';
 import RequireAuth from '@/components/RequireAuth';
+import Reveal from '@/components/Reveal';
 
 const MODULE_DATA = [
   { id: 0, icon: '🖥️', key: 'it',         color: '#1A237E', bg: '#f0f3ff' },
@@ -59,18 +60,26 @@ export default function CertificationContent() {
     <div className="min-h-screen bg-neutral-50">
 
       {/* Hero */}
-      <section className="py-20 bg-gradient-to-br from-primary to-[#283593] text-white">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-sm font-medium mb-6 backdrop-blur-sm">
+      <section className="relative py-20 bg-gradient-to-br from-primary via-[#1e2d8a] to-[#283593] text-white overflow-hidden">
+        <div aria-hidden className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
+        <div aria-hidden className="ph-float absolute -top-24 -right-16 w-80 h-80 bg-accent/25 rounded-full blur-3xl pointer-events-none" />
+        <div aria-hidden className="ph-float-rev absolute -bottom-28 left-1/4 w-72 h-72 bg-secondary/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+          <div className="ph-in inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/15 text-sm font-medium mb-6 backdrop-blur-sm">
             <span>🏆</span> {c('badge')}
           </div>
-          <h1 className="text-5xl font-heading font-bold mb-4 leading-tight">
+          <h1 className="ph-in text-5xl font-heading font-bold mb-4 leading-tight" style={{ animationDelay: '80ms' }}>
             {c('title')}
           </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto mb-8">
+          <p className="ph-in text-xl text-white/80 max-w-2xl mx-auto mb-4" style={{ animationDelay: '140ms' }}>
             {c('subtitle')}
           </p>
-          <div className="flex flex-wrap justify-center gap-8 mt-10">
+          <div className="ph-in flex items-center justify-center gap-1.5 mb-8" style={{ animationDelay: '200ms' }}>
+            <span className="h-1 w-12 rounded-full bg-accent" />
+            <span className="h-1 w-4 rounded-full bg-[#c9a227]" />
+            <span className="h-1 w-2 rounded-full bg-secondary" />
+          </div>
+          <div className="ph-in flex flex-wrap justify-center gap-8 mt-10" style={{ animationDelay: '260ms' }}>
             {STATS.map((s) => (
               <div key={s.label} className="text-center">
                 <p className="text-3xl font-bold text-accent">{s.value}</p>
@@ -146,10 +155,11 @@ export default function CertificationContent() {
           <p className="text-neutral-500 mb-8 ml-11">{c('modules.subtitle')}</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {MODULES.map((module) => (
-              <div
+            {MODULES.map((module, i) => (
+              <Reveal
                 key={module.id}
-                className="bg-white rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                delay={i * 70}
+                className="lift bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden"
               >
                 <div className="h-1" style={{ background: module.color }} />
                 <div className="p-6">
@@ -188,7 +198,7 @@ export default function CertificationContent() {
                     </Link>
                   </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>

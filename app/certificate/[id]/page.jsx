@@ -106,7 +106,30 @@ export default function CertificatePage() {
     load();
   }, [id]);
 
-  const handlePrint = () => window.print();
+  const [downloading, setDownloading] = useState(false);
+
+  // Télécharge le certificat en image PNG haute résolution
+  const handleDownloadImage = async () => {
+    if (!printRef.current || downloading) return;
+    setDownloading(true);
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(printRef.current, {
+        pixelRatio: 2.5,           // haute résolution (impression nette)
+        cacheBust: true,
+        backgroundColor: '#ffffff',
+      });
+      const link = document.createElement('a');
+      const who = (cert.displayName || 'certificat').replace(/[^a-zA-Z0-9]+/g, '-');
+      link.download = `certificat-syllabix-${who}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      console.error('Téléchargement image:', err);
+      alert(c('downloadError') || 'Le téléchargement a échoué. Réessayez.');
+    }
+    setDownloading(false);
+  };
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -189,14 +212,18 @@ export default function CertificatePage() {
               {c('linkedin')}
             </button>
             <button
-              onClick={handlePrint}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-primary text-primary rounded-xl font-semibold text-sm hover:bg-primary hover:text-white transition-colors shadow-md"
+              onClick={handleDownloadImage}
+              disabled={downloading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-primary text-primary rounded-xl font-semibold text-sm hover:bg-primary hover:text-white transition-colors shadow-md disabled:opacity-60"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
-                <rect x="6" y="14" width="12" height="8"/>
-              </svg>
-              {c('print')}
+              {downloading ? (
+                <span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              )}
+              {downloading ? (c('downloading') || 'Génération…') : (c('downloadImage') || 'Télécharger l\'image')}
             </button>
           </div>
         </div>
