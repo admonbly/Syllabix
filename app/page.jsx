@@ -104,27 +104,6 @@ export default function HomePage() {
         subtitle={h('hero.subtitle')}
       />
 
-      {/* ─── Bandeau défilant des 7 domaines ──────── */}
-      <div className="sx-marquee-mask relative bg-primary border-y border-white/10 py-4 overflow-hidden">
-        <div aria-hidden className="absolute inset-y-0 left-0 w-20 z-10 bg-gradient-to-r from-primary to-transparent pointer-events-none" />
-        <div aria-hidden className="absolute inset-y-0 right-0 w-20 z-10 bg-gradient-to-l from-primary to-transparent pointer-events-none" />
-        <div className="sx-marquee-track">
-          {[0, 1].map((dup) => (
-            <div key={dup} className="flex items-center gap-3 pr-3" aria-hidden={dup === 1}>
-              {modules.map((mod) => {
-                const Icon = mod.icon;
-                return (
-                  <span key={`${dup}-${mod.id}`} className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/8 border border-white/12 text-white/80 text-sm font-display font-medium whitespace-nowrap">
-                    <Icon className="w-4 h-4 text-accent flex-shrink-0" strokeWidth={2} />
-                    {mod.title}
-                  </span>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* ─── 2. Comment ça marche ──────────────────── */}
       <section className="py-24 bg-white">
         <div className="container-max">
