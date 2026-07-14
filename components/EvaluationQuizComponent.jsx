@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import {
-  getModuleQuestions,
   getMixedQuestions,
-  calculateScore,
+  scoreByValue,
+  isAnswerCorrectByValue,
   randomizeAnswerOptions,
   formatTime,
   isTimeCritical,
@@ -15,12 +15,27 @@ import {
   updateAdaptiveDifficulty,
 } from '@/lib/examService';
 import { useLanguage } from '@/lib/LanguageContext';
+import { auth, userDB } from '@/lib/firebase';
+import { ExamPracticalBlock, ExamAnswerInput, hasAnswerValue } from '@/components/ExamAnswerInput';
 
 const DIFFICULTY_UI = {
-  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dot: '🟢' },
-  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dot: '🟡' },
-  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dot: '🔴' },
+  1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dotCls: 'bg-green-500' },
+  2: { fr: 'Moyen',     en: 'Medium', cls: 'bg-yellow-100 text-yellow-700', dotCls: 'bg-yellow-500' },
+  3: { fr: 'Difficile', en: 'Hard',   cls: 'bg-red-100 text-red-700',       dotCls: 'bg-red-500' },
 };
+
+function CheckIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>;
+}
+function XIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" /></svg>;
+}
+function FlagIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" /><line x1="4" y1="22" x2="4" y2="15" /></svg>;
+}
+function LightbulbIcon({ className = 'w-4 h-4' }) {
+  return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="9" y1="18" x2="15" y2="18" /><line x1="10" y1="22" x2="14" y2="22" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14" /></svg>;
+}
 
 /** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = null }) {
@@ -36,6 +51,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
   const [answers,         setAnswers]         = useState({});
   const [timeLeft,        setTimeLeft]        = useState(EXAM_CONFIG.EVALUATION.DURATION);
   const [loading,         setLoading]         = useState(true);
+  const [flagged,          setFlagged]          = useState(new Set());
+  const [showReview,       setShowReview]       = useState(false);
+  const [showWarning,      setShowWarning]      = useState(false);
+  const [showFlaggedPanel, setShowFlaggedPanel] = useState(false);
 
   // Adaptive state
   const [difficulty,  setDifficulty]  = useState(1);
@@ -69,6 +88,9 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(intervalRef.current);
+          // Forcer la sortie des écrans intermédiaires
+          setShowReview(false);
+          setShowWarning(false);
           setPhase('results');
           return 0;
         }
@@ -78,19 +100,19 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     return () => clearInterval(intervalRef.current);
   }, [phase]);
 
-  const handleAnswer = async (index) => {
-    if (answers[currentQuestion] !== undefined) return;
-    setAnswers((prev) => ({ ...prev, [currentQuestion]: index }));
+  // Passe à la question suivante (avec logique adaptative en mode module).
+  // La réponse courante (par VALEUR) doit déjà être dans `answers`.
+  const advance = async (valueOverride) => {
+    const value = valueOverride !== undefined ? valueOverride : answers[currentQuestion];
 
     if (!isAdaptive) {
       if (currentQuestion < questions.length - 1) {
-        setTimeout(() => setCurrentQuestion((q) => q + 1), 600);
+        setTimeout(() => setCurrentQuestion((q) => q + 1), 400);
       }
       return;
     }
 
-    // Adaptive: update difficulty
-    const isCorrect = index === questions[currentQuestion].correct;
+    const isCorrect = isAnswerCorrectByValue(questions[currentQuestion], value);
     const newStreak      = isCorrect ? streak + 1 : 0;
     const newWrongStreak = isCorrect ? 0 : wrongStreak + 1;
     const updated = updateAdaptiveDifficulty(difficulty, newStreak, newWrongStreak);
@@ -100,7 +122,6 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
     const nextIdx = currentQuestion + 1;
     if (nextIdx < total) {
-      // Load next adaptive question after 600ms
       setTimeout(async () => {
         const next = await getAdaptiveQuestion(moduleId, updated.difficulty, usedIds);
         if (next) {
@@ -108,7 +129,31 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           setUsedIds((prev) => [...prev, next.id ?? next.text]);
         }
         setCurrentQuestion(nextIdx);
-      }, 600);
+      }, 400);
+    }
+  };
+
+  // Choix unique : un clic répond et enchaîne (verrouillé ensuite)
+  const handleSingleAnswer = (value) => {
+    if (hasAnswerValue(answers[currentQuestion])) return;
+    setAnswers((prev) => ({ ...prev, [currentQuestion]: value }));
+    advance(value);
+  };
+
+  const toggleFlag = (idx) => {
+    setFlagged((prev) => { const s = new Set(prev); s.has(idx) ? s.delete(idx) : s.add(idx); return s; });
+  };
+
+  const handleSubmitRequest = () => {
+    const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
+    const loadedCount = questions.length;
+    if (answeredCount < loadedCount) {
+      setShowWarning(true);
+    } else if (flagged.size > 0) {
+      setShowReview(true);
+    } else {
+      clearInterval(intervalRef.current);
+      setPhase('results');
     }
   };
 
@@ -116,6 +161,23 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     clearInterval(intervalRef.current);
     setPhase('results');
   };
+
+  // Sauvegarde session quand résultats affichés
+  useEffect(() => {
+    if (phase !== 'results' || questions.length === 0) return;
+    const user = auth.currentUser;
+    if (!user) return;
+    const scoreData = scoreByValue(answers, questions);
+    userDB.saveSession(user.uid, {
+      type: 'evaluation',
+      mode,
+      moduleId: moduleId !== null ? String(moduleId) : null,
+      score: scoreData.percentage,
+      correct: scoreData.correct,
+      total: scoreData.total,
+      questionsCount: questions.length,
+    });
+  }, [phase]);
 
   if (loading) {
     return (
@@ -140,7 +202,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                 <p className="text-xs text-neutral-500 mt-1">{ev('questions')}</p>
               </div>
               <div className="bg-primary/10 rounded-xl p-4">
-                <p className="text-2xl font-bold text-primary">10 min</p>
+                <p className="text-2xl font-bold text-primary">{Math.round(EXAM_CONFIG.EVALUATION.DURATION / 60)} min</p>
                 <p className="text-xs text-neutral-500 mt-1">{ev('duration')}</p>
               </div>
               <div className="bg-secondary/10 rounded-xl p-4">
@@ -148,7 +210,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                 <p className="text-xs text-neutral-500 mt-1">{ev('typeDesc')}</p>
               </div>
             </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
               <p className="text-sm text-blue-800 font-semibold mb-2">{ev('how')}</p>
               <ul className="text-sm text-blue-700 space-y-1">
                 <li>• {ev('how1')}</li>
@@ -156,6 +218,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
                 <li>• {ev('how3')}</li>
                 <li>• {ev('how4')}</li>
               </ul>
+            </div>
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 text-left">
+              <p className="text-sm text-orange-800 font-semibold mb-1 flex items-center gap-2"><FlagIcon className="w-4 h-4 flex-shrink-0" /> Marquer les questions pour y revenir</p>
+              <p className="text-sm text-orange-700">Clique sur l'icône drapeau à côté d'une question pour la marquer. Le compteur dans la barre te permet de naviguer directement vers tes questions marquées à tout moment.</p>
             </div>
             <CTAButton onClick={() => setPhase('quiz')} size="lg" className="w-full">
               {ev('start')}
@@ -171,13 +237,7 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
 
   // ——— Résultats ———
   if (phase === 'results') {
-    const scoreData = calculateScore(
-      Object.entries(answers).map(([qIdx, ans]) => ({
-        questionId: questions[qIdx]?.id,
-        userAnswer: ans,
-      })),
-      questions
-    );
+    const scoreData = scoreByValue(answers, questions);
 
     const pct = scoreData.percentage;
     let niveau, niveauColor, niveauBg, conseil;
@@ -212,7 +272,10 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           </Card>
 
           <Card className={`mb-5 border ${niveauBg}`}>
-            <p className={`font-semibold ${niveauColor}`}>💡 {conseil}</p>
+            <p className={`font-semibold flex items-start gap-2 ${niveauColor}`}>
+              <LightbulbIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              {conseil}
+            </p>
           </Card>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -224,11 +287,103 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     );
   }
 
+  // ——— Révision signets ———
+  if (showReview) {
+    const flaggedList = [...flagged].sort((a, b) => a - b);
+    return (
+      <section className="py-12 bg-neutral-50 min-h-screen">
+        <div className="max-w-2xl mx-auto px-4">
+          <div className="flex justify-between items-center mb-6">
+            <div className="text-center flex-1">
+              <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-3 mx-auto">
+                <FlagIcon className="w-7 h-7 text-orange-500" />
+              </div>
+              <h2 className="text-3xl font-heading font-bold text-primary mb-2">Questions marquées</h2>
+              <p className="text-neutral-500">{flaggedList.length} question{flaggedList.length > 1 ? 's' : ''} à réviser</p>
+            </div>
+            <div className={`text-lg font-bold px-4 py-2 rounded-xl border flex-shrink-0 ${isTimeCritical(timeLeft) ? 'border-red-300 bg-red-50 text-red-600' : 'border-neutral-200 bg-white text-primary'}`}>
+              ⏱ {formatTime(timeLeft)}
+            </div>
+          </div>
+          <div className="space-y-4 mb-8">
+            {flaggedList.map((idx) => {
+              const q = questions[idx];
+              if (!q) return null;
+              const currentAns = answers[idx];
+              return (
+                <Card key={idx} className="p-5">
+                  <p className="font-semibold text-neutral-800 text-sm mb-3">
+                    <span className="text-neutral-400 text-xs mr-2">Q{idx + 1}</span>{q.text}
+                  </p>
+                  {q.practical && (
+                    <ExamPracticalBlock question={q} locale={locale} t={t} />
+                  )}
+                  <ExamAnswerInput
+                    question={q}
+                    value={answers[idx]}
+                    onChange={(v) => setAnswers((prev) => ({ ...prev, [idx]: v }))}
+                    locale={locale}
+                  />
+                  {!hasAnswerValue(currentAns) && (
+                    <p className="mt-2 text-xs text-orange-500 font-medium flex items-center gap-1">
+                      <svg className="w-3 h-3 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                      Non répondu
+                    </p>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+          <div className="flex gap-4 justify-center">
+            <button onClick={() => setShowReview(false)} className="px-6 py-3 bg-neutral-200 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-300">Continuer l'évaluation</button>
+            <button onClick={() => { setShowReview(false); handleSubmit(); }} className="px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700">Terminer</button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // ——— Avertissement questions non répondues ———
+  if (showWarning) {
+    const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
+    const unanswered = questions.length - answeredCount;
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4">
+          <div className={`text-center mb-4 text-lg font-bold ${isTimeCritical(timeLeft) ? 'text-red-600' : 'text-primary'}`}>
+            ⏱ {formatTime(timeLeft)} restantes
+          </div>
+          <Card className="p-8 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-orange-100 flex items-center justify-center mb-4 mx-auto">
+              <svg className="w-7 h-7 text-orange-500" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+            </div>
+            <h2 className="text-2xl font-heading font-bold text-primary mb-3">Questions sans réponse</h2>
+            <p className="text-neutral-600 mb-6">Il reste <span className="font-bold text-orange-600">{unanswered} question{unanswered > 1 ? 's' : ''}</span> sans réponse.</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => setShowWarning(false)} className="w-full px-6 py-3 bg-accent text-white rounded-xl font-semibold hover:bg-accent/90">
+                Continuer et répondre
+              </button>
+              {flagged.size > 0 && (
+                <button onClick={() => { setShowWarning(false); setShowReview(true); }} className="w-full px-6 py-3 border-2 border-neutral-300 text-neutral-700 rounded-xl font-semibold hover:bg-neutral-50">
+                  Voir les questions marquées
+                </button>
+              )}
+              <button onClick={() => { setShowWarning(false); handleSubmit(); }} className="w-full px-6 py-3 border-2 border-red-300 text-red-600 rounded-xl font-semibold hover:bg-red-50">
+                Terminer quand même
+              </button>
+            </div>
+          </Card>
+        </div>
+      </section>
+    );
+  }
+
   // ——— Quiz ———
   const question  = questions[currentQuestion];
-  const answered  = answers[currentQuestion] !== undefined;
+  const qType     = question.type || 'single';
+  const answered  = hasAnswerValue(answers[currentQuestion]);
   const progress  = Math.round(((currentQuestion + 1) / total) * 100);
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = questions.reduce((n, _, i) => n + (hasAnswerValue(answers[i]) ? 1 : 0), 0);
   const isLast    = currentQuestion === total - 1;
 
   return (
@@ -240,22 +395,47 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           <div className="flex items-center gap-2">
             <span className="text-sm">{t('quiz.question')} {currentQuestion + 1}/{total}</span>
             {isAdaptive && (
-              <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
-                {DIFFICULTY_UI[difficulty].dot} {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
+              <span className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full font-semibold ${DIFFICULTY_UI[difficulty].cls}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${DIFFICULTY_UI[difficulty].dotCls}`} />
+                {locale === 'fr' ? DIFFICULTY_UI[difficulty].fr : DIFFICULTY_UI[difficulty].en}
               </span>
             )}
           </div>
-          <span className="text-xl">⏱ {formatTime(timeLeft)}</span>
-          <span className="text-sm text-neutral-400">{answeredCount}/{total}</span>
+          <div className="flex items-center gap-1.5">
+            <svg className="w-4 h-4 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span className="font-mono">{formatTime(timeLeft)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {flagged.size > 0 && (
+              <button onClick={() => setShowFlaggedPanel((v) => !v)} className="text-xs px-2 py-1.5 border border-orange-300 text-orange-500 rounded-lg font-semibold hover:bg-orange-50 flex items-center gap-1">
+                <FlagIcon className="w-3 h-3" /> {flagged.size}
+              </button>
+            )}
+            <span className="text-sm text-neutral-400">{answeredCount}/{total}</span>
+          </div>
         </div>
 
         {/* Barre de progression */}
-        <div className="w-full bg-neutral-200 rounded-full h-2 mb-6">
-          <div className="bg-accent h-2 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+        <div className="w-full bg-neutral-200 rounded-full h-2 mb-6 overflow-hidden">
+          <div className="bg-accent h-2 rounded-full transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
         </div>
 
         <Card className="p-7">
-          <p className="text-xl font-semibold text-neutral-800 mb-4 leading-relaxed">{question.text}</p>
+          <div className="flex items-start justify-between gap-3 mb-4">
+            <p className="text-xl font-semibold text-neutral-800 leading-relaxed flex-1">{question.text}</p>
+            <button
+              onClick={() => toggleFlag(currentQuestion)}
+              title={flagged.has(currentQuestion) ? 'Retirer le signet' : 'Marquer cette question'}
+              aria-label={flagged.has(currentQuestion) ? 'Retirer le signet' : 'Marquer cette question'}
+              className={`flex-shrink-0 w-11 h-11 rounded-xl border-2 flex items-center justify-center transition-all ${flagged.has(currentQuestion) ? 'bg-orange-100 border-orange-400 text-orange-500' : 'border-neutral-200 text-neutral-400 hover:border-orange-300 hover:text-orange-400 hover:bg-orange-50'}`}
+            >
+              <FlagIcon className="w-4 h-4" />
+            </button>
+          </div>
+          {question.practical && (
+            <ExamPracticalBlock question={question} locale={locale} t={t} />
+          )}
+
           {question.imageUrl && (
             <div className="mb-6 rounded-xl overflow-hidden border border-neutral-200">
               <img
@@ -266,41 +446,60 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             </div>
           )}
 
-          <div className="space-y-3">
-            {question.options.map((option, index) => {
-              let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
-              if (answered) {
-                if (index === answers[currentQuestion]) {
-                  style = 'border-accent bg-accent/10';
-                } else {
-                  style = 'border-neutral-100 opacity-40';
+          {qType === 'single' ? (
+            <div className="space-y-3">
+              {(question.options ?? []).map((option, index) => {
+                const isSel = answers[currentQuestion] === option;
+                let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
+                if (answered) {
+                  style = isSel ? 'border-accent bg-accent/10' : 'border-neutral-100 opacity-40';
                 }
-              }
-              return (
-                <button
-                  key={index}
-                  onClick={() => handleAnswer(index)}
-                  disabled={answered}
-                  className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
-                >
-                  <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
-                    {String.fromCharCode(65 + index)}
-                  </span>
-                  {option}
-                </button>
-              );
-            })}
-          </div>
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleSingleAnswer(option)}
+                    disabled={answered}
+                    className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
+                  >
+                    <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <ExamAnswerInput
+              question={question}
+              value={answers[currentQuestion]}
+              onChange={(v) => setAnswers((prev) => ({ ...prev, [currentQuestion]: v }))}
+              locale={locale}
+            />
+          )}
 
           {/* En mode évaluation : pas d'explication immédiate */}
-          {answered && !isLast && (
+          {qType === 'single' && answered && !isLast && (
             <p className="text-center text-xs text-neutral-400 mt-4">{t('quiz.autoNext')}</p>
+          )}
+
+          {/* Types à saisie : bouton explicite pour passer à la suite */}
+          {qType !== 'single' && !isLast && (
+            <div className="mt-6 text-right">
+              <button
+                onClick={() => advance()}
+                disabled={!answered}
+                className={`px-6 py-3 rounded-xl font-semibold transition-colors ${answered ? 'bg-accent text-white hover:bg-accent/90' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
+              >
+                {t('quiz.next')}
+              </button>
+            </div>
           )}
 
           {answered && isLast && (
             <div className="mt-6 text-center">
               <CTAButton
-                onClick={handleSubmit}
+                onClick={handleSubmitRequest}
                 size="lg"
                 className="w-full"
               >
@@ -310,6 +509,52 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
           )}
         </Card>
       </div>
+
+      {/* Popup — liste des questions marquées */}
+      {showFlaggedPanel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowFlaggedPanel(false)}>
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 z-10" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-heading font-bold text-primary text-base flex items-center gap-2">
+                <FlagIcon className="w-4 h-4 text-orange-500" />
+                Questions marquées ({flagged.size})
+              </h3>
+              <button onClick={() => setShowFlaggedPanel(false)} aria-label="Fermer" className="w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-600 rounded-lg hover:bg-neutral-100 transition-colors text-xl leading-none">×</button>
+            </div>
+            <p className="text-xs text-neutral-400 mb-3">Clique sur une question pour y aller directement.</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {[...flagged].sort((a, b) => a - b).map((idx) => {
+                const q = questions[idx];
+                if (!q) return null;
+                const isAnswered = hasAnswerValue(answers[idx]);
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => { setCurrentQuestion(idx); setShowFlaggedPanel(false); }}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-neutral-100 hover:border-orange-300 hover:bg-orange-50 transition-all text-left"
+                  >
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-orange-100 text-orange-500 text-xs font-bold flex items-center justify-center">
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm text-neutral-700 flex-1 line-clamp-2">{q.text}</span>
+                    <span className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${isAnswered ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-500'}`}>
+                      {isAnswered ? <CheckIcon className="w-3 h-3" /> : <span className="text-xs font-bold">–</span>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              onClick={() => { setShowFlaggedPanel(false); setShowReview(true); }}
+              className="mt-4 w-full py-2 text-sm font-semibold text-orange-500 border-2 border-orange-200 rounded-xl hover:bg-orange-50 transition-colors"
+            >
+              Réviser toutes les questions marquées →
+            </button>
+          </div>
+        </div>
+      )}
+
     </section>
   );
 }

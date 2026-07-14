@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, DM_Sans } from 'next/font/google';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import CookieConsent from '@/components/CookieConsent';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import { A11yProvider } from '@/lib/AccessibilityContext';
 import './globals.css';
@@ -24,12 +25,20 @@ const dm = DM_Sans({
 export const metadata: Metadata = {
   title: 'Syllabix — Certification des Compétences Numériques en Afrique',
   description: 'Évaluez et certifiez vos compétences numériques avec Syllabix. 7 modules, résultats en moins de 30 minutes.',
-  keywords: ['certification', 'compétences numériques', 'Afrique', 'formation digitale', 'e-learning', 'Côte d\'Ivoire'],
+  keywords: ['certification', 'compétences numériques', 'Afrique', 'formation digitale', 'e-learning', 'pan-africain'],
   openGraph: {
     title: 'Syllabix — Certification des Compétences Numériques',
     description: 'La plateforme de certification des compétences numériques en Afrique',
     type: 'website',
     locale: 'fr_FR',
+    images: [
+      {
+        url: '/syllabix-logo-with-name.png',
+        width: 1200,
+        height: 630,
+        alt: 'Syllabix — Certification des Compétences Numériques en Afrique',
+      },
+    ],
   },
   robots: { index: true, follow: true },
   authors: [{ name: 'Syllabix' }],
@@ -59,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Header />
               <main id="main-content" className="min-h-screen" tabIndex={-1}>{children}</main>
               <Footer />
+              <CookieConsent />
             </ErrorBoundary>
           </A11yProvider>
         </LanguageProvider>

@@ -1,20 +1,47 @@
 import { NextResponse } from 'next/server';
+import { getAdminDb, getAdminAuth } from '@/lib/firebaseAdmin';
+import { getModuleName } from '@/lib/moduleNames';
 
-const MODULE_NAMES = {
-  0: 'IT & Ordinateur',
-  1: 'Internet & Google',
-  2: 'Email',
-  3: 'Bureautique',
-  4: 'Cybersécurité',
-  5: 'Intelligence Artificielle',
-  6: 'Employabilité',
-};
+// Échappe le HTML pour empêcher toute injection dans le corps de l'email
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 export async function POST(request) {
+  // Vérification de l'origine — bloque les appels externes
+  const origin = request.headers.get('origin') || '';
+  const allowedOrigins = [
+    process.env.NEXT_PUBLIC_APP_URL,
+    'https://syllabix.com',
+    'https://syllabix-eight.vercel.app',
+    'http://localhost:3000',
+  ].filter(Boolean);
+  if (origin && !allowedOrigins.includes(origin)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
   // Si pas de clé Resend configurée, on skip silencieusement
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
     return NextResponse.json({ skipped: true, reason: 'RESEND_API_KEY not configured' });
+  }
+
+  // Authentification obligatoire — l'appelant doit être connecté
+  const authHeader = request.headers.get('Authorization') || '';
+  const token = authHeader.replace('Bearer ', '').trim();
+  if (!token) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  let decoded;
+  try {
+    decoded = await getAdminAuth().verifyIdToken(token);
+  } catch {
+    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
   }
 
   let body;
@@ -24,18 +51,38 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { certId, email, displayName, score, examType, moduleId } = body;
-
-  if (!email || !certId) {
-    return NextResponse.json({ error: 'Missing email or certId' }, { status: 400 });
+  const { certId } = body;
+  if (!certId || typeof certId !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(certId)) {
+    return NextResponse.json({ error: 'Missing or invalid certId' }, { status: 400 });
   }
 
-  const certTitle = moduleId !== null && moduleId !== undefined
-    ? `${MODULE_NAMES[moduleId] || `Module ${moduleId}`}`
-    : 'Certification Numérique Complète';
+  // Le certificat doit exister ET appartenir à l'appelant —
+  // toutes les données de l'email viennent de la base, jamais du client
+  const certRef = getAdminDb().doc(`certificates/${certId}`);
+  const certSnap = await certRef.get();
+  if (!certSnap.exists || certSnap.data().userId !== decoded.uid) {
+    return NextResponse.json({ error: 'Certificate not found' }, { status: 404 });
+  }
+  const cert = certSnap.data();
 
-  const certUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://syllabix.afridigi.com'}/certificate/${certId}`;
-  const name = displayName || email.split('@')[0];
+  const email = decoded.email;
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return NextResponse.json({ skipped: true, reason: 'No verified email on account' });
+  }
+
+  // Garde-fou durable (survit aux cold starts) : un email de félicitations
+  // n'est envoyé qu'une seule fois par certificat
+  if (cert.emailSentAt) {
+    return NextResponse.json({ skipped: true, reason: 'already sent' });
+  }
+
+  const { score, moduleId, displayName } = cert;
+  const certTitle = moduleId !== null && moduleId !== undefined
+    ? getModuleName(moduleId)
+    : 'Certificat de Compétences Numériques';
+
+  const certUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://syllabix.com'}/certificate/${certId}`;
+  const name = escapeHtml(displayName || email.split('@')[0]);
 
   const html = `
 <!DOCTYPE html>
@@ -97,7 +144,7 @@ export async function POST(request) {
         <tr><td style="background:#f8f9ff;padding:20px 40px;text-align:center;border-top:1px solid #e8ecff;">
           <p style="margin:0;color:#999;font-size:12px;">
             Syllabix — Plateforme de certification numérique<br>
-            <a href="https://syllabix.afridigi.com" style="color:#1A237E;">syllabix.afridigi.com</a>
+            <a href="https://syllabix.com" style="color:#1A237E;">syllabix.com</a>
           </p>
         </td></tr>
 
@@ -115,7 +162,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'certifications@syllabix.afridigi.com',
+        from: process.env.RESEND_FROM_EMAIL || 'certifications@syllabix.com',
         to: [email],
         subject: `🏆 Vous avez obtenu votre certificat ${certTitle} — Syllabix`,
         html,
@@ -128,6 +175,8 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Email sending failed' }, { status: 500 });
     }
 
+    // Marque l'envoi pour empêcher tout doublon ultérieur
+    await certRef.update({ emailSentAt: new Date().toISOString() });
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Notify certificate error:', err);

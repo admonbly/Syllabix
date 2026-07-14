@@ -43,9 +43,9 @@ const testimonialQuotesEn = [
 ];
 
 const blogPosts = [
-  { href: '/blog/ia-chat-gpt-2024',     badge: 'IA',       icon: Bot,        titleFr: "ChatGPT et l'IA en 2024",                   excerptFr: 'Comment utiliser les assistants IA dans votre quotidien professionnel et personnel.',   titleEn: 'ChatGPT & AI in 2024',                  excerptEn: 'How to use AI assistants in your professional and personal daily life.' },
-  { href: '/blog/securite-mots-passe',  badge: 'Sécurité', icon: ShieldCheck, titleFr: 'Mots de passe : les bonnes pratiques',      excerptFr: 'Les méthodes pour créer et gérer des mots de passe solides en 2024.',                  titleEn: 'Passwords: best practices',             excerptEn: 'Methods for creating and managing strong passwords in 2024.' },
-  { href: '/blog/google-avancee',       badge: 'Internet',  icon: Globe,       titleFr: 'Maîtriser la recherche Google',             excerptFr: "Les opérateurs avancés qui vous feront gagner des heures de recherche.",               titleEn: 'Master Google Search',                  excerptEn: 'Advanced operators that will save you hours of research.' },
+  { href: '/blog/ia-emploi-afrique-2026',              badge: 'IA',            icon: Bot,         titleFr: "IA et emploi en Afrique : menace ou opportunité ?",              excerptFr: "L'IA va-t-elle détruire les emplois africains ou en créer de nouveaux ? Analyse des secteurs concernés.",     titleEn: 'AI & jobs in Africa: threat or opportunity?',      excerptEn: 'Will AI destroy African jobs or create new ones? Analysis of impacted sectors.' },
+  { href: '/blog/cybersecurite-pme-afrique',           badge: 'Cybersécurité', icon: ShieldCheck, titleFr: "Cybersécurité pour PME africaines : les 6 erreurs qui coûtent cher", excerptFr: "Arnaques au CEO, phishing WhatsApp, faux virements… comment protéger votre entreprise.",                    titleEn: 'Cybersecurity for African SMEs: 6 costly mistakes', excerptEn: 'CEO fraud, WhatsApp phishing, fake transfers… how to protect your business.' },
+  { href: '/blog/mobile-money-competences-numeriques', badge: 'Internet',      icon: Globe,       titleFr: "Mobile Money et compétences numériques : le duo gagnant",        excerptFr: "MTN MoMo, Wave, Orange Money… quelles compétences numériques maîtriser pour en tirer le meilleur parti ?", titleEn: 'Mobile Money & digital skills: the winning duo',   excerptEn: 'MTN MoMo, Wave, Orange Money… what digital skills to master to make the most of them.' },
 ];
 
 /* ── Composant section header ──────────────────────────── */
@@ -123,7 +123,7 @@ export default function HomePage() {
               const Icon = step.icon;
               return (
                 <Reveal key={step.number} direction="up" delay={i * 130}>
-                  <div className="group relative p-6 rounded-2xl bg-surface border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300">
+                  <div className="lift group relative p-6 rounded-2xl bg-surface border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300">
                     <div className="flex items-center gap-4 mb-5">
                       <div className="w-11 h-11 rounded-full border-2 border-accent/25 bg-accent/8 flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:bg-accent group-hover:border-accent">
                         <Icon className="w-5 h-5 text-accent group-hover:text-white transition-colors" strokeWidth={2} />
@@ -160,7 +160,7 @@ export default function HomePage() {
                   title={mod.title}
                   description={mod.description}
                   number={mod.id}
-                  className="h-full"
+                  className="h-full lift"
                 />
               </Reveal>
             ))}
@@ -203,7 +203,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((tm, i) => (
               <Reveal key={i} direction="up" delay={i * 110}>
-                <div className="group relative bg-white rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-neutral-100 hover:border-accent/20 flex flex-col h-full">
+                <div className="lift group relative bg-white rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-neutral-100 hover:border-accent/20 flex flex-col h-full">
                   <Quote className="w-8 h-8 text-accent/20 mb-4 flex-shrink-0 group-hover:text-accent/35 transition-colors" strokeWidth={1.5} />
                   <p className="text-neutral-600 text-sm leading-relaxed flex-1 italic mb-6">
                     &ldquo;{quotes[i]}&rdquo;
@@ -240,7 +240,7 @@ export default function HomePage() {
               return (
                 <Reveal key={href} direction="up" delay={i * 100}>
                   <Link href={href} className="group block h-full rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2">
-                    <div className="h-full bg-white rounded-2xl shadow-card border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col">
+                    <div className="lift h-full bg-white rounded-2xl shadow-card border border-neutral-100 hover:border-accent/30 hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col">
                       <div className="h-1 bg-gradient-to-r from-accent to-accent-light flex-shrink-0" />
                       <div className="p-6 flex flex-col flex-1">
                         <div className="flex items-center justify-between mb-5">
@@ -274,8 +274,8 @@ export default function HomePage() {
       {/* ─── 7. CTA Final ──────────────────────────── */}
       <section className="py-24 dark-section relative overflow-hidden">
         <div aria-hidden className="absolute inset-0 hero-dots opacity-20 pointer-events-none" />
-        <div aria-hidden className="absolute top-0 right-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
-        <div aria-hidden className="absolute bottom-0 left-0 w-60 h-60 bg-secondary/8 rounded-full blur-3xl" />
+        <div aria-hidden className="ph-float absolute top-0 right-0 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+        <div aria-hidden className="ph-float-rev absolute bottom-0 left-0 w-60 h-60 bg-secondary/8 rounded-full blur-3xl" />
 
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <Reveal direction="up">

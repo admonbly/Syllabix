@@ -1,100 +1,120 @@
 'use client';
 
-import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import PageHeader from '@/components/PageHeader';
 import Link from 'next/link';
-import { quizData } from '@/lib/quizData';
 import { useLanguage } from '@/lib/LanguageContext';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
-
+import RequireAuth from '@/components/RequireAuth';
+import Reveal from '@/components/Reveal';
 
 export default function TrainingPage() {
   const { locale, t } = useLanguage();
   const tr = (k) => t(`training.${k}`);
 
   return (
-    <section className="py-20 bg-neutral-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4">
+    <RequireAuth>
+    <div className="min-h-screen bg-neutral-50">
+      <PageHeader
+        title={tr('title')}
+        subtitle={tr('subtitle')}
+        icon="🏋️"
+        badge={tr('badgeFree')}
+      />
 
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-heading font-bold text-primary mb-4">{tr('title')}</h1>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">{tr('subtitle')}</p>
-        </div>
+      <div className="max-w-6xl mx-auto px-4 py-12">
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {/* Canal 1 */}
-          <Card className="p-7 border-2 border-secondary/40 bg-green-50 flex flex-col">
-            <div className="text-4xl mb-3">📚</div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 py-0.5 bg-secondary text-white text-xs font-bold rounded-full">{tr('canal1.label')}</span>
-              <span className="text-xs text-secondary font-semibold">{tr('canal1.tag')}</span>
+        {/* ─── Les 2 modes ────────────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+
+          {/* Entraînement */}
+          <div className="rounded-2xl border-2 border-secondary/30 bg-white overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-gradient-to-br from-secondary/10 to-green-50 px-7 pt-7 pb-5">
+              <div className="w-12 h-12 rounded-xl bg-secondary/15 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-secondary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>
+                </svg>
+              </div>
+              <span className="inline-block px-2.5 py-0.5 bg-secondary text-white text-[11px] font-bold rounded-full uppercase tracking-wide mb-2">{tr('practice.badge')}</span>
+              <h2 className="text-2xl font-heading font-bold text-primary mb-1">
+                {tr('practice.title')}
+              </h2>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                {tr('practice.desc')}
+              </p>
             </div>
-            <h2 className="text-xl font-heading font-bold text-primary mb-2">{tr('canal1.title')}</h2>
-            <p className="text-sm text-neutral-600 mb-4 flex-1">{tr('canal1.desc')}</p>
-            <ul className="space-y-1 text-sm text-neutral-600 mb-5">
-              <li>{tr('canal1.feat1')}</li>
-              <li>{tr('canal1.feat2')}</li>
-              <li>{tr('canal1.feat3')}</li>
-              <li>{tr('canal1.feat4')}</li>
-            </ul>
-            <CTAButton href="#modules" variant="secondary" size="md" className="w-full">{tr('canal1.cta')}</CTAButton>
-          </Card>
-
-          {/* Canal 2 */}
-          <Card className="p-7 border-2 border-accent/40 bg-orange-50 flex flex-col">
-            <div className="text-4xl mb-3">📊</div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 py-0.5 bg-accent text-white text-xs font-bold rounded-full">{tr('canal2.label')}</span>
-              <span className="text-xs text-accent font-semibold">{tr('canal2.tag')}</span>
+            <div className="px-7 py-5 flex-1 flex flex-col">
+              <ul className="space-y-2.5 mb-6 flex-1">
+                {[tr('practice.feat1'), tr('practice.feat2'), tr('practice.feat3'), tr('practice.feat4')].map((feat, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-sm text-neutral-700">
+                    <svg className="w-4 h-4 text-secondary flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+              <CTAButton href="#modules" variant="secondary" size="md" className="w-full">
+                {tr('practice.cta')}
+              </CTAButton>
             </div>
-            <h2 className="text-xl font-heading font-bold text-primary mb-2">{tr('canal2.title')}</h2>
-            <p className="text-sm text-neutral-600 mb-4 flex-1">{tr('canal2.desc')}</p>
-            <ul className="space-y-1 text-sm text-neutral-600 mb-5">
-              <li>{tr('canal2.feat1')}</li>
-              <li>{tr('canal2.feat2')}</li>
-              <li>{tr('canal2.feat3')}</li>
-              <li>{tr('canal2.feat4')}</li>
-            </ul>
-            <CTAButton href="/evaluation" variant="primary" size="md" className="w-full">{tr('canal2.cta')}</CTAButton>
-          </Card>
+          </div>
 
-          {/* Canal 3 */}
-          <Card className="p-7 border-2 border-primary/40 bg-blue-50 flex flex-col">
-            <div className="text-4xl mb-3">🏆</div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 py-0.5 bg-primary text-white text-xs font-bold rounded-full">{tr('canal3.label')}</span>
-              <span className="text-xs text-primary font-semibold">{tr('canal3.tag')}</span>
+          {/* Évaluation de niveau */}
+          <div className="rounded-2xl border-2 border-accent/30 bg-white overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+            <div className="bg-gradient-to-br from-accent/10 to-orange-50 px-7 pt-7 pb-5">
+              <div className="w-12 h-12 rounded-xl bg-accent/15 flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>
+              </div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-block px-2.5 py-0.5 bg-accent text-white text-[11px] font-bold rounded-full uppercase tracking-wide">{tr('evaluation.badge')}</span>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-semibold rounded-full">
+                  <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                  {tr('evaluation.recommend')}
+                </span>
+              </div>
+              <h2 className="text-2xl font-heading font-bold text-primary mb-1">
+                {tr('evaluation.title')}
+              </h2>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                {tr('evaluation.desc')}
+              </p>
             </div>
-            <h2 className="text-xl font-heading font-bold text-primary mb-2">{tr('canal3.title')}</h2>
-            <p className="text-sm text-neutral-600 mb-4 flex-1">{tr('canal3.desc')}</p>
-            <ul className="space-y-1 text-sm text-neutral-600 mb-5">
-              <li>{tr('canal3.feat1')}</li>
-              <li>{tr('canal3.feat2')}</li>
-              <li>{tr('canal3.feat3')}</li>
-              <li>{tr('canal3.feat4')}</li>
-            </ul>
-            <CTAButton href="/certification" variant="outline" size="md" className="w-full">{tr('canal3.cta')}</CTAButton>
-          </Card>
+            <div className="px-7 py-5 flex-1 flex flex-col">
+              <ul className="space-y-2.5 mb-6 flex-1">
+                {[tr('evaluation.feat1'), tr('evaluation.feat2'), tr('evaluation.feat3'), tr('evaluation.feat4')].map((feat, i) => (
+                  <li key={i} className={`flex items-start gap-2.5 text-sm ${i === 3 ? 'text-neutral-400' : 'text-neutral-700'}`}>
+                    <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${i === 3 ? 'text-neutral-300' : 'text-accent'}`} viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    {feat}
+                  </li>
+                ))}
+              </ul>
+              <CTAButton href="/evaluation" variant="primary" size="md" className="w-full">
+                {tr('evaluation.cta')}
+              </CTAButton>
+            </div>
+          </div>
+
         </div>
 
         {/* ─── Modules + compétences — section unique ─────── */}
         <div id="modules">
           <div className="text-center mb-10">
-            <h2 className="text-3xl font-heading font-bold text-primary mb-2">{tr('modules.title')}</h2>
-            <p className="text-neutral-500 text-sm">
-              {locale === 'fr'
-                ? 'Chaque module développe 3 compétences concrètes, validées par un examen officiel.'
-                : 'Each module develops 3 concrete competencies, validated by an official exam.'}
-            </p>
+            <h2 className="text-3xl font-heading font-bold text-primary mb-2">{tr('modulesTitle')}</h2>
+            <p className="text-neutral-500 text-sm">{tr('modulesSubtitle')}</p>
           </div>
 
           <div className="space-y-4">
-            {MODULE_COMPETENCIES.map((mod) => {
-              const qModule = quizData.find((q) => q.id === mod.moduleId);
+            {MODULE_COMPETENCIES.map((mod, idx) => {
               return (
-                <div
+                <Reveal
                   key={mod.moduleId}
-                  className={`rounded-2xl border-2 ${mod.color.bg} ${mod.color.border} overflow-hidden hover:shadow-md transition-shadow`}
+                  delay={idx * 60}
+                  className={`lift rounded-2xl border-2 ${mod.color.bg} ${mod.color.border} overflow-hidden`}
                 >
                   {/* En-tête : navigation */}
                   <div className="flex items-center gap-4 px-6 py-4 border-b border-black/5">
@@ -104,15 +124,14 @@ export default function TrainingPage() {
                         {locale === 'fr' ? mod.nameFr : mod.nameEn}
                       </p>
                       <p className="text-xs text-neutral-400">
-                        {qModule ? `${qModule.questions.length} ${tr('modules.available')}` : ''}{' '}
-                        · {locale === 'fr' ? '3 compétences' : '3 competencies'}
+                        {t('training.module.competenciesLabel')}
                       </p>
                     </div>
                     <Link
                       href={`/training/module/${mod.moduleId}`}
                       className={`flex-shrink-0 text-xs font-bold px-5 py-2.5 rounded-xl ${mod.color.badge} hover:opacity-80 transition-opacity`}
                     >
-                      {locale === 'fr' ? "S'entraîner →" : 'Practice →'}
+                      {t('training.module.practice')}
                     </Link>
                   </div>
 
@@ -132,7 +151,7 @@ export default function TrainingPage() {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Reveal>
               );
             })}
 
@@ -158,9 +177,11 @@ export default function TrainingPage() {
               ? '✦ Référentiel inspiré du cadre européen DigComp, adapté aux réalités numériques africaines'
               : '✦ Framework inspired by the European DigComp standard, adapted to African digital realities'}
           </p>
+
         </div>
 
       </div>
-    </section>
+    </div>
+    </RequireAuth>
   );
 }

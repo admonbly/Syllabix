@@ -25,6 +25,16 @@
 /* ── Text selection ─────────────────────────────────── */
 ::selection { background: var(--accent); color: white; }
 
+/* ── Page transitions ───────────────────────────────── */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+main {
+  animation: page-enter 0.25s ease-out both;
+}
+
 /* ── Base ───────────────────────────────────────────── */
 @layer base {
   html { scroll-behavior: smooth; }
@@ -163,6 +173,42 @@ html.dyslexia-font a {
   50%       { opacity: 0.4; }
 }
 
+/* ── Utilitaires design "premium" (headers, bento, marquee) ── */
+@keyframes ph-float      { 0%,100% { transform: translate(0,0); } 50% { transform: translate(24px,-18px); } }
+@keyframes ph-float-rev  { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-20px,16px); } }
+@keyframes ph-in         { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sx-marquee    { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes sx-shimmer    { from { background-position: -200% 0; } to { background-position: 200% 0; } }
+
+.ph-float      { animation: ph-float 8s ease-in-out infinite; }
+.ph-float-rev  { animation: ph-float-rev 10s ease-in-out infinite; }
+.ph-in         { animation: ph-in .6s cubic-bezier(.2,.7,.2,1) both; }
+
+/* Révélation au scroll (activée en JS via .is-visible) */
+.reveal        { opacity: 0; transform: translateY(20px); transition: opacity .6s cubic-bezier(.2,.7,.2,1), transform .6s cubic-bezier(.2,.7,.2,1); }
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+
+/* Survol avec profondeur pour les cartes */
+.lift          { transition: transform .25s ease, box-shadow .25s ease; }
+.lift:hover    { transform: translateY(-4px); box-shadow: 0 16px 34px -14px rgba(26,35,126,.45); }
+
+/* Marquee de puces */
+.sx-marquee-track { display: inline-flex; gap: 12px; animation: sx-marquee 22s linear infinite; }
+.sx-marquee-mask:hover .sx-marquee-track { animation-play-state: paused; }
+
+/* Bouton à reflet */
+.sx-shimmer { background-size: 200% 100%; animation: sx-shimmer 3.5s linear infinite; }
+
+/* Reflet continu sur un bouton .btn-shine (CTA vedette) */
+@keyframes sx-sheen { 0% { left: -60%; } 55%,100% { left: 150%; } }
+.btn-shine-auto::before { animation: sx-sheen 3.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ph-float, .ph-float-rev, .sx-marquee-track, .sx-shimmer,
+  .btn-shine-auto::before { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
 /* ── Animation helpers ──────────────────────────────── */
 .anim-fade-up     { animation: fadeUp        0.65s cubic-bezier(0.16,1,0.3,1) both; }
 .anim-fade-in     { animation: fadeIn        0.5s  ease-out both; }
@@ -208,6 +254,22 @@ html.dyslexia-font a {
 ::-webkit-scrollbar-track { background: var(--surface); }
 ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #9CA3AF; }
+
+/* ── Quiz animations ────────────────────────────────── */
+@keyframes quiz-feedback-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+.quiz-feedback-enter {
+  animation: quiz-feedback-in 0.2s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes answer-correct {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+.answer-correct { animation: answer-correct 0.25s ease-out both; }
 
 /* ── Reduced motion ─────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {

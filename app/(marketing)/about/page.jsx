@@ -1,87 +1,142 @@
 'use client';
 
-import Card from '@/components/Card';
+import Link from 'next/link';
 import CTAButton from '@/components/CTAButton';
+import { useLanguage } from '@/lib/LanguageContext';
+
+const STAT_VALUES = ['5 000+', '7', '98%', '12+'];
+const STAT_ICONS  = ['👥', '📚', '⭐', '🌍'];
 
 export default function AboutPage() {
+  const { t } = useLanguage();
+  const ab = (k) => t(`about.${k}`);
+
+  const STATS = [
+    { value: STAT_VALUES[0], label: ab('stats.learners'),     icon: STAT_ICONS[0] },
+    { value: STAT_VALUES[1], label: ab('stats.modules'),      icon: STAT_ICONS[1] },
+    { value: STAT_VALUES[2], label: ab('stats.satisfaction'), icon: STAT_ICONS[2] },
+    { value: STAT_VALUES[3], label: ab('stats.countries'),    icon: STAT_ICONS[3] },
+  ];
+
+  const TEAM        = ab('team.members');
+  const RECOGNITION = ab('recognition.items');
+  const VALUES      = ab('values.items');
+  const FEATURES    = ab('why.features');
   return (
-    <section className="py-20 bg-neutral-50 min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="section-title">À Propos de Syllabix</h1>
+    <div className="min-h-screen bg-neutral-50">
 
-        <div className="prose prose-lg max-w-none">
-          <Card className="mb-8 p-8 bg-gradient-to-r from-accent/10 to-secondary/10">
-            <p className="text-lg text-neutral-700 leading-relaxed">
-              Syllabix est une plateforme innovante dédiée à l'évaluation et la certification des
-              compétences numériques en Afrique. Notre mission est de rendre accessible l'évaluation
-              des compétences essentielles pour réussir dans le monde numérique.
-            </p>
-          </Card>
-
-          <h2 className="text-3xl font-heading font-bold text-primary mt-12 mb-6">
-            Notre Mission
-          </h2>
-          <p className="text-neutral-700 leading-relaxed mb-4">
-            Accélérer la transformation numérique en Afrique en fournissant des outils d'évaluation
-            fiables, accessibles et reconnus. Nous croyons que chacun mérite l'opportunité de
-            certifier ses compétences et d'avancer dans sa carrière.
-          </p>
-
-          <h2 className="text-3xl font-heading font-bold text-primary mt-12 mb-6">
-            Nos Valeurs
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 my-8">
-            <Card icon="🌍" title="Accessibilité">
-              Accessible à tous, indépendamment de la connexion internet ou du revenu.
-            </Card>
-            <Card icon="⚡" title="Efficacité">
-              Évaluations rapides et résultats instantanés pour vous faire gagner du temps.
-            </Card>
-            <Card icon="✨" title="Qualité">
-              Certificats reconnus et processus d'évaluation rigoureux et transparent.
-            </Card>
+      {/* Hero */}
+      <section className="py-20 bg-gradient-to-br from-primary to-[#283593] text-white">
+        <div className="max-w-4xl mx-auto px-4 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-sm font-medium mb-6">
+            <span>🌍</span> {ab('missionTag')}
           </div>
-
-          <h2 className="text-3xl font-heading font-bold text-primary mt-12 mb-6">
-            Quelques Chiffres
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 my-8 text-center">
-            <Card>
-              <p className="text-4xl font-bold text-accent mb-2">50K+</p>
-              <p className="text-neutral-700 font-semibold">Utilisateurs</p>
-            </Card>
-            <Card>
-              <p className="text-4xl font-bold text-secondary mb-2">12</p>
-              <p className="text-neutral-700 font-semibold">Pays</p>
-            </Card>
-            <Card>
-              <p className="text-4xl font-bold text-primary mb-2">95%</p>
-              <p className="text-neutral-700 font-semibold">Satisfaction</p>
-            </Card>
-          </div>
-
-          <h2 className="text-3xl font-heading font-bold text-primary mt-12 mb-6">
-            Notre Équipe
-          </h2>
-          <p className="text-neutral-700 leading-relaxed">
-            Syllabix a été créée par une équipe d'experts en technologie, pédagogie et
-            développement en Afrique. Nous travaillons avec les meilleures organisations pour
-            assurer que notre plateforme répond aux besoins réels du marché africain.
+          <h1 className="text-5xl font-heading font-bold mb-6 leading-tight">
+            {ab('hero.title')}
+          </h1>
+          <p className="text-xl text-white/80 max-w-2xl mx-auto">
+            {ab('hero.subtitle')}
           </p>
+        </div>
+      </section>
 
-          <div className="mt-12 p-8 bg-gradient-to-r from-primary to-primary/90 rounded-lg">
-            <h3 className="text-2xl font-heading font-bold text-white mb-4">
-              Prêt à commencer?
-            </h3>
-            <p className="text-white/90 mb-6">
-              Rejoignez des milliers d'africains qui certifient leurs compétences numériques.
-            </p>
-            <CTAButton href="/training/mixed" variant="outline" className="text-white border-white hover:bg-white hover:text-primary">
-              Commencer l'évaluation gratuite
-            </CTAButton>
+      {/* Chiffres */}
+      <section className="py-16 bg-white border-b border-neutral-100">
+        <div className="max-w-5xl mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            {STATS.map((s) => (
+              <div key={s.label}>
+                <div className="text-3xl mb-2">{s.icon}</div>
+                <p className="text-4xl font-heading font-extrabold text-primary mb-1">{s.value}</p>
+                <p className="text-sm text-neutral-500">{s.label}</p>
+              </div>
+            ))}
           </div>
         </div>
+      </section>
+
+      <div className="max-w-5xl mx-auto px-4 py-16 space-y-20">
+
+        {/* Mission */}
+        <section className="grid md:grid-cols-2 gap-12 items-center">
+          <div>
+            <h2 className="text-3xl font-heading font-bold text-primary mb-4">{ab('why.title')}</h2>
+            <p className="text-neutral-600 leading-relaxed mb-4">{ab('why.p1')}</p>
+            <p className="text-neutral-600 leading-relaxed mb-4">{ab('why.p2')}</p>
+            <p className="text-neutral-600 leading-relaxed">{ab('why.p3')}</p>
+          </div>
+          <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-8 border border-primary/10">
+            <div className="space-y-4">
+              {FEATURES.map((item) => (
+                <p key={item} className="text-neutral-700 font-medium">{item}</p>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Équipe */}
+        <section>
+          <h2 className="text-3xl font-heading font-bold text-primary mb-3">{ab('team.title')}</h2>
+          <p className="text-neutral-500 mb-10">{ab('team.subtitle')}</p>
+          <div className="grid md:grid-cols-3 gap-6">
+            {TEAM.map((member) => (
+              <div key={member.name} className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm">
+                <div className="text-4xl mb-4">{member.icon}</div>
+                <h3 className="font-heading font-bold text-primary mb-1">{member.name}</h3>
+                <p className="text-xs text-accent font-semibold uppercase tracking-wide mb-3">{member.role}</p>
+                <p className="text-sm text-neutral-600 leading-relaxed">{member.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Reconnaissance des certificats */}
+        <section>
+          <h2 className="text-3xl font-heading font-bold text-primary mb-3">{ab('recognition.title')}</h2>
+          <p className="text-neutral-500 mb-10">{ab('recognition.subtitle')}</p>
+          <div className="grid md:grid-cols-2 gap-6">
+            {RECOGNITION.map((item) => (
+              <div key={item.title} className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm flex gap-4">
+                <div className="text-3xl flex-shrink-0">{item.icon}</div>
+                <div>
+                  <h3 className="font-heading font-bold text-primary mb-2">{item.title}</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 p-6 bg-amber-50 border border-amber-200 rounded-2xl">
+            <p className="text-amber-800 font-medium">{ab('recognition.disclaimer')}</p>
+          </div>
+        </section>
+
+        {/* Valeurs */}
+        <section>
+          <h2 className="text-3xl font-heading font-bold text-primary mb-10">{ab('values.title')}</h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {VALUES.map((v) => (
+              <div key={v.title} className="text-center p-6 bg-white rounded-2xl border border-neutral-200 shadow-sm">
+                <div className="text-4xl mb-4">{v.icon}</div>
+                <h3 className="font-heading font-bold text-primary mb-2">{v.title}</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">{v.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="bg-white rounded-2xl border border-neutral-200 p-10 text-center shadow-sm">
+          <div className="text-4xl mb-4">💬</div>
+          <h3 className="text-2xl font-heading font-bold text-primary mb-3">{ab('cta.title')}</h3>
+          <p className="text-neutral-600 mb-6 max-w-lg mx-auto">{ab('cta.desc')}</p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <CTAButton href="/contact" variant="primary" size="lg">{ab('cta.contact')}</CTAButton>
+            <CTAButton href="/certification" variant="outline" size="lg">{ab('cta.cert')}</CTAButton>
+          </div>
+        </section>
+
       </div>
-    </section>
+    </div>
   );
 }

@@ -4,11 +4,13 @@ import CountUp from '@/components/CountUp';
 import { CheckCircle2, Circle, Award, ArrowRight } from 'lucide-react';
 
 const moduleProgress = [
-  { label: 'IT & Ordinateur',   done: true  },
-  { label: 'Internet & Google', done: true  },
-  { label: 'Email',             done: true  },
-  { label: 'Bureautique',       done: false, active: true },
-  { label: 'Cybersécurité',     done: false },
+  { label: 'IT & Ordinateur',         done: true  },
+  { label: 'Internet',                done: true  },
+  { label: 'Email',                   done: true  },
+  { label: 'Bureautique',             done: false, active: true },
+  { label: 'Cybersécurité',           done: false },
+  { label: 'Intelligence Artificielle', done: false },
+  { label: 'Employabilité',           done: false },
 ];
 
 const heroStats = [
@@ -63,8 +65,8 @@ export default function Hero({ title, subtitle, cta }) {
             <div className="flex flex-col sm:flex-row gap-3 mb-14 anim-fade-up delay-300">
               {cta ?? (
                 <>
-                  <CTAButton href="/certification" variant="primary" size="lg">
-                    Passer la certification
+                  <CTAButton href="/auth/signup" variant="primary" size="lg" className="btn-shine-auto">
+                    Commencer gratuitement
                     <ArrowRight className="w-4 h-4" />
                   </CTAButton>
                   <CTAButton href="/certification/presentation" variant="outline-white" size="lg">

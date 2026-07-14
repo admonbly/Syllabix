@@ -22,8 +22,8 @@ export default function Header() {
   const navLinks = [
     { href: '/training',      label: t('nav.training') },
     { href: '/certification', label: t('nav.certification') },
-    { href: '/#actualites',   label: t('nav.news') },
-    { href: '/partenariats',  label: t('nav.partners') },
+    { href: '/blog',           label: t('nav.news') },
+    { href: '/about',         label: t('nav.about') },
     { href: '/contact',       label: t('nav.contact') },
   ];
 
@@ -73,14 +73,16 @@ export default function Header() {
           : 'bg-[#1A237E]'
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-28 flex items-center justify-between">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-24 flex items-center justify-between">
 
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
           <img
-            src="/syllabix-logo-sans%20fond.png"
+            src="/syllabix-logo-sansfond.png"
             alt="Syllabix"
-            className={`h-28 w-auto transition-all duration-300 ${!isScrolled ? 'brightness-0 invert' : ''}`}
+            width={2816}
+            height={1536}
+            className={`h-14 sm:h-16 w-auto max-w-[210px] object-contain transition-all duration-300 ${!isScrolled ? 'brightness-0 invert' : ''}`}
           />
         </Link>
 

@@ -1,0 +1,96 @@
+rules_version = '2';
+
+// ============================================================================
+// RÈGLES FIRESTORE SYLLABIX — proposition durcie (audit sécurité 2026-07)
+//
+// ⚠️ AVANT DE DÉPLOYER : comparez avec les règles actuellement en production
+// (console Firebase → Firestore → Règles) et fusionnez si d'autres règles
+// existent. Ne pas écraser aveuglément.
+//
+// Principe : les données sensibles (certificats, progression, badges,
+// tentatives, sessions d'examen) sont écrites EXCLUSIVEMENT par l'Admin SDK
+// via les API routes (/api/exam/*) — l'Admin SDK ignore ces règles.
+// Le client ne peut donc PAS forger de certificat, badge ou score.
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── Profils utilisateurs ────────────────────────────────────────────
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      // Création du profil à l'inscription
+      allow create: if isOwner(userId)
+        && !('badges' in request.resource.data);
+      // Mise à jour du profil — badges et rôle non modifiables par le client
+      allow update: if isOwner(userId)
+        && request.resource.data.badges == resource.data.get('badges', [])
+        && request.resource.data.get('role', 'LEARNER') == resource.data.get('role', 'LEARNER');
+      allow delete: if false;
+
+      // Progression — écrite uniquement par le serveur
+      match /progress/{progressId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      // Certificats — écrits uniquement par le serveur
+      match /certificates/{certId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      // Tentatives d'examen (cooldown) — lecture pour l'affichage du décompte
+      match /examAttempts/{attemptId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+
+      // Sessions d'examen serveur — aucun accès client
+      match /examSessions/{sessionId} {
+        allow read, write: if false;
+      }
+
+      // Sessions d'entraînement/évaluation — le client enregistre ses stats
+      match /sessions/{sessionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId);
+        allow update, delete: if false;
+      }
+    }
+
+    // ── Certificats publics (page de vérification /certificate/[id]) ────
+    match /certificates/{certId} {
+      allow read: if true;
+      allow write: if false; // uniquement Admin SDK
+    }
+
+    // ── Banque de questions ─────────────────────────────────────────────
+    // Lecture authentifiée pour l'ENTRAÎNEMENT (feedback immédiat côté client).
+    // Les questions d'EXAMEN sont servies par /api/exam/questions sans les
+    // réponses — le client n'a jamais besoin de lire ce pool pour certifier.
+    match /modules/{moduleId}/questions/{questionId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+    match /modules/{moduleId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // ── Blog / articles ─────────────────────────────────────────────────
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if false; // seed via Admin SDK ou console uniquement
+    }
+
+    // ── Tout le reste : refusé ──────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

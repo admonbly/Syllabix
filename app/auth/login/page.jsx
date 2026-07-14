@@ -4,24 +4,90 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useState, Suspense } from 'react';
-import { authFunctions } from '@/lib/firebase';
+import { useState, Suspense, useEffect, useRef } from 'react';
+import { authFunctions, auth } from '@/lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 
+const FIREBASE_ERRORS = {
+  'auth/user-not-found': 'Aucun compte trouvé avec cet email.',
+  'auth/wrong-password': 'Mot de passe incorrect.',
+  'auth/invalid-credential': 'Email ou mot de passe incorrect.',
+  'auth/invalid-email': 'Adresse email invalide.',
+  'auth/user-disabled': 'Ce compte a été désactivé.',
+  'auth/too-many-requests': 'Trop de tentatives. Réessayez dans quelques minutes.',
+  'auth/network-request-failed': 'Erreur réseau. Vérifiez votre connexion.',
+};
+
 const DIAL_CODES = [
-  { code: '+225', flag: '🇨🇮', label: '+225' },
-  { code: '+33',  flag: '🇫🇷', label: '+33' },
+  { code: '+225', flag: '🇨🇮' },
+  { code: '+221', flag: '🇸🇳' },
+  { code: '+234', flag: '🇳🇬' },
+  { code: '+237', flag: '🇨🇲' },
+  { code: '+243', flag: '🇨🇩' },
+  { code: '+254', flag: '🇰🇪' },
+  { code: '+233', flag: '🇬🇭' },
+  { code: '+212', flag: '🇲🇦' },
+  { code: '+216', flag: '🇹🇳' },
+  { code: '+213', flag: '🇩🇿' },
+  { code: '+20',  flag: '🇪🇬' },
+  { code: '+27',  flag: '🇿🇦' },
+  { code: '+33',  flag: '🇫🇷' },
+  { code: '+32',  flag: '🇧🇪' },
+  { code: '+41',  flag: '🇨🇭' },
 ];
 
 function redirect(url) {
-  document.cookie = 'syllabix_session=1; path=/; SameSite=Strict; Max-Age=604800';
   window.location.href = url;
 }
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/';
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const sessionExpired = searchParams.get('reason') === 'session_expired';
   const { t } = useLanguage();
+
+  // Vrai pendant un flux OAuth (Google) — le handler du bouton gère alors
+  // lui-même la redirection (profil complet ou non), pas cet effet.
+  const oauthInProgress = useRef(false);
+
+  // Session expirée par inactivité → VRAIE déconnexion Firebase,
+  // sinon l'effet ci-dessous recrée une session sans redemander le mot de passe
+  // et l'utilisateur reste connecté indéfiniment.
+  useEffect(() => {
+    if (sessionExpired) {
+      authFunctions.signOut().catch(() => {});
+    }
+  }, [sessionExpired]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      if (!user || oauthInProgress.current || sessionExpired) return;
+      // Toujours (re)poser le cookie de session AVANT de rediriger —
+      // sinon le middleware renvoie ici et on boucle (Firebase connecté
+      // mais cookie absent/expiré).
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          // Config serveur cassée : on N'ENTRE PAS dans la boucle de redirection
+          const data = await res.json().catch(() => ({}));
+          console.error('session refresh:', res.status, data.error ?? '');
+          setError('Erreur serveur de session — contactez le support. (' + (data.error ?? res.status) + ')');
+          return;
+        }
+      } catch (err) {
+        console.error('session refresh:', err);
+        return;
+      }
+      // Rechargement complet pour que le middleware voie le nouveau cookie
+      window.location.replace(redirectTo);
+    });
+    return unsub;
+  }, [redirectTo]);
   const a = (k) => t(`auth.login.${k}`);
 
   // Mode : 'email' | 'phone'
@@ -49,7 +115,8 @@ function LoginForm() {
       await authFunctions.signIn(email, password);
       redirect(redirectTo);
     } catch (err) {
-      setError(err.message || 'Erreur de connexion');
+      const code = err?.code;
+      setError(FIREBASE_ERRORS[code] || err.message || 'Erreur de connexion');
       setIsLoading(false);
     }
   };
@@ -87,6 +154,12 @@ function LoginForm() {
   return (
     <section className="py-20 bg-neutral-50 min-h-screen flex items-center">
       <div className="w-full max-w-md mx-auto px-4">
+        {sessionExpired && (
+          <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 text-center">
+            ⏱ Votre session a expiré après 3h d'inactivité. Veuillez vous reconnecter.
+          </div>
+        )}
+
         <Card className="p-8">
           <h1 className="text-3xl font-heading font-bold text-primary text-center mb-6">
             {a('title')}
@@ -168,10 +241,10 @@ function LoginForm() {
                         value={dialCode}
                         onChange={(e) => setDialCode(e.target.value)}
                         disabled={phoneLoading}
-                        className="flex-shrink-0 px-3 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none bg-white text-sm font-medium"
+                        className="w-28 flex-shrink-0 px-2 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none bg-white text-sm font-medium"
                       >
                         {DIAL_CODES.map((d) => (
-                          <option key={d.code} value={d.code}>{d.flag} {d.label}</option>
+                          <option key={d.code} value={d.code}>{d.flag} {d.code}</option>
                         ))}
                       </select>
                       <input
@@ -224,10 +297,26 @@ function LoginForm() {
 
           {/* OAuth */}
           <div className="space-y-3 mb-6">
+            {/* WhatsApp — prochainement */}
+            <div className="relative">
+              <button
+                disabled
+                className="w-full px-4 py-3 border-2 border-green-200 rounded-lg font-semibold flex items-center justify-center gap-2 opacity-60 cursor-not-allowed bg-green-50 text-green-800"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                  <path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.558 4.118 1.533 5.845L0 24l6.335-1.507A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.804 9.804 0 01-5.044-1.393l-.361-.214-3.762.895.953-3.67-.235-.376A9.808 9.808 0 012.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
+                </svg>
+                Connexion via WhatsApp
+                <span className="ml-auto text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-semibold">Bientôt</span>
+              </button>
+            </div>
+
             <button
               onClick={async () => {
                 setError('');
                 setOauthLoading(true);
+                oauthInProgress.current = true;
                 try {
                   const { profileComplete } = await authFunctions.signInWithGoogle();
                   if (!profileComplete) {
@@ -236,26 +325,43 @@ function LoginForm() {
                     redirect(redirectTo);
                   }
                 } catch (err) {
-                  if (!err.message?.includes('popup-closed-by-user')) {
+                  oauthInProgress.current = false;
+                  const msg = String(err?.code || err?.message || '');
+                  if (msg.includes('popup-closed-by-user') || msg.includes('cancelled-popup-request')) {
+                    // Fermeture volontaire — pas d'erreur affichée
+                  } else if (msg.includes('unauthorized-domain')) {
+                    setError('Ce domaine n\'est pas autorisé pour la connexion Google. Contactez le support.');
+                  } else if (msg.includes('popup-blocked')) {
+                    setError('Votre navigateur a bloqué la fenêtre Google. Autorisez les popups pour ce site puis réessayez.');
+                  } else {
                     setError(err.message || 'Erreur de connexion Google');
                   }
                   setOauthLoading(false);
                 }
               }}
               disabled={oauthLoading || isLoading || phoneLoading}
-              className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors font-semibold flex items-center justify-center gap-3 disabled:opacity-50"
             >
-              <span>🔷</span> {oauthLoading ? a('submitting') : a('google')}
+              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              {oauthLoading ? a('submitting') : a('google')}
             </button>
 
           </div>
 
-          <p className="text-sm text-neutral-600 text-center">
-            {a('noAccount')}{' '}
-            <Link href="/auth/signup" className="text-accent font-semibold hover:underline">
+          <div className="mt-6 pt-6 border-t border-neutral-100 text-center">
+            <p className="text-sm text-neutral-500 mb-3">{a('noAccount')}</p>
+            <Link
+              href="/auth/signup"
+              className="inline-flex items-center justify-center w-full px-4 py-3 border-2 border-accent text-accent font-semibold rounded-lg hover:bg-accent hover:text-white transition-all"
+            >
               {a('signUp')}
             </Link>
-          </p>
+          </div>
         </Card>
       </div>
     </section>

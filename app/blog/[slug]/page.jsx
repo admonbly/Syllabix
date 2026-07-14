@@ -8,6 +8,111 @@ import Link from 'next/link';
 import { blogDB } from '@/lib/firebase';
 import { ARTICLES_SEED } from '@/lib/articlesSeed';
 
+// Convertit **gras** et *italique* en éléments React
+function renderInline(text) {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-neutral-900">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+}
+
+// Détecte et rend un tableau markdown  | col | col |
+function renderTable(block) {
+  const rows = block.split('\n').filter(r => r.trim().startsWith('|'));
+  const [header, , ...body] = rows; // ignore la ligne séparatrice ---
+  const parseRow = (row) => row.split('|').map(c => c.trim()).filter(Boolean);
+
+  return (
+    <div className="overflow-x-auto my-4">
+      <table className="w-full text-sm border-collapse rounded-xl overflow-hidden">
+        <thead>
+          <tr className="bg-primary text-white">
+            {parseRow(header).map((cell, i) => (
+              <th key={i} className="px-4 py-2.5 text-left font-semibold">{renderInline(cell)}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((row, i) => (
+            <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-neutral-50'}>
+              {parseRow(row).map((cell, j) => (
+                <td key={j} className="px-4 py-2.5 border-b border-neutral-100">{renderInline(cell)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function renderBlock(block, i) {
+  // HTML brut (anciens articles)
+  if (block.includes('<')) {
+    return (
+      <div
+        key={i}
+        className="text-neutral-700 leading-relaxed [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-primary [&>h2]:mt-6 [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-4 [&>ul]:space-y-1 [&>p]:leading-relaxed [&>p]:mb-3"
+        dangerouslySetInnerHTML={{ __html: block }}
+      />
+    );
+  }
+  // H2
+  if (block.startsWith('## ')) {
+    return (
+      <h2 key={i} className="text-2xl font-heading font-bold text-primary mt-10 mb-3">
+        {renderInline(block.replace('## ', ''))}
+      </h2>
+    );
+  }
+  // H3
+  if (block.startsWith('### ')) {
+    return (
+      <h3 key={i} className="text-lg font-heading font-bold text-primary mt-6 mb-2">
+        {renderInline(block.replace('### ', ''))}
+      </h3>
+    );
+  }
+  // Tableau
+  if (block.includes('|') && block.includes('\n')) {
+    return <div key={i}>{renderTable(block)}</div>;
+  }
+  // Liste à puces
+  if (block.startsWith('- ') || block.includes('\n- ')) {
+    const items = block.split('\n').filter(l => l.startsWith('- '));
+    return (
+      <ul key={i} className="list-disc list-inside space-y-2 text-neutral-700 ml-2">
+        {items.map((item, j) => (
+          <li key={j}>{renderInline(item.replace(/^- /, ''))}</li>
+        ))}
+      </ul>
+    );
+  }
+  // Numérotation 1. 2. 3.
+  if (/^\d+\. /.test(block) || block.split('\n').some(l => /^\d+\. /.test(l))) {
+    const items = block.split('\n').filter(l => /^\d+\. /.test(l));
+    return (
+      <ol key={i} className="list-decimal list-inside space-y-2 text-neutral-700 ml-2">
+        {items.map((item, j) => (
+          <li key={j}>{renderInline(item.replace(/^\d+\. /, ''))}</li>
+        ))}
+      </ol>
+    );
+  }
+  // Paragraphe normal
+  return (
+    <p key={i} className="text-neutral-700 leading-relaxed">
+      {renderInline(block)}
+    </p>
+  );
+}
+
 function ArticleContent({ article }) {
   if (!article) return null;
 
@@ -53,40 +158,7 @@ function ArticleContent({ article }) {
 
           {/* Contenu */}
           <div className="prose prose-lg max-w-none space-y-4">
-            {paragraphs.map((block, i) => {
-              if (block.startsWith('## ')) {
-                return (
-                  <h2 key={i} className="text-2xl font-heading font-bold text-primary mt-8 mb-3">
-                    {block.replace('## ', '')}
-                  </h2>
-                );
-              }
-              if (block.startsWith('- ') || block.includes('\n- ')) {
-                const items = block.split('\n').filter(l => l.startsWith('- '));
-                return (
-                  <ul key={i} className="list-disc list-inside space-y-2 text-neutral-700">
-                    {items.map((item, j) => (
-                      <li key={j}>{item.replace('- ', '')}</li>
-                    ))}
-                  </ul>
-                );
-              }
-              // HTML brut (articles anciens)
-              if (block.includes('<')) {
-                return (
-                  <div
-                    key={i}
-                    className="text-neutral-700 leading-relaxed [&>h2]:text-2xl [&>h2]:font-bold [&>h2]:text-primary [&>h2]:mt-6 [&>h2]:mb-3 [&>ul]:list-disc [&>ul]:ml-4 [&>ul]:space-y-1 [&>p]:leading-relaxed [&>p]:mb-3"
-                    dangerouslySetInnerHTML={{ __html: block }}
-                  />
-                );
-              }
-              return (
-                <p key={i} className="text-neutral-700 leading-relaxed">
-                  {block}
-                </p>
-              );
-            })}
+            {paragraphs.map((block, i) => renderBlock(block, i))}
           </div>
 
           {/* Tags */}

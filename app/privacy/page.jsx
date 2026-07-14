@@ -2,165 +2,362 @@ import Link from 'next/link';
 
 export const metadata = {
   title: 'Politique de Confidentialité - Syllabix',
-  description: 'Politique de confidentialité et traitement des données personnelles de Syllabix.',
+  description: 'Politique de confidentialité et traitement des données personnelles sur la plateforme Syllabix.',
 };
+
+function Section({ number, title, children }) {
+  return (
+    <section className="pb-8 border-b border-neutral-100 last:border-0">
+      <h2 className="text-xl font-heading font-bold text-primary mb-4">
+        {number}. {title}
+      </h2>
+      <div className="space-y-3 text-neutral-700 leading-relaxed">
+        {children}
+      </div>
+    </section>
+  );
+}
 
 export default function PrivacyPage() {
   return (
     <section className="py-20 bg-neutral-50 min-h-screen">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-heading font-bold text-primary mb-4">
+
+        <h1 className="text-4xl font-heading font-bold text-primary mb-2">
           Politique de Confidentialité
         </h1>
-        <p className="text-sm text-neutral-500 mb-12">Dernière mise à jour : 20 juin 2026</p>
+        <p className="text-sm text-neutral-500 mb-2">Dernière mise à jour : 25 juin 2026</p>
+        <p className="text-sm text-neutral-500 mb-12">
+          Syllabix s'engage à protéger vos données personnelles et à respecter votre vie privée.
+          Cette politique vous explique quelles données nous collectons, pourquoi, et comment vous
+          pouvez exercer vos droits.
+        </p>
 
-        <div className="prose max-w-none space-y-8 text-neutral-700">
+        <div className="space-y-8">
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">1. Responsable du traitement</h2>
+          <Section number="1" title="Responsable du traitement">
             <p>
-              Le responsable du traitement des données personnelles collectées sur Syllabix
-              est la société Afridigi. Pour exercer vos droits, contactez-nous via la page{' '}
-              <Link href="/contact" className="text-accent hover:underline">Contact</Link>.
+              Le responsable du traitement des données personnelles collectées sur Syllabix est :
             </p>
-          </section>
+            <div className="bg-neutral-50 border border-neutral-200 rounded-xl p-5 mt-3">
+              <p><strong>Syllabix</strong></p>
+              <p>Plateforme EdTech de certification des compétences numériques</p>
+              <p>Abidjan, Côte d'Ivoire</p>
+              <p>Email : <strong>contact@syllabix.com</strong></p>
+              <p>Site : <strong>syllabix.com</strong></p>
+            </div>
+          </Section>
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">2. Données collectées</h2>
-            <p>Nous collectons les données suivantes :</p>
-            <ul className="list-disc list-inside mt-2 space-y-2">
-              <li>
-                <strong>Données d'inscription :</strong> prénom, nom, adresse email, mot de passe
-                (chiffré), date de naissance, statut (étudiant, professionnel, etc.)
-              </li>
-              <li>
-                <strong>Données de progression :</strong> scores aux examens, modules complétés,
-                réponses aux questions (pour statistiques anonymisées)
-              </li>
-              <li>
-                <strong>Données de certification :</strong> identifiant du certificat, date
-                d'obtention, score, type de certification
-              </li>
-              <li>
-                <strong>Données techniques :</strong> adresse IP, type de navigateur, pages
-                consultées (via logs de serveur)
-              </li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">3. Finalités du traitement</h2>
-            <p>Vos données sont utilisées pour :</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Créer et gérer votre compte utilisateur ;</li>
-              <li>Vous permettre de passer des examens et de suivre votre progression ;</li>
-              <li>Générer et émettre des certificats ;</li>
-              <li>Améliorer la qualité de la plateforme (données anonymisées) ;</li>
-              <li>Respecter nos obligations légales.</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">4. Base légale</h2>
+          <Section number="2" title="Données collectées">
             <p>
-              Le traitement de vos données repose sur l'exécution du contrat (CGU) que
-              vous avez accepté lors de l'inscription. Pour les mineurs de moins de 15 ans,
-              le traitement repose également sur le consentement parental recueilli
-              conformément à l'article 8 du RGPD.
+              Nous collectons uniquement les données strictement nécessaires au fonctionnement
+              de la plateforme et à la délivrance des certifications.
             </p>
-          </section>
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">5. Mineurs</h2>
-            <p>
-              Syllabix n'est pas destiné aux enfants de moins de 13 ans. L'inscription
-              est bloquée pour les utilisateurs ayant indiqué être âgés de moins de 13 ans.
-            </p>
-            <p className="mt-3">
-              Pour les utilisateurs âgés de 13 à 14 ans (révolus), le consentement d'un
-              parent ou tuteur légal est obligatoire conformément à l'article 8 du RGPD
-              tel qu'implémenté en droit français (seuil de 15 ans). Ce consentement est
-              enregistré lors de l'inscription avec horodatage.
-            </p>
-          </section>
+            <p className="font-semibold text-neutral-800 mt-4">Données d'inscription</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Prénom et nom ;</li>
+              <li>Adresse email ;</li>
+              <li>Mot de passe (stocké sous forme de hash chiffré, jamais en clair) ;</li>
+              <li>Date de naissance (pour vérification de l'âge minimal) ;</li>
+              <li>Profil optionnel : statut (étudiant, professionnel, demandeur d'emploi, autre).</li>
+            </ul>
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">6. Sous-traitants</h2>
-            <p>Vos données sont hébergées par :</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
+            <p className="font-semibold text-neutral-800 mt-4">Données de progression pédagogique</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Scores obtenus aux examens et évaluations ;</li>
+              <li>Modules complétés et niveaux atteints ;</li>
+              <li>Réponses aux questions d'entraînement (utilisées uniquement pour l'adaptation pédagogique) ;</li>
+              <li>Dates et heures des sessions d'examen.</li>
+            </ul>
+
+            <p className="font-semibold text-neutral-800 mt-4">Données de certification</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Identifiant unique du certificat (UUID) ;</li>
+              <li>Date et score de certification ;</li>
+              <li>Type de certification (module ou globale) ;</li>
+              <li>Nom affiché sur le certificat.</li>
+            </ul>
+
+            <p className="font-semibold text-neutral-800 mt-4">Données techniques</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Adresse IP lors de la connexion (pour la sécurité du compte) ;</li>
+              <li>Type de navigateur et système d'exploitation ;</li>
+              <li>Pages consultées et durée des sessions (données agrégées et anonymisées).</li>
+            </ul>
+
+            <p className="font-semibold text-neutral-800 mt-4">Données que nous ne collectons PAS</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Numéro de téléphone (sauf si fourni volontairement via le formulaire de contact) ;</li>
+              <li>Données bancaires ou de paiement ;</li>
+              <li>Données de géolocalisation précise ;</li>
+              <li>Contenus de communications privées.</li>
+            </ul>
+          </Section>
+
+          <Section number="3" title="Finalités du traitement">
+            <p>Vos données sont utilisées exclusivement pour les finalités suivantes :</p>
+            <ul className="list-disc list-inside space-y-2 ml-2">
               <li>
-                <strong>Google Firebase (Firestore, Authentication)</strong> — données stockées
-                en Europe (region eur3 ou europe-west). Google LLC, soumis aux clauses
-                contractuelles types UE.
+                <strong>Gestion du compte :</strong> création, authentification, sécurisation et
+                gestion de votre espace personnel ;
+              </li>
+              <li>
+                <strong>Délivrance de la formation :</strong> accès aux modules d'entraînement,
+                adaptation du niveau de difficulté, suivi de progression ;
+              </li>
+              <li>
+                <strong>Certification :</strong> organisation des examens, calcul des scores,
+                génération et délivrance des certificats numériques vérifiables ;
+              </li>
+              <li>
+                <strong>Vérification publique des certificats :</strong> permettre à tout employeur
+                ou institution de vérifier l'authenticité d'un certificat via son identifiant unique ;
+              </li>
+              <li>
+                <strong>Amélioration de la plateforme :</strong> analyse des données d'usage agrégées
+                et anonymisées pour améliorer la qualité pédagogique ;
+              </li>
+              <li>
+                <strong>Communication :</strong> envoi d'emails transactionnels (confirmation d'inscription,
+                résultat d'examen, certificat obtenu) et, avec votre consentement, d'informations
+                sur les nouveaux modules ou ressources ;
+              </li>
+              <li>
+                <strong>Statistiques partenariales :</strong> partage de données <em>agrégées et
+                anonymisées</em> avec nos partenaires institutionnels (ministères, agences) à des
+                fins de politique publique numérique — aucune donnée individuelle n'est transmise.
               </li>
             </ul>
-            <p className="mt-3">
-              Aucune donnée personnelle n'est vendue à des tiers.
-            </p>
-          </section>
+          </Section>
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">7. Durée de conservation</h2>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Données de compte : jusqu'à la suppression du compte, puis 3 ans ;</li>
-              <li>Données de progression et certificats : durée de vie du compte ;</li>
-              <li>Logs techniques : 12 mois glissants.</li>
+          <Section number="4" title="Base légale du traitement">
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>
+                <strong>Exécution du contrat (CGU) :</strong> traitement nécessaire pour vous
+                fournir les services auxquels vous vous êtes inscrit (compte, examens, certificats) ;
+              </li>
+              <li>
+                <strong>Intérêt légitime :</strong> sécurité de la plateforme, prévention de la
+                fraude, amélioration des contenus pédagogiques ;
+              </li>
+              <li>
+                <strong>Consentement :</strong> envoi de communications marketing ou newsletters
+                (vous pouvez vous désabonner à tout moment) ;
+              </li>
+              <li>
+                <strong>Obligation légale :</strong> conservation de certains enregistrements
+                conformément aux obligations légales applicables en Côte d'Ivoire.
+              </li>
             </ul>
-          </section>
+          </Section>
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">8. Vos droits</h2>
+          <Section number="5" title="Mineurs">
             <p>
-              Conformément au RGPD, vous disposez des droits suivants :
+              Syllabix est accessible dès <strong>13 ans</strong>. La plateforme dispose d'un
+              mode adapté aux apprenants mineurs (durée d'examen allongée, interface simplifiée).
             </p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Droit d'accès à vos données personnelles ;</li>
-              <li>Droit de rectification des données inexactes ;</li>
-              <li>Droit à l'effacement ("droit à l'oubli") ;</li>
-              <li>Droit à la portabilité de vos données ;</li>
-              <li>Droit d'opposition au traitement ;</li>
-              <li>Droit de retirer votre consentement à tout moment.</li>
+            <p>
+              Pour les utilisateurs âgés de moins de <strong>18 ans</strong>, le consentement
+              d'un parent ou tuteur légal est requis lors de l'inscription. Ce consentement est
+              enregistré avec horodatage dans notre système.
+            </p>
+            <p>
+              Nous ne collectons aucune donnée auprès d'enfants de moins de 13 ans. Toute
+              inscription détectée comme étant en dessous de cet âge sera immédiatement
+              supprimée.
+            </p>
+            <p>
+              Les parents ou tuteurs légaux peuvent demander la suppression du compte d'un
+              mineur en nous contactant à <strong>contact@syllabix.com</strong> avec une
+              preuve de leur lien de parenté.
+            </p>
+          </Section>
+
+          <Section number="6" title="Sous-traitants et hébergement">
+            <p>
+              Vos données sont hébergées et traitées par les prestataires suivants, sélectionnés
+              pour leur conformité aux standards internationaux de sécurité :
+            </p>
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>
+                <strong>Google Firebase (Firestore, Authentication)</strong> — base de données
+                et authentification. Données stockées sur les serveurs Google (région Europe).
+                Google LLC est soumis aux clauses contractuelles types approuvées par la
+                Commission Européenne.
+              </li>
+              <li>
+                <strong>Vercel Inc.</strong> — hébergement de l'application web. Serveurs
+                situés aux États-Unis et en Europe, avec des garanties de sécurité conformes
+                aux standards internationaux.
+              </li>
             </ul>
-            <p className="mt-3">
+            <p>
+              <strong>Aucune donnée personnelle n'est vendue, louée ou cédée à des tiers
+              commerciaux.</strong> Nos partenaires institutionnels (ministères, agences)
+              ne reçoivent que des statistiques agrégées et anonymisées.
+            </p>
+          </Section>
+
+          <Section number="7" title="Durée de conservation">
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>
+                <strong>Données de compte actif :</strong> conservées pendant toute la durée
+                d'activité du compte ;
+              </li>
+              <li>
+                <strong>Après suppression du compte :</strong> données personnelles supprimées
+                sous 30 jours, à l'exception des données de certification qui sont conservées
+                3 ans pour permettre la vérification des certificats déjà délivrés ;
+              </li>
+              <li>
+                <strong>Données d'examen et de progression :</strong> conservées pendant la
+                durée de vie du compte actif ;
+              </li>
+              <li>
+                <strong>Logs techniques (IP, connexions) :</strong> 12 mois glissants ;
+              </li>
+              <li>
+                <strong>Données de facturation éventuelle :</strong> 5 ans conformément aux
+                obligations comptables légales.
+              </li>
+            </ul>
+          </Section>
+
+          <Section number="8" title="Sécurité des données">
+            <p>
+              Syllabix met en œuvre des mesures techniques et organisationnelles appropriées
+              pour protéger vos données personnelles contre tout accès non autorisé, perte,
+              destruction ou altération :
+            </p>
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>Chiffrement des communications via HTTPS/TLS ;</li>
+              <li>Mots de passe stockés sous forme de hash (jamais en clair) ;</li>
+              <li>Authentification sécurisée via Google Firebase Authentication ;</li>
+              <li>Règles d'accès Firestore strictes limitant l'accès aux seules données de l'utilisateur connecté ;</li>
+              <li>Aucun accès des partenaires institutionnels aux données individuelles.</li>
+            </ul>
+            <p>
+              En cas de violation de données susceptible d'engendrer un risque pour vos droits
+              et libertés, nous nous engageons à vous en informer dans les meilleurs délais.
+            </p>
+          </Section>
+
+          <Section number="9" title="Vos droits">
+            <p>
+              Vous disposez des droits suivants concernant vos données personnelles :
+            </p>
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>
+                <strong>Droit d'accès :</strong> obtenir une copie de toutes les données
+                personnelles que nous détenons sur vous ;
+              </li>
+              <li>
+                <strong>Droit de rectification :</strong> corriger des données inexactes ou
+                incomplètes (accessible directement depuis votre profil) ;
+              </li>
+              <li>
+                <strong>Droit à l'effacement :</strong> demander la suppression de votre
+                compte et de vos données personnelles ;
+              </li>
+              <li>
+                <strong>Droit à la portabilité :</strong> recevoir vos données dans un format
+                structuré et lisible par machine ;
+              </li>
+              <li>
+                <strong>Droit d'opposition :</strong> vous opposer au traitement de vos données
+                à des fins de communication marketing ;
+              </li>
+              <li>
+                <strong>Droit de limitation :</strong> demander la suspension temporaire du
+                traitement de vos données dans certains cas prévus par la loi ;
+              </li>
+              <li>
+                <strong>Droit de retirer votre consentement</strong> à tout moment pour les
+                traitements basés sur le consentement (ex : newsletter).
+              </li>
+            </ul>
+            <p>
               Pour exercer ces droits, contactez-nous via la page{' '}
-              <Link href="/contact" className="text-accent hover:underline">Contact</Link>.
-              Vous pouvez également introduire une réclamation auprès de la{' '}
-              <a
-                href="https://www.cnil.fr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-accent hover:underline"
-              >
-                CNIL
-              </a>
-              .
+              <Link href="/contact" className="text-accent hover:underline">Contact</Link> ou
+              par email à <strong>contact@syllabix.com</strong>. Nous répondons dans un délai
+              maximum de <strong>30 jours</strong>.
             </p>
-          </section>
+          </Section>
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">9. Cookies</h2>
+          <Section number="10" title="Cookies et traceurs">
             <p>
-              Syllabix utilise un cookie de session (<code>syllabix_session</code>) strictement
-              nécessaire au fonctionnement de l'authentification. Ce cookie ne contient pas
-              de données personnelles. Aucun cookie publicitaire ou de tracking tiers n'est
-              utilisé.
+              Syllabix utilise un nombre minimal de cookies, strictement nécessaires au
+              fonctionnement de la plateforme :
             </p>
-          </section>
+            <ul className="list-disc list-inside space-y-2 ml-2">
+              <li>
+                <strong>Cookie de session d'authentification</strong> (Firebase Auth) :
+                maintient votre connexion active. Durée : session ou 30 jours si vous cochez
+                "Rester connecté". Ne contient pas de données personnelles identifiables.
+              </li>
+              <li>
+                <strong>Cookie de préférences de langue :</strong> mémorise votre choix
+                français/anglais. Durée : 1 an.
+              </li>
+            </ul>
+            <p>
+              <strong>Nous n'utilisons aucun cookie publicitaire, aucun tracker tiers
+              (Google Analytics, Facebook Pixel, etc.) ni aucun outil de profilage
+              comportemental.</strong>
+            </p>
+            <p>
+              Ces cookies étant strictement nécessaires au fonctionnement du service, ils
+              ne nécessitent pas votre consentement préalable. Vous pouvez les bloquer dans
+              les paramètres de votre navigateur, mais cela empêchera toute connexion à
+              votre compte.
+            </p>
+          </Section>
 
-          <section>
-            <h2 className="text-2xl font-heading font-bold text-primary mb-4">10. Modifications</h2>
+          <Section number="11" title="Transferts internationaux de données">
             <p>
-              Cette politique peut être mise à jour. Toute modification substantielle sera
-              notifiée par email. La date de dernière mise à jour est indiquée en haut de
-              cette page.
+              Vos données peuvent être traitées sur des serveurs situés hors de Côte d'Ivoire,
+              notamment par nos sous-traitants Google (Firebase) et Vercel. Ces transferts
+              sont encadrés par des garanties contractuelles appropriées (clauses contractuelles
+              types, Privacy Shield ou équivalent) assurant un niveau de protection adéquat.
             </p>
-          </section>
+          </Section>
+
+          <Section number="12" title="Modifications de la politique de confidentialité">
+            <p>
+              Cette politique de confidentialité peut être mise à jour pour refléter les
+              évolutions de nos services, de nos partenariats ou du cadre légal applicable.
+            </p>
+            <p>
+              Toute modification substantielle sera notifiée par email à l'adresse associée
+              à votre compte au moins 15 jours avant son entrée en vigueur. La date de
+              dernière mise à jour est indiquée en haut de cette page.
+            </p>
+          </Section>
+
+          <Section number="13" title="Contact et réclamations">
+            <p>Pour toute question relative à la protection de vos données :</p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>
+                Via la page{' '}
+                <Link href="/contact" className="text-accent hover:underline">Contact</Link> ;
+              </li>
+              <li>Par email : <strong>contact@syllabix.com</strong> ;</li>
+              <li>Par courrier : Syllabix, Abidjan, Côte d'Ivoire.</li>
+            </ul>
+            <p className="mt-3">
+              Si vous estimez que le traitement de vos données n'est pas conforme à la
+              réglementation applicable, vous pouvez introduire une réclamation auprès de
+              l'<strong>Autorité de Protection des Données à caractère Personnel de Côte d'Ivoire (ARTCI)</strong>{' '}
+              ou de toute autorité de contrôle compétente dans votre pays de résidence.
+            </p>
+          </Section>
 
         </div>
 
-        <div className="mt-12 pt-8 border-t border-neutral-200 flex gap-4">
-          <Link href="/cgu" className="text-accent hover:underline text-sm">
-            Conditions Générales d'Utilisation
+        <div className="mt-12 pt-8 border-t border-neutral-200 flex gap-4 flex-wrap">
+          <Link href="/cgu" className="text-accent hover:underline text-sm font-medium">
+            Conditions Générales d'Utilisation →
           </Link>
           <Link href="/" className="text-neutral-500 hover:underline text-sm">
             Retour à l'accueil

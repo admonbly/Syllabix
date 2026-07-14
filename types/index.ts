@@ -124,8 +124,8 @@ export const MODULES: ModuleConfig[] = [
   },
   {
     id: '1',
-    title: 'Internet & Google',
-    description: 'Navigation web et recherche Google',
+    title: 'Internet',
+    description: 'Navigation web, recherche en ligne et évaluation des sources',
     difficulty: 'easy',
     questionsCount: 30,
   },
