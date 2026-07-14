@@ -80,7 +80,7 @@ export default function Footer() {
                 alt="Syllabix — Accueil"
                 width={2816}
                 height={1536}
-                className="h-14 w-auto max-w-[170px] object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
+                className="h-20 w-auto max-w-[240px] object-contain brightness-0 invert opacity-90 hover:opacity-100 transition-opacity"
               />
             </Link>
             <p className="text-white/50 text-sm leading-relaxed mb-5">
