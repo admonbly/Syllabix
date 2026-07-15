@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb, getAdminAuth } from '@/lib/firebaseAdmin';
 import { FieldValue } from 'firebase-admin/firestore';
-import { normalizeAccessCode } from '@/lib/orgs';
+import { normalizeAccessCode, findUnitInList } from '@/lib/orgs';
 
 /**
  * POST /api/org/join
- * Body : { code }
+ * Body : { code, unit? }
  * Rattache l'utilisateur courant à une organisation via son code d'accès.
  * - Écriture EXCLUSIVEMENT serveur (le client ne peut pas forger son orgId).
  * - Refus si l'utilisateur appartient déjà à une organisation (mono-rattachement).
+ * - `unit` (classe / direction) est validée contre la liste déclarée par
+ *   l'organisation : on n'enregistre jamais une valeur libre.
  */
 export async function POST(request) {
   // 1. Auth
@@ -46,7 +48,22 @@ export async function POST(request) {
   const orgDoc = snap.docs[0];
   const org = orgDoc.data();
 
-  // 4. Rattachement en transaction (+ incrément du compteur)
+  // 4. Unité (classe / direction) — uniquement si l'organisation en déclare.
+  //    Toute valeur hors liste est refusée : c'est ce qui garantit des données
+  //    regroupables dans le tableau de bord.
+  const units = org.units ?? [];
+  let orgUnit = null;
+  if (units.length > 0) {
+    const requested = body?.unit;
+    if (requested) {
+      orgUnit = findUnitInList(units, requested);
+      if (!orgUnit) {
+        return NextResponse.json({ error: 'Cette valeur ne fait pas partie de la liste de l\'organisation' }, { status: 400 });
+      }
+    }
+  }
+
+  // 5. Rattachement en transaction (+ incrément du compteur)
   const userRef = db.doc(`users/${uid}`);
   const orgRef = orgDoc.ref;
   try {
@@ -58,6 +75,7 @@ export async function POST(request) {
       tx.set(userRef, {
         orgId: orgRef.id,
         orgType: org.type,
+        orgUnit,
         orgJoinedAt: new Date().toISOString(),
       }, { merge: true });
       tx.update(orgRef, { memberCount: FieldValue.increment(1) });
@@ -72,5 +90,5 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Erreur lors du rattachement' }, { status: 500 });
   }
 
-  return NextResponse.json({ orgName: org.name, orgType: org.type });
+  return NextResponse.json({ orgName: org.name, orgType: org.type, orgUnit });
 }

@@ -36,6 +36,7 @@ export async function POST(request) {
       tx.set(userRef, {
         orgId: null,
         orgType: null,
+        orgUnit: null,
         orgJoinedAt: null,
       }, { merge: true });
 

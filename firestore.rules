@@ -37,7 +37,7 @@ service cloud.firestore {
         'dateOfBirth', 'parentalConsentGiven', 'parentalConsentAt',
         'role', 'createdAt', 'updatedAt', 'authProvider',
         'profileComplete', 'phoneVerifiedAt', 'emailVerifiedAt',
-        'badges', 'orgId', 'orgType', 'orgJoinedAt'
+        'badges', 'orgId', 'orgType', 'orgJoinedAt', 'orgUnit'
       ]);
     }
 
@@ -76,7 +76,8 @@ service cloud.firestore {
                     && validUserProfile()
                     && (!request.resource.data.diff(resource.data).affectedKeys()
                          .hasAny(['role', 'email', 'createdAt', 'authProvider',
-                                  'badges', 'orgId', 'orgType', 'orgJoinedAt']));
+                                  'badges', 'orgId', 'orgType', 'orgJoinedAt',
+                                  'orgUnit']));
       allow delete: if false;
 
       match /progress/{moduleId} {

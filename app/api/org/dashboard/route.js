@@ -3,6 +3,7 @@ import { getAdminDb } from '@/lib/firebaseAdmin';
 import { requireOrgAdmin } from '@/lib/orgAuth';
 import {
   buildMemberRow, computeOverview, computePixCoverage, computeModuleBreakdown,
+  computeUnitBreakdown,
 } from '@/lib/orgReporting';
 
 // Limite Firestore de l'opérateur `in`
@@ -83,10 +84,12 @@ export async function GET(request) {
       city: org.city ?? null,
       accessCode: org.accessCode,
       accessCodeActive: org.accessCodeActive !== false,
+      units: org.units ?? [],
     },
     overview: computeOverview(rows),
     pix: computePixCoverage(rows),
     modules: computeModuleBreakdown(rows),
+    unitBreakdown: computeUnitBreakdown(rows, org.units ?? []),
     members: rows,
     truncated,
     maxMembers: MAX_MEMBERS,

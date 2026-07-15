@@ -7,8 +7,11 @@ import {
   Copy, Check, Download, Search,
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
+import { orgUnitLabels } from '@/lib/orgs';
 import PixCoverage from '@/components/org/PixCoverage';
 import MemberDetail from '@/components/org/MemberDetail';
+import UnitsManager from '@/components/org/UnitsManager';
+import UnitBreakdown from '@/components/org/UnitBreakdown';
 
 /** Vocabulaire adaptatif : une école parle d'élèves, une entreprise d'employés. */
 const WORDING = {
@@ -54,6 +57,8 @@ export default function OrgDashboardPage() {
   const [query, setQuery]     = useState('');
   const [copied, setCopied]   = useState(false);
   const [openUid, setOpenUid] = useState(null);
+  // Filtre par classe/direction : '' = toutes, '__none__' = sans unité
+  const [unitFilter, setUnitFilter] = useState('');
 
   const load = useCallback(async (user) => {
     if (!user) { router.replace('/auth/login?redirect=/org'); return; }
@@ -79,11 +84,13 @@ export default function OrgDashboardPage() {
   const members = useMemo(() => {
     if (!data) return [];
     const q = query.trim().toLowerCase();
-    if (!q) return data.members;
-    return data.members.filter(
-      (m) => m.displayName.toLowerCase().includes(q) || m.email.toLowerCase().includes(q),
-    );
-  }, [data, query]);
+    return data.members.filter((m) => {
+      if (unitFilter === '__none__' && m.orgUnit) return false;
+      if (unitFilter && unitFilter !== '__none__' && m.orgUnit !== unitFilter) return false;
+      if (!q) return true;
+      return m.displayName.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+    });
+  }, [data, query, unitFilter]);
 
   const copyCode = async () => {
     try {
@@ -94,10 +101,16 @@ export default function OrgDashboardPage() {
   };
 
   const exportCsv = () => {
+    const unitLabel = orgUnitLabels(data.org.type).short;
+    const hasUnits = data.org.units?.length > 0;
+    // On exporte ce qui est affiché : si un filtre est actif, il s'applique.
+    const source = members;
     const rows = [
-      ['Nom', 'Email', 'Modules validés', 'Score moyen', 'Certificats', 'Certification globale', 'Dernière activité'],
-      ...data.members.map((m) => [
+      ['Nom', 'Email', ...(hasUnits ? [unitLabel] : []),
+       'Modules validés', 'Score moyen', 'Certificats', 'Certification globale', 'Dernière activité'],
+      ...source.map((m) => [
         m.displayName, m.email,
+        ...(hasUnits ? [m.orgUnit ?? ''] : []),
         `${m.modulesValidated}/${m.totalModules}`,
         m.avgScore ?? '',
         m.certificateCount,
@@ -109,7 +122,11 @@ export default function OrgDashboardPage() {
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `syllabix-${data.org.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.csv`;
+    // Les accents sont convertis (é → e) avant le slug, sinon « Lycée » donne « lyc-e »
+    const slug = data.org.name
+      .normalize('NFD').replace(/[̀-ͯ]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    a.download = `syllabix-${slug}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -136,6 +153,8 @@ export default function OrgDashboardPage() {
 
   const { org, overview, pix } = data;
   const Icon = org.type === 'COMPANY' ? Building2 : GraduationCap;
+  const unitLabels = orgUnitLabels(org.type);
+  const hasUnits = (org.units ?? []).length > 0;
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -192,7 +211,36 @@ export default function OrgDashboardPage() {
             value={overview.activeCount} label={`actifs sur ${overview.activeWindowDays} jours`} />
         </div>
 
-        {/* Bloc 2 — Couverture par compétence */}
+        {/* Bloc 2 — Classes / directions : déclaration + comparaison */}
+        <section className="mb-10">
+          <h2 className="text-lg font-display font-bold text-primary mb-1">{unitLabels.plural}</h2>
+          <p className="text-sm text-neutral-500 mb-5">
+            {org.units?.length > 0
+              ? `Comparez vos ${unitLabels.plural.toLowerCase()} pour repérer celles qui décrochent. Cliquez sur une ligne pour filtrer la liste.`
+              : `Déclarez vos ${unitLabels.plural.toLowerCase()} pour situer chaque ${w.member} et comparer les groupes.`}
+          </p>
+          <div className="space-y-4">
+            <UnitsManager
+              orgType={org.type}
+              units={org.units ?? []}
+              breakdown={data.unitBreakdown}
+              onChanged={() => load(auth.currentUser)}
+            />
+            {org.units?.length > 0 && (
+              <UnitBreakdown
+                orgType={org.type}
+                breakdown={data.unitBreakdown}
+                memberWord={w.members}
+                onSelect={(name) => {
+                  setUnitFilter(name ?? '__none__');
+                  document.getElementById('membres')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              />
+            )}
+          </div>
+        </section>
+
+        {/* Bloc 3 — Couverture par compétence */}
         <section className="mb-10">
           <h2 className="text-lg font-display font-bold text-primary mb-1">Couverture par compétence</h2>
           <p className="text-sm text-neutral-500 mb-5">{w.pixIntro}</p>
@@ -200,12 +248,29 @@ export default function OrgDashboardPage() {
         </section>
 
         {/* Bloc 3 — Membres */}
-        <section>
+        <section id="membres">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
             <h2 className="text-lg font-display font-bold text-primary capitalize">
-              {w.members} <span className="text-neutral-400 font-normal">({data.members.length})</span>
+              {w.members}{' '}
+              <span className="text-neutral-400 font-normal">
+                ({members.length === data.members.length
+                  ? data.members.length
+                  : `${members.length} sur ${data.members.length}`})
+              </span>
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {hasUnits && (
+                <select
+                  value={unitFilter}
+                  onChange={(e) => setUnitFilter(e.target.value)}
+                  aria-label={`Filtrer par ${unitLabels.short.toLowerCase()}`}
+                  className="px-4 py-2.5 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors text-sm bg-white min-h-[44px]"
+                >
+                  <option value="">Toutes les {unitLabels.plural.toLowerCase()}</option>
+                  {org.units.map((u) => <option key={u} value={u}>{u}</option>)}
+                  <option value="__none__">Sans {unitLabels.short.toLowerCase()}</option>
+                </select>
+              )}
               <div className="relative">
                 <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden="true" />
                 <input
@@ -253,7 +318,8 @@ export default function OrgDashboardPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-neutral-50 border-b border-neutral-200">
                     <tr>
-                      {['Nom', 'Modules validés', 'Score moyen', 'Certificats', 'Dernière activité'].map((h, i) => (
+                      {['Nom', ...(hasUnits ? [unitLabels.short] : []),
+                        'Modules validés', 'Score moyen', 'Certificats', 'Dernière activité'].map((h, i) => (
                         <th key={h} scope="col"
                           className={`px-5 py-3 font-display font-semibold text-neutral-500 text-xs uppercase tracking-widest ${i === 0 ? 'text-left' : 'text-right'}`}>
                           {h}
@@ -274,6 +340,13 @@ export default function OrgDashboardPage() {
                           <p className="font-display font-semibold text-primary">{m.displayName}</p>
                           <p className="text-xs text-neutral-400">{m.email}</p>
                         </td>
+                        {hasUnits && (
+                          <td className="px-5 py-3 text-right whitespace-nowrap">
+                            {m.orgUnit
+                              ? <span className="inline-block px-2 py-0.5 rounded-full bg-neutral-100 text-neutral-600 text-xs">{m.orgUnit}</span>
+                              : <span className="text-neutral-300">—</span>}
+                          </td>
+                        )}
                         <td className="px-5 py-3 text-right">
                           <span className="text-primary tabular-nums">{m.modulesValidated}</span>
                           <span className="text-neutral-300 tabular-nums">/{m.totalModules}</span>

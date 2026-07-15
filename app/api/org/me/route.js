@@ -43,6 +43,9 @@ export async function GET(request) {
       type: org.type,
       memberCount: org.memberCount ?? 0,
       joinedAt: userData.orgJoinedAt ?? null,
+      // Classe/filière ou direction du membre + choix possibles
+      unit: userData.orgUnit ?? null,
+      units: org.units ?? [],
     },
   });
 }
