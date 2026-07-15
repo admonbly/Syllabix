@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import BadgeGrid from '@/components/BadgeGrid';
+import OrgPanel from '@/components/OrgPanel';
 import PageHeader from '@/components/PageHeader';
 import Reveal from '@/components/Reveal';
 import { SkeletonStat, SkeletonCard } from '@/components/SkeletonCard';
@@ -194,6 +195,11 @@ export default function DashboardPage() {
               <p className={`text-3xl font-heading font-extrabold ${s.color}`}>{s.value}</p>
             </Reveal>
           ))}
+        </div>
+
+        {/* Mon établissement (école / entreprise) */}
+        <div className="mb-8">
+          <OrgPanel />
         </div>
 
         {/* Recommandations personnalisées */}

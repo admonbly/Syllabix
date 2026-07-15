@@ -1,15 +1,4 @@
 // Firestore Security Rules — Syllabix
-//
-// ⚠️ CE FICHIER REFLÈTE LES RÈGLES RÉELLEMENT DÉPLOYÉES EN PRODUCTION.
-// Il a été reconstruit le 2026-07-14 à partir du ruleset live, puis complété
-// pour la fondation « organisations ». Sauvegarde de l'état antérieur :
-// firestore.rules.PROD-BACKUP
-//
-// Principe : les données sensibles (certificats, progression, badges,
-// rattachement à une organisation, sessions d'examen) sont écrites par
-// l'Admin SDK via les API routes — l'Admin SDK ignore ces règles.
-// Le client ne peut donc PAS forger un certificat, un badge ni un rattachement.
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -24,24 +13,17 @@ service cloud.firestore {
       return isAuth() && request.auth.uid == userId;
     }
 
-    // Champs autorisés dans un profil utilisateur.
-    // NB : 'badges', 'orgId', 'orgType', 'orgJoinedAt' sont écrits par le
-    // serveur (Admin SDK). Ils DOIVENT figurer dans cette liste, sinon le
-    // client ne peut plus mettre à jour son propre profil dès qu'il possède
-    // un badge ou un rattachement — leur écriture reste interdite au client
-    // par la garde `affectedKeys()` de la règle `update` ci-dessous.
     function validUserProfile() {
       return request.resource.data.keys().hasOnly([
         'email', 'firstName', 'lastName', 'displayName',
         'phoneNumber', 'phoneVerified', 'emailVerified',
         'dateOfBirth', 'parentalConsentGiven', 'parentalConsentAt',
         'role', 'createdAt', 'updatedAt', 'authProvider',
-        'profileComplete', 'phoneVerifiedAt', 'emailVerifiedAt',
-        'badges', 'orgId', 'orgType', 'orgJoinedAt'
+        'profileComplete', 'phoneVerifiedAt', 'emailVerifiedAt'
       ]);
     }
 
-    // Valide qu'un certificat public vient bien du bon user
+    // ✅ NOUVEAU : valide qu'un certificat public vient bien du bon user
     function validPublicCert(userId) {
       return request.resource.data.userId == userId
           && request.resource.data.keys().hasAll(['userId', 'score', 'certTitle', 'createdAt'])
@@ -50,7 +32,7 @@ service cloud.firestore {
           && request.resource.data.score <= 100;
     }
 
-    // Valide les données de progression (empêche les scores falsifiés)
+    // ✅ NOUVEAU : valide les données de progression (empêche les scores falsifiés)
     function validProgress() {
       return request.resource.data.keys().hasOnly([
             'moduleId', 'score', 'answers', 'completedAt'
@@ -60,7 +42,7 @@ service cloud.firestore {
           && request.resource.data.score <= 100;
     }
 
-    // Valide les tentatives d'examen (empêche la manipulation du cooldown)
+    // ✅ NOUVEAU : valide les tentatives d'examen (empêche la manipulation du cooldown)
     function validExamAttempt() {
       return request.resource.data.keys().hasOnly(['lastAttemptAt'])
           && request.resource.data.lastAttemptAt == request.time;
@@ -70,24 +52,21 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId) && validUserProfile();
-      // Le client ne peut modifier ni son rôle, ni ses badges, ni son
-      // rattachement à une organisation (réservés à l'Admin SDK).
       allow update: if isOwner(userId)
                     && validUserProfile()
                     && (!request.resource.data.diff(resource.data).affectedKeys()
-                         .hasAny(['role', 'email', 'createdAt', 'authProvider',
-                                  'badges', 'orgId', 'orgType', 'orgJoinedAt']));
+                         .hasAny(['role', 'email', 'createdAt', 'authProvider']));
       allow delete: if false;
 
       match /progress/{moduleId} {
         allow read:   if isOwner(userId);
-        allow create: if isOwner(userId) && validProgress();
-        allow update: if isOwner(userId) && validProgress();
+        allow create: if isOwner(userId) && validProgress();  // ✅ validation ajoutée
+        allow update: if isOwner(userId) && validProgress();  // ✅ validation ajoutée
         allow delete: if false;
       }
 
       match /certificates/{certId} {
-        allow read:   if isOwner(userId);
+        allow read:   if isOwner(userId);  // ✅ était "if true" — maintenant privé
         allow create: if isOwner(userId);
         allow update: if false;
         allow delete: if false;
@@ -95,7 +74,7 @@ service cloud.firestore {
 
       match /examAttempts/{examKey} {
         allow read:  if isOwner(userId);
-        allow write: if isOwner(userId) && validExamAttempt();
+        allow write: if isOwner(userId) && validExamAttempt();  // ✅ validation ajoutée
         allow delete: if false;
       }
 
@@ -110,26 +89,21 @@ service cloud.firestore {
     // ─── Collection : certificates (publique, partage/LinkedIn) ────
     match /certificates/{certId} {
       allow read: if true;
+      // ✅ Création validée : le userId doit correspondre + schéma vérifié
       allow create: if isAuth()
                     && validPublicCert(request.auth.uid);
       allow update: if false;
       allow delete: if false;
     }
 
-    // ─── Collection : organizations (écoles & entreprises) ──────────
-    // Aucun accès client : le rattachement et l'administration passent
-    // EXCLUSIVEMENT par les API routes en Admin SDK (/api/org/*, /api/admin/*).
-    match /organizations/{orgId} {
-      allow read, write: if false;
-    }
-
     // ─── Collection : modules (banque de questions) ─────────────────
     match /modules/{moduleId} {
+      // ✅ Questions réservées aux utilisateurs connectés uniquement
       allow read: if isAuth();
       allow write: if false;
 
       match /questions/{questionId} {
-        allow read:  if isAuth();
+        allow read:  if isAuth();  // ✅ était "if true"
         allow write: if false;
       }
     }
@@ -137,13 +111,7 @@ service cloud.firestore {
     // ─── Collection : articles (blog) ───────────────────────────────
     match /articles/{articleId} {
       allow read:  if true;
-      allow write: if false; // écriture via /api/admin/blog/* (Admin SDK)
-    }
-
-    // ─── Collection : testimonials (accueil) ───────────────────────
-    match /testimonials/{testimonialId} {
-      allow read:  if true;
-      allow write: if false; // écriture via /api/admin/testimonials/* (Admin SDK)
+      allow write: if false;
     }
 
     // ─── Collection : newsletter ─────────────────────────────────────
@@ -151,7 +119,7 @@ service cloud.firestore {
       allow create: if request.resource.data.keys().hasOnly(['email', 'subscribedAt'])
                     && request.resource.data.email is string
                     && request.resource.data.email.size() > 5;
-      allow read:   if false; // lecture via /api/admin/newsletter/list (Admin SDK)
+      allow read:   if false;
       allow update: if false;
       allow delete: if false;
     }

@@ -40,9 +40,13 @@ export default function BlogListPage() {
     }).finally(() => setLoading(false));
   }, []);
 
+  // Les brouillons ne sont jamais affichés. Les articles historiques n'ont pas
+  // le champ `published` : leur absence vaut « publié ».
+  const visible = articles.filter(a => a.published !== false);
+
   const displayed = category === 'Tous'
-    ? articles
-    : articles.filter(a => a.category === category);
+    ? visible
+    : visible.filter(a => a.category === category);
 
   return (
     <div className="min-h-screen bg-neutral-50">

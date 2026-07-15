@@ -59,6 +59,7 @@ export default function SignupPage() {
   const [status, setStatus] = useState('student');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [parentalConsent, setParentalConsent] = useState(false);
+  const [orgCode, setOrgCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -117,6 +118,24 @@ export default function SignupPage() {
         parentalConsentGiven: needsParentalConsent ? parentalConsent : false,
         phoneNumber: `${dialCode}${phoneLocal.replace(/^0/, '').trim()}`,
       });
+
+      // Rattachement optionnel — ne doit JAMAIS bloquer la création du compte.
+      // En cas d'échec, l'utilisateur pourra réessayer depuis son tableau de bord.
+      if (orgCode.trim()) {
+        try {
+          const token = await auth.currentUser?.getIdToken();
+          if (token) {
+            await fetch('/api/org/join', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ code: orgCode }),
+            });
+          }
+        } catch {
+          // Silencieux : le compte est créé, c'est l'essentiel.
+        }
+      }
+
       router.push('/auth/verify-email');
     } catch (err) {
       const code = err?.code;
@@ -337,6 +356,23 @@ export default function SignupPage() {
                 />
               </div>
               <p className="text-xs text-neutral-400 mt-1">{s('phoneHint')}</p>
+            </div>
+
+            <div>
+              <label htmlFor="signup-org-code" className="block text-sm font-semibold text-primary mb-2">
+                {t('org.signupLabel')}
+              </label>
+              <input
+                id="signup-org-code"
+                type="text"
+                value={orgCode}
+                onChange={(e) => setOrgCode(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-neutral-200 rounded-lg focus:border-accent outline-none transition-colors uppercase"
+                placeholder={t('org.codePlaceholder')}
+                autoCapitalize="characters"
+                disabled={isLoading}
+              />
+              <p className="text-xs text-neutral-400 mt-1">{t('org.signupHint')}</p>
             </div>
 
             <div>
