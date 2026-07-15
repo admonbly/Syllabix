@@ -1,13 +1,15 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronRight, LayoutDashboard, LogOut, User, Globe, Accessibility } from 'lucide-react';
+import { Menu, X, ChevronRight, LayoutDashboard, LogOut, User, Globe, Accessibility, Building2, GraduationCap } from 'lucide-react';
 import { auth, authFunctions } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 import { useA11y } from '@/lib/AccessibilityContext';
+import { useOrgRole } from '@/lib/useOrgRole';
 
 export default function Header() {
+  const { isOrgAdmin, orgType } = useOrgRole();
   const [open,        setOpen]        = useState(false);
   const [scrolled,    setScrolled]    = useState(false);
   const [user,        setUser]        = useState(null);
@@ -254,6 +256,16 @@ export default function Header() {
                     <p className="text-xs text-neutral-400 mb-0.5">{t('nav.loggedAs')}</p>
                     <p className="text-sm font-semibold text-primary truncate">{user.email}</p>
                   </div>
+                  {/* Un ORG_ADMIN est aussi un apprenant : il accède aux deux espaces */}
+                  {isOrgAdmin && (
+                    <Link href="/org" onClick={() => setDropOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-primary hover:text-accent hover:bg-accent/5 transition-colors">
+                      {orgType === 'COMPANY'
+                        ? <Building2 className="w-4 h-4" />
+                        : <GraduationCap className="w-4 h-4" />}
+                      {orgType === 'COMPANY' ? 'Espace entreprise' : 'Espace établissement'}
+                    </Link>
+                  )}
                   <Link href="/dashboard" onClick={() => setDropOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 text-sm text-neutral-700 hover:text-accent hover:bg-accent/5 transition-colors">
                     <LayoutDashboard className="w-4 h-4" /> {t('nav.dashboard')}
@@ -328,6 +340,15 @@ export default function Header() {
           <div className="pt-2 pb-1 space-y-2">
             {user ? (
               <>
+                {isOrgAdmin && (
+                  <Link href="/org" onClick={() => setOpen(false)}
+                    className="flex items-center justify-center gap-2 px-5 py-3 bg-accent text-white font-display font-semibold rounded-xl text-sm hover:bg-accent-dark transition-colors">
+                    {orgType === 'COMPANY'
+                      ? <Building2 className="w-4 h-4" />
+                      : <GraduationCap className="w-4 h-4" />}
+                    {orgType === 'COMPANY' ? 'Espace entreprise' : 'Espace établissement'}
+                  </Link>
+                )}
                 <Link href="/dashboard" onClick={() => setOpen(false)}
                   className="flex items-center justify-center gap-2 px-5 py-3 bg-primary text-white font-display font-semibold rounded-xl text-sm hover:bg-primary/90 transition-colors">
                   <LayoutDashboard className="w-4 h-4" /> {t('nav.dashboard')}

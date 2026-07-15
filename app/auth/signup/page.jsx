@@ -74,11 +74,11 @@ export default function SignupPage() {
     setError('');
     setOauthLoading(true);
     try {
-      const { profileComplete } = await authFunctions.signInWithGoogle();
+      const { profileComplete, landing } = await authFunctions.signInWithGoogle();
       if (!profileComplete) {
         window.location.href = '/auth/complete-profile';
       } else {
-        router.replace('/dashboard');
+        router.replace(landing || '/dashboard');
       }
     } catch (err) {
       if (!err.message?.includes('popup-closed-by-user')) {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
-import { getAdminAuth } from '@/lib/firebaseAdmin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
 
 const SESSION_TIMEOUT_S = 3 * 60 * 60; // 3h en secondes
 
@@ -33,8 +33,9 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Token manquant' }, { status: 400 });
   }
 
+  let uid;
   try {
-    await getAdminAuth().verifyIdToken(token);
+    uid = (await getAdminAuth().verifyIdToken(token)).uid;
   } catch (err) {
     // Distinguer une mauvaise config serveur (clé Admin absente) d'un vrai token invalide
     if (String(err?.message).includes('FIREBASE_SERVICE_ACCOUNT_KEY')) {
@@ -44,7 +45,21 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
   }
 
-  const response = NextResponse.json({ ok: true });
+  // Destination naturelle après connexion : un administrateur d'organisation
+  // atterrit dans son espace, pas sur le tableau de bord apprenant.
+  // Ne doit JAMAIS faire échouer la connexion : en cas de souci, on retombe
+  // sur /dashboard.
+  let landing = '/dashboard';
+  try {
+    const snap = await getAdminDb().doc(`users/${uid}`).get();
+    if (snap.exists && snap.data().role === 'ORG_ADMIN' && snap.data().orgId) {
+      landing = '/org';
+    }
+  } catch (err) {
+    console.error('session: résolution de la destination impossible', err);
+  }
+
+  const response = NextResponse.json({ ok: true, landing });
   response.cookies.set('syllabix_session', buildSessionValue(), COOKIE_BASE);
   response.cookies.set('syllabix_last_activity', String(Date.now()), COOKIE_BASE);
   return response;

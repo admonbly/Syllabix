@@ -43,7 +43,11 @@ function redirect(url) {
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  // Redirection explicite demandée (ex. middleware) → prioritaire.
+  // Sinon, c'est le serveur qui décide de la destination selon le rôle
+  // (un ORG_ADMIN atterrit sur /org, un apprenant sur /dashboard).
+  const explicitRedirect = searchParams.get('redirect');
+  const redirectTo = explicitRedirect || '/dashboard';
   const sessionExpired = searchParams.get('reason') === 'session_expired';
   const { t } = useLanguage();
 
@@ -79,6 +83,14 @@ function LoginForm() {
           setError('Erreur serveur de session — contactez le support. (' + (data.error ?? res.status) + ')');
           return;
         }
+        // Sans redirection explicite, le serveur choisit selon le rôle.
+        if (!explicitRedirect) {
+          const { landing } = await res.json().catch(() => ({}));
+          if (landing) {
+            window.location.replace(landing);
+            return;
+          }
+        }
       } catch (err) {
         console.error('session refresh:', err);
         return;
@@ -87,7 +99,7 @@ function LoginForm() {
       window.location.replace(redirectTo);
     });
     return unsub;
-  }, [redirectTo]);
+  }, [redirectTo, explicitRedirect]);
   const a = (k) => t(`auth.login.${k}`);
 
   // Mode : 'email' | 'phone'
@@ -113,7 +125,10 @@ function LoginForm() {
     setIsLoading(true);
     try {
       await authFunctions.signIn(email, password);
-      redirect(redirectTo);
+      // Pas de redirection ici : l'effet onAuthStateChanged pose le cookie de
+      // session PUIS redirige vers la destination choisie par le serveur selon
+      // le rôle. Rediriger d'ici court-circuiterait ce choix et partirait avant
+      // que le cookie soit posé — le middleware nous renverrait au login.
     } catch (err) {
       const code = err?.code;
       setError(FIREBASE_ERRORS[code] || err.message || 'Erreur de connexion');
@@ -144,7 +159,7 @@ function LoginForm() {
     setPhoneLoading(true);
     try {
       await authFunctions.confirmPhoneLogin(smsCode);
-      redirect(redirectTo);
+      // Redirection assurée par l'effet onAuthStateChanged (cookie puis rôle).
     } catch (err) {
       setError('Code incorrect ou expiré. Réessayez.');
       setPhoneLoading(false);
@@ -318,11 +333,12 @@ function LoginForm() {
                 setOauthLoading(true);
                 oauthInProgress.current = true;
                 try {
-                  const { profileComplete } = await authFunctions.signInWithGoogle();
+                  const { profileComplete, landing } = await authFunctions.signInWithGoogle();
                   if (!profileComplete) {
                     window.location.href = `/auth/complete-profile?redirect=${encodeURIComponent(redirectTo)}`;
                   } else {
-                    redirect(redirectTo);
+                    // Sans demande explicite, le serveur choisit selon le rôle
+                    redirect(explicitRedirect ? redirectTo : (landing || redirectTo));
                   }
                 } catch (err) {
                   oauthInProgress.current = false;
