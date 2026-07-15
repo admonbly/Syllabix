@@ -7,6 +7,8 @@ const PROTECTED_PATHS = [
   '/certification',
   '/evaluation',
   '/profile',
+  '/org',
+  '/admin',
 ];
 
 const PUBLIC_EXCEPTIONS = [

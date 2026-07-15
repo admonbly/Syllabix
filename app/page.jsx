@@ -11,6 +11,10 @@ import {
   BookOpen, Target, Zap, ArrowRight, Quote,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/LanguageContext';
+import { useState, useEffect } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { TESTIMONIALS_SEED } from '@/lib/testimonialsSeed';
 
 /* ── Static icons (unchanged across languages) ─────────── */
 const MODULE_ICONS = [Monitor, Globe, Mail, FileText, ShieldCheck, Bot, Briefcase];
@@ -22,24 +26,6 @@ const bigStats = [
   { value: 7,    suffix: '' },
   { value: 30,   suffix: ' min' },
   { value: 98,   suffix: '%' },
-];
-
-const testimonials = [
-  { name: 'Amara Traoré',   role: 'Assistant administratif', location: 'Dakar, Sénégal',    initials: 'AT', color: 'bg-primary' },
-  { name: 'Samuel Adeyemi', role: 'Manager RH',               location: 'Lagos, Nigeria',    initials: 'SA', color: 'bg-accent'  },
-  { name: 'Zainab Mohamed', role: 'Chargée de communication', location: 'Kigali, Rwanda',    initials: 'ZM', color: 'bg-secondary' },
-];
-
-const testimonialQuotesFr = [
-  "Syllabix m'a permis de certifier mes compétences numériques. Le certificat a vraiment fait la différence dans ma recherche d'emploi.",
-  "Interface simple et modules très bien structurés. J'ai pu former toute mon équipe en quelques semaines. Vraiment recommandé !",
-  "En tant que jeune diplômée, ce certificat m'a aidée à montrer concrètement mes compétences aux recruteurs. Merci Syllabix !",
-];
-
-const testimonialQuotesEn = [
-  "Syllabix helped me certify my digital skills. The certificate really made a difference in my job search.",
-  "Simple interface and well-structured modules. I trained my whole team in a few weeks. Highly recommended!",
-  "As a recent graduate, this certificate helped me concretely showcase my skills to recruiters. Thank you Syllabix!",
 ];
 
 const blogPosts = [
@@ -88,7 +74,25 @@ export default function HomePage() {
   ];
 
   const statLabels = [h('stats.learners'), h('stats.modules'), h('stats.duration'), h('stats.satisfaction')];
-  const quotes = locale === 'fr' ? testimonialQuotesFr : testimonialQuotesEn;
+
+  // Témoignages : source de vérité = Firestore, repli sur le code si vide/injoignable
+  // (la section ne doit jamais s'afficher vide).
+  const [testimonials, setTestimonials] = useState(TESTIMONIALS_SEED);
+
+  useEffect(() => {
+    let cancelled = false;
+    getDocs(collection(db, 'testimonials'))
+      .then((snap) => {
+        if (cancelled) return;
+        const live = snap.docs
+          .map((d) => d.data())
+          .filter((tm) => tm.published !== false)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        if (live.length > 0) setTestimonials(live);
+      })
+      .catch(() => { /* repli déjà en place */ });
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <>
@@ -202,11 +206,11 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((tm, i) => (
-              <Reveal key={i} direction="up" delay={i * 110}>
+              <Reveal key={tm.id ?? i} direction="up" delay={i * 110}>
                 <div className="lift group relative bg-white rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-neutral-100 hover:border-accent/20 flex flex-col h-full">
                   <Quote className="w-8 h-8 text-accent/20 mb-4 flex-shrink-0 group-hover:text-accent/35 transition-colors" strokeWidth={1.5} />
                   <p className="text-neutral-600 text-sm leading-relaxed flex-1 italic mb-6">
-                    &ldquo;{quotes[i]}&rdquo;
+                    &ldquo;{locale === 'fr' ? tm.quoteFr : tm.quoteEn}&rdquo;
                   </p>
                   <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
                     <div className={`w-10 h-10 rounded-full ${tm.color} flex items-center justify-center flex-shrink-0`}>

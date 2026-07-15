@@ -204,7 +204,9 @@ export default function ArticlePage({ params }) {
   useEffect(() => {
     blogDB.getArticleBySlug(params.slug).then((data) => {
       if (data) {
-        setArticle(data);
+        // Un brouillon n'est pas accessible par URL directe.
+        // Les articles historiques sans le champ `published` restent visibles.
+        setArticle(data.published === false ? null : data);
       } else {
         // Fallback sur les données locales
         const local = ARTICLES_SEED.find(a => a.slug === params.slug);

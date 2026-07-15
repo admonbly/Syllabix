@@ -26,10 +26,14 @@ service cloud.firestore {
       // Création du profil à l'inscription
       allow create: if isOwner(userId)
         && !('badges' in request.resource.data);
-      // Mise à jour du profil — badges et rôle non modifiables par le client
+      // Mise à jour du profil — badges, rôle et rattachement orga non modifiables
+      // par le client (le rattachement passe EXCLUSIVEMENT par /api/org/* en Admin SDK).
       allow update: if isOwner(userId)
         && request.resource.data.badges == resource.data.get('badges', [])
-        && request.resource.data.get('role', 'LEARNER') == resource.data.get('role', 'LEARNER');
+        && request.resource.data.get('role', 'LEARNER') == resource.data.get('role', 'LEARNER')
+        && request.resource.data.get('orgId', null) == resource.data.get('orgId', null)
+        && request.resource.data.get('orgType', null) == resource.data.get('orgType', null)
+        && request.resource.data.get('orgJoinedAt', null) == resource.data.get('orgJoinedAt', null);
       allow delete: if false;
 
       // Progression — écrite uniquement par le serveur
@@ -82,10 +86,23 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ── Organisations (écoles & entreprises) ────────────────────────────
+    // Aucun accès client : le rattachement et l'administration passent
+    // EXCLUSIVEMENT par les API routes en Admin SDK (/api/org/*, /api/admin/*).
+    match /organizations/{orgId} {
+      allow read, write: if false;
+    }
+
     // ── Blog / articles ─────────────────────────────────────────────────
     match /articles/{articleId} {
       allow read: if true;
-      allow write: if false; // seed via Admin SDK ou console uniquement
+      allow write: if false; // écriture via /api/admin/blog/* (Admin SDK)
+    }
+
+    // ── Témoignages (accueil) ───────────────────────────────────────────
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if false; // écriture via /api/admin/testimonials/* (Admin SDK)
     }
 
     // ── Tout le reste : refusé ──────────────────────────────────────────

@@ -9,7 +9,7 @@ import QRCode from 'qrcode';
 import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
-import { PARTNERS } from '@/lib/partners';
+import { PARTNERS_ON_CERTIFICATE } from '@/lib/partners';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import { getModuleName } from '@/lib/moduleNames';
 
@@ -331,7 +331,7 @@ export default function CertificatePage() {
                   Partenaires institutionnels
                 </p>
                 <div className="flex items-center justify-end gap-4 flex-wrap">
-                  {PARTNERS.map((partner) => (
+                  {PARTNERS_ON_CERTIFICATE.map((partner) => (
                     <div key={partner.id} className="relative" style={{ width: 52, height: 30 }}>
                       <Image
                         src={partner.logo}
