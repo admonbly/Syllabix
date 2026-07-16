@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 import { orgUnitLabels } from '@/lib/orgs';
-import PixCoverage from '@/components/org/PixCoverage';
+import ModuleCoverage from '@/components/org/ModuleCoverage';
 import MemberDetail from '@/components/org/MemberDetail';
 import UnitsManager from '@/components/org/UnitsManager';
 import UnitBreakdown from '@/components/org/UnitBreakdown';
@@ -18,12 +18,12 @@ const WORDING = {
   SCHOOL: {
     entity: 'établissement', members: 'élèves', member: 'élève',
     space: 'Espace établissement',
-    pixIntro: 'Le niveau de vos élèves sur le référentiel de compétences numériques. Un domaine faible indique ce qu\'il reste à travailler.',
+    moduleIntro: 'Le niveau de vos élèves module par module. Un module faible indique ce qu\'il reste à travailler.',
   },
   COMPANY: {
     entity: 'société', members: 'employés', member: 'employé',
     space: 'Espace entreprise',
-    pixIntro: 'Le niveau de vos équipes sur le référentiel de compétences numériques. Un domaine faible vous indique où cibler la formation.',
+    moduleIntro: 'Le niveau de vos équipes module par module. Un module faible vous indique où cibler la formation.',
   },
 };
 
@@ -151,7 +151,7 @@ export default function OrgDashboardPage() {
     );
   }
 
-  const { org, overview, pix } = data;
+  const { org, overview } = data;
   const Icon = org.type === 'COMPANY' ? Building2 : GraduationCap;
   const unitLabels = orgUnitLabels(org.type);
   const hasUnits = (org.units ?? []).length > 0;
@@ -240,11 +240,11 @@ export default function OrgDashboardPage() {
           </div>
         </section>
 
-        {/* Bloc 3 — Couverture par compétence */}
+        {/* Bloc 3 — Couverture par module */}
         <section className="mb-10">
-          <h2 className="text-lg font-display font-bold text-primary mb-1">Couverture par compétence</h2>
-          <p className="text-sm text-neutral-500 mb-5">{w.pixIntro}</p>
-          <PixCoverage domains={pix.domains} memberWord={w.members} />
+          <h2 className="text-lg font-display font-bold text-primary mb-1">Couverture par module</h2>
+          <p className="text-sm text-neutral-500 mb-5">{w.moduleIntro}</p>
+          <ModuleCoverage modules={data.modules} memberWord={w.members} />
         </section>
 
         {/* Bloc 3 — Membres */}

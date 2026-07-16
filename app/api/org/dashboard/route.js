@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import { requireOrgAdmin } from '@/lib/orgAuth';
 import {
-  buildMemberRow, computeOverview, computePixCoverage, computeModuleBreakdown,
+  buildMemberRow, computeOverview, computeModuleBreakdown,
   computeUnitBreakdown,
 } from '@/lib/orgReporting';
 
@@ -87,7 +87,6 @@ export async function GET(request) {
       units: org.units ?? [],
     },
     overview: computeOverview(rows),
-    pix: computePixCoverage(rows),
     modules: computeModuleBreakdown(rows),
     unitBreakdown: computeUnitBreakdown(rows, org.units ?? []),
     members: rows,
