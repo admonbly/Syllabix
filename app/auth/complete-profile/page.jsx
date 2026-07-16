@@ -7,6 +7,7 @@ import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import { safeInternalPath } from '@/lib/safeRedirect';
 
 const DIAL_CODES = [
   { code: '+225', flag: '🇨🇮', label: '+225' },
@@ -26,7 +27,8 @@ function calculateAge(dob) {
 
 function CompleteProfileForm() {
   const searchParams  = useSearchParams();
-  const redirectTo    = searchParams.get('redirect') || '/';
+  // Filtré contre l'open redirect : seul un chemin interne est accepté.
+  const redirectTo    = safeInternalPath(searchParams.get('redirect'), '/');
 
   const [firebaseUser, setFirebaseUser] = useState(null);
   const [loading,      setLoading]      = useState(true);

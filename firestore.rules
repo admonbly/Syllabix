@@ -147,6 +147,12 @@ service cloud.firestore {
       allow write: if false; // écriture via /api/admin/testimonials/* (Admin SDK)
     }
 
+    // ─── Collection : rateLimits ─────────────────────────────────────
+    // Compteurs de limitation de débit (endpoints publics). Admin SDK only.
+    match /rateLimits/{key} {
+      allow read, write: if false;
+    }
+
     // ─── Collection : partnershipRequests ───────────────────────────
     // Demandes de partenariat déposées depuis /partenariats.
     // Aucun accès client : l'écriture passe par /api/partnership/request

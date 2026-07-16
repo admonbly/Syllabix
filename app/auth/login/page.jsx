@@ -8,6 +8,7 @@ import { useState, Suspense, useEffect, useRef } from 'react';
 import { authFunctions, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
+import { safeInternalPath } from '@/lib/safeRedirect';
 
 const FIREBASE_ERRORS = {
   'auth/user-not-found': 'Aucun compte trouvé avec cet email.',
@@ -46,7 +47,10 @@ function LoginForm() {
   // Redirection explicite demandée (ex. middleware) → prioritaire.
   // Sinon, c'est le serveur qui décide de la destination selon le rôle
   // (un ORG_ADMIN atterrit sur /org, un apprenant sur /dashboard).
-  const explicitRedirect = searchParams.get('redirect');
+  // Filtré contre l'open redirect : seul un chemin interne est accepté comme
+  // cible. Un `?redirect=https://evil.com` retombe donc sur /dashboard.
+  const rawRedirect = searchParams.get('redirect');
+  const explicitRedirect = rawRedirect ? safeInternalPath(rawRedirect, null) : null;
   const redirectTo = explicitRedirect || '/dashboard';
   const sessionExpired = searchParams.get('reason') === 'session_expired';
   const { t } = useLanguage();
