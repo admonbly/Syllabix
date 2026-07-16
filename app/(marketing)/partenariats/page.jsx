@@ -1,155 +1,129 @@
 'use client';
 
-import Image from 'next/image';
-import Card from '@/components/Card';
-import CTAButton from '@/components/CTAButton';
-import { PARTNERS } from '@/lib/partners';
+import Link from 'next/link';
+import PageHeader from '@/components/PageHeader';
+import Reveal from '@/components/Reveal';
+import PartnershipForm from '@/components/PartnershipForm';
+import { useLanguage } from '@/lib/LanguageContext';
+import { KeyRound, LayoutDashboard, Target, GraduationCap, Building2, Landmark } from 'lucide-react';
 
-const benefits = [
-  {
-    icon: '🎯',
-    title: 'Certification Reconnue',
-    description: 'Certificats co-signés par les partenaires institutionnels, reconnus pour l\'emploi et la formation.',
-  },
-  {
-    icon: '💼',
-    title: 'Opportunités Professionnelles',
-    description: 'Accès à un réseau d\'employeurs et d\'opportunités d\'insertion professionnelle.',
-  },
-  {
-    icon: '📊',
-    title: 'Données & Insights',
-    description: 'Rapports détaillés sur les compétences de vos apprenants ou collaborateurs.',
-  },
-  {
-    icon: '🌱',
-    title: 'Formation Continue',
-    description: 'Ressources et supports pour la montée en compétences numériques tout au long de la vie.',
-  },
-];
+/**
+ * « Devenir partenaire ».
+ *
+ * Cette page exhibait auparavant le MENA, le MESRS, le Ministère du Numérique
+ * et l'Agence Emploi Jeunes comme « partenaires institutionnels », affirmait
+ * des « certificats co-signés », un « réseau d'employeurs » et un « programme
+ * de commissionnement » — rien de tout cela n'existe. Elle explique désormais
+ * ce qu'une organisation gagne réellement à rejoindre, et recueille sa demande.
+ */
+export default function PartenariatsPage() {
+  const { locale } = useLanguage();
+  const isFr = locale === 'fr';
 
-export default function PartnershipsPage() {
+  const benefits = isFr
+    ? [
+        { icon: KeyRound,        title: 'Un code d\'accès pour vos membres', desc: 'Vous recevez un code à diffuser. Chaque membre le saisit depuis son compte et se rattache à votre organisation — vous n\'avez aucun compte à créer.' },
+        { icon: LayoutDashboard, title: 'Un tableau de bord de suivi',       desc: 'Suivez la progression de chaque membre, comparez vos classes, filières ou directions, et repérez celles qui décrochent. Export des données inclus.' },
+        { icon: Target,          title: 'Un reporting par compétence',       desc: 'Les résultats sont restitués sur les 5 domaines et 16 compétences du référentiel : vous savez précisément où porter l\'effort de formation.' },
+      ]
+    : [
+        { icon: KeyRound,        title: 'An access code for your members', desc: 'You receive a code to share. Each member enters it from their account and joins your organisation — you have no accounts to create.' },
+        { icon: LayoutDashboard, title: 'A progress dashboard',            desc: 'Follow each member\'s progress, compare your classes, programmes or departments, and spot those falling behind. Data export included.' },
+        { icon: Target,          title: 'Competency-level reporting',      desc: 'Results are reported across the 5 domains and 16 competencies of the framework: you know exactly where to focus training.' },
+      ];
+
+  const audiences = [
+    { icon: GraduationCap, label: isFr ? 'Écoles' : 'Schools' },
+    { icon: Landmark,      label: isFr ? 'Universités et grandes écoles' : 'Universities and higher education' },
+    { icon: Building2,     label: isFr ? 'Entreprises' : 'Companies' },
+  ];
+
   return (
-    <section className="py-20 bg-neutral-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-neutral-50">
+      <PageHeader
+        title={isFr ? 'Devenir partenaire' : 'Become a partner'}
+        subtitle={isFr
+          ? 'Faites certifier les compétences numériques de vos élèves, étudiants ou collaborateurs — et suivez leur progression.'
+          : 'Certify the digital skills of your students or staff — and follow their progress.'}
+      />
 
-        {/* Header */}
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-heading font-bold text-primary mb-4">Nos Partenaires</h1>
-          <p className="text-xl text-neutral-600 max-w-2xl mx-auto">
-            Syllabix est soutenu par des institutions gouvernementales ivoiriennes pour garantir
-            la reconnaissance officielle de vos certifications numériques.
-          </p>
-        </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-16">
 
-        {/* Partenaires institutionnels */}
-        <div className="mb-20">
-          <h2 className="text-2xl font-heading font-bold text-primary mb-2 text-center">
-            Partenaires Institutionnels
+        {/* Programme pilote — le stade est assumé, pas dissimulé */}
+        <Reveal direction="up">
+          <div className="mb-14 rounded-2xl border border-accent/20 bg-accent-pale/60 p-6 sm:p-8">
+            <span className="inline-block px-2.5 py-1 rounded-full bg-accent/15 text-accent text-xs font-display font-semibold uppercase tracking-widest mb-3">
+              {isFr ? 'Programme pilote' : 'Pilot programme'}
+            </span>
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-primary mb-3">
+              {isFr
+                ? 'Syllabix est en lancement — et cherche ses premiers partenaires'
+                : 'Syllabix is launching — and looking for its first partners'}
+            </h2>
+            <p className="text-neutral-600 leading-relaxed max-w-3xl">
+              {isFr
+                ? 'Nous ne revendiquons aucune reconnaissance officielle : aucun partenariat institutionnel n\'est signé à ce jour, et nous l\'annoncerons ici dès que ce sera le cas. Ce que nous proposons aujourd\'hui : un référentiel sérieux de 5 domaines et 16 compétences, des épreuves pratiques sur de vrais fichiers, et un outil de suivi pour votre organisation. Les premiers partenaires façonnent le produit avec nous.'
+                : 'We claim no official recognition: no institutional partnership is signed to date, and we will announce it here as soon as one is. What we offer today: a serious framework of 5 domains and 16 competencies, hands-on tasks on real files, and a tracking tool for your organisation. Our first partners shape the product with us.'}
+            </p>
+          </div>
+        </Reveal>
+
+        {/* Ce que vous obtenez */}
+        <div className="mb-14">
+          <h2 className="text-2xl font-display font-bold text-primary mb-8">
+            {isFr ? 'Ce que vous obtenez' : 'What you get'}
           </h2>
-          <p className="text-center text-neutral-500 text-sm mb-10">
-            Leurs logos figurent sur chaque certificat délivré par Syllabix
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {PARTNERS.map((partner) => (
-              <Card key={partner.id} className="p-8 text-center flex flex-col items-center hover:shadow-xl transition-shadow border-2 border-primary/10">
-                {/* Badge type */}
-                <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full mb-5 uppercase tracking-wide">
-                  {partner.type}
-                </span>
-
-                {/* Logo */}
-                <div className="relative w-40 h-24 mb-5 flex items-center justify-center">
-                  <Image
-                    src={partner.logo}
-                    alt={`Logo ${partner.shortName}`}
-                    fill
-                    className="object-contain"
-                    sizes="160px"
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {benefits.map((b, i) => (
+              <Reveal key={b.title} direction="up" delay={i * 90}>
+                <div className="lift h-full bg-white rounded-2xl border border-neutral-100 p-6 shadow-card">
+                  <div className="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center mb-4">
+                    <b.icon className="w-5 h-5 text-primary" aria-hidden="true" />
+                  </div>
+                  <h3 className="font-display font-bold text-primary mb-2 leading-tight">{b.title}</h3>
+                  <p className="text-sm text-neutral-600 leading-relaxed">{b.desc}</p>
                 </div>
-
-                {/* Nom */}
-                <h3 className="text-base font-heading font-bold text-primary mb-2 leading-snug">
-                  {partner.name}
-                </h3>
-                <p className="text-neutral-500 text-sm leading-relaxed">
-                  {partner.description}
-                </p>
-              </Card>
+              </Reveal>
             ))}
           </div>
         </div>
 
-        {/* Avantages */}
-        <div className="mb-20">
-          <h2 className="text-2xl font-heading font-bold text-primary mb-8 text-center">
-            Avantages du Partenariat
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="p-8 flex gap-5 items-start">
-                <span className="text-3xl flex-shrink-0">{benefit.icon}</span>
-                <div>
-                  <h3 className="text-lg font-heading font-bold text-primary mb-1">{benefit.title}</h3>
-                  <p className="text-neutral-600 text-sm leading-relaxed">{benefit.description}</p>
-                </div>
-              </Card>
+        {/* Public visé */}
+        <Reveal direction="up">
+          <div className="mb-14 flex flex-wrap items-center justify-center gap-4">
+            {audiences.map((a) => (
+              <span key={a.label}
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-neutral-200 text-sm font-medium text-neutral-700">
+                <a.icon className="w-4 h-4 text-primary" aria-hidden="true" />
+                {a.label}
+              </span>
             ))}
           </div>
-        </div>
+        </Reveal>
 
-        {/* Types de partenariats */}
-        <div className="mb-20">
-          <h2 className="text-2xl font-heading font-bold text-primary mb-8 text-center">
-            Types de Partenariats
+        {/* Formulaire */}
+        <div id="demande" className="max-w-2xl mx-auto">
+          <h2 className="text-2xl font-display font-bold text-primary mb-2 text-center">
+            {isFr ? 'Parlons de votre projet' : 'Let\'s talk about your project'}
           </h2>
-          <div className="space-y-6">
-            <Card className="p-8 border-l-4 border-accent">
-              <h3 className="text-xl font-heading font-bold text-primary mb-2">Partenariat Institutionnel</h3>
-              <p className="text-neutral-600 mb-4 text-sm leading-relaxed">
-                Intégrez Syllabix dans votre programme de formation. Offrez à vos étudiants une
-                certification numérique reconnue par les ministères partenaires.
-              </p>
-              <CTAButton href="/contact" variant="primary" size="md">En savoir plus</CTAButton>
-            </Card>
-            <Card className="p-8 border-l-4 border-secondary">
-              <h3 className="text-xl font-heading font-bold text-primary mb-2">Partenariat Entreprise</h3>
-              <p className="text-neutral-600 mb-4 text-sm leading-relaxed">
-                Évaluez et certifiez les compétences numériques de vos collaborateurs.
-                Accédez à des rapports détaillés sur les niveaux de compétences de votre équipe.
-              </p>
-              <CTAButton href="/contact" variant="primary" size="md">En savoir plus</CTAButton>
-            </Card>
-            <Card className="p-8 border-l-4 border-primary">
-              <h3 className="text-xl font-heading font-bold text-primary mb-2">Partenariat de Distribution</h3>
-              <p className="text-neutral-600 mb-4 text-sm leading-relaxed">
-                Devenez centre agréé Syllabix et proposez nos certifications à vos bénéficiaires.
-                Programme de commissionnement attractif.
-              </p>
-              <CTAButton href="/contact" variant="primary" size="md">En savoir plus</CTAButton>
-            </Card>
-          </div>
+          <p className="text-sm text-neutral-500 mb-8 text-center">
+            {isFr
+              ? 'Laissez-nous vos coordonnées : nous vous recontactons pour une démonstration.'
+              : 'Leave us your details: we will get back to you for a demo.'}
+          </p>
+          <PartnershipForm locale={locale} />
         </div>
 
-        {/* CTA */}
-        <Card className="p-12 text-center" style={{ background: 'linear-gradient(135deg, #1A237E 0%, #283593 100%)' }}>
-          <h2 className="text-3xl font-heading font-bold text-white mb-4">Devenir Partenaire</h2>
-          <p className="text-white/80 mb-8 text-lg max-w-xl mx-auto">
-            Rejoignez notre réseau et contribuez à la transformation numérique de la Côte d'Ivoire et de l'Afrique.
+        {/* Apprenant individuel — l'accueil parle d'abord à lui */}
+        <Reveal direction="up">
+          <p className="mt-14 text-center text-sm text-neutral-500">
+            {isFr ? 'Vous êtes un particulier ?' : 'Are you an individual?'}{' '}
+            <Link href="/auth/signup" className="text-accent font-semibold hover:underline">
+              {isFr ? 'Créez votre compte gratuitement' : 'Create your free account'}
+            </Link>
           </p>
-          <CTAButton
-            href="/contact"
-            variant="outline"
-            size="lg"
-            className="text-white border-white hover:bg-white hover:text-primary"
-          >
-            💬 Nous contacter
-          </CTAButton>
-        </Card>
-
+        </Reveal>
       </div>
-    </section>
+    </div>
   );
 }

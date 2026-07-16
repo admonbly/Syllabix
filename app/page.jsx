@@ -15,6 +15,9 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { TESTIMONIALS_SEED } from '@/lib/testimonialsSeed';
+import ReferentielSection from '@/components/home/ReferentielSection';
+import PracticalSection from '@/components/home/PracticalSection';
+import PilotBanner from '@/components/home/PilotBanner';
 
 /* ── Static icons (unchanged across languages) ─────────── */
 const MODULE_ICONS = [Monitor, Globe, Mail, FileText, ShieldCheck, Bot, Briefcase];
@@ -115,7 +118,15 @@ export default function HomePage() {
         subtitle={h('hero.subtitle')}
       />
 
-      {/* ─── 2. Comment ça marche ──────────────────── */}
+      {/* ─── 2. Le référentiel — ce qui est réellement évalué ─── */}
+      <ReferentielSection
+        locale={locale}
+        tag={h('referentiel.tag')}
+        title={h('referentiel.title')}
+        subtitle={h('referentiel.subtitle')}
+      />
+
+      {/* ─── 3. Comment ça marche ──────────────────── */}
       <section className="py-24 bg-white">
         <div className="container-max">
           <SectionHeader
@@ -186,7 +197,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── 4. Stats strip ────────────────────────── */}
+      {/* ─── 5. Épreuves pratiques — le différenciateur ─── */}
+      <PracticalSection
+        locale={locale}
+        tag={h('practical.tag')}
+        title={h('practical.title')}
+        subtitle={h('practical.subtitle')}
+      />
+
+      {/* ─── 6. Stats strip ────────────────────────── */}
       <section className="py-20 bg-primary relative overflow-hidden">
         <div aria-hidden className="absolute inset-0 hero-dots opacity-30 pointer-events-none" />
         <div className="container-max relative z-10">
@@ -238,7 +257,10 @@ export default function HomePage() {
       </section>
       )}
 
-      {/* ─── 6. Blog & Actualités ──────────────────── */}
+      {/* ─── 8. Programme pilote — écoles, universités, entreprises ─── */}
+      <PilotBanner locale={locale} />
+
+      {/* ─── 9. Blog & Actualités ──────────────────── */}
       <section id="actualites" className="py-24 bg-white">
         <div className="container-max">
           <SectionHeader

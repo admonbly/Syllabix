@@ -147,6 +147,14 @@ service cloud.firestore {
       allow write: if false; // écriture via /api/admin/testimonials/* (Admin SDK)
     }
 
+    // ─── Collection : partnershipRequests ───────────────────────────
+    // Demandes de partenariat déposées depuis /partenariats.
+    // Aucun accès client : l'écriture passe par /api/partnership/request
+    // (Admin SDK), la lecture par /api/admin/partnership/list.
+    match /partnershipRequests/{requestId} {
+      allow read, write: if false;
+    }
+
     // ─── Collection : newsletter ─────────────────────────────────────
     match /newsletter/{docId} {
       allow create: if request.resource.data.keys().hasOnly(['email', 'subscribedAt'])

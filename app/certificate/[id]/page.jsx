@@ -10,6 +10,7 @@ import { auth, userDB } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 import { PARTNERS_ON_CERTIFICATE } from '@/lib/partners';
+import { PIX_DOMAINS, PIX_COMPETENCIES } from '@/lib/pixMapping';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import { getModuleName } from '@/lib/moduleNames';
 
@@ -326,23 +327,38 @@ export default function CertificatePage() {
                 <p className="text-[10px] uppercase tracking-wider text-neutral-400 mt-1">La Direction de la Certification</p>
               </div>
 
+              {/* Référentiel évalué — le certificat dit ce qui a été mesuré.
+                  Il portait auparavant des logos ministériels sans qu'aucun
+                  partenariat n'existe : ils ont été retirés (lib/partners.js).
+                  Ce bloc réapparaîtra avec de vrais logos si un accord est signé. */}
               <div className="text-right">
                 <p className="text-[8px] font-semibold uppercase text-neutral-400 mb-1.5" style={{ letterSpacing: '0.2em' }}>
-                  Partenaires institutionnels
+                  Référentiel évalué
                 </p>
-                <div className="flex items-center justify-end gap-4 flex-wrap">
-                  {PARTNERS_ON_CERTIFICATE.map((partner) => (
-                    <div key={partner.id} className="relative" style={{ width: 52, height: 30 }}>
-                      <Image
-                        src={partner.logo}
-                        alt={partner.shortName}
-                        fill
-                        className="object-contain"
-                        sizes="52px"
-                      />
-                    </div>
-                  ))}
-                </div>
+                {PARTNERS_ON_CERTIFICATE.length > 0 ? (
+                  <div className="flex items-center justify-end gap-4 flex-wrap">
+                    {PARTNERS_ON_CERTIFICATE.map((partner) => (
+                      <div key={partner.id} className="relative" style={{ width: 52, height: 30 }}>
+                        <Image
+                          src={partner.logo}
+                          alt={partner.shortName}
+                          fill
+                          className="object-contain"
+                          sizes="52px"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-[13px] font-bold text-primary leading-tight">
+                      {PIX_DOMAINS.length} domaines · {PIX_COMPETENCIES.length} compétences
+                    </p>
+                    <p className="text-[8px] text-neutral-400 mt-0.5 max-w-[190px] ml-auto leading-snug">
+                      Cadre de référence des compétences numériques
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
