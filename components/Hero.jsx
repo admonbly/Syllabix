@@ -19,9 +19,9 @@ const moduleProgress = [
  * pas mesurée : la plateforme est en lancement.
  */
 const heroStats = [
-  { value: 7,  suffix: '',  label: 'Modules' },
-  { value: 16, suffix: '',  label: 'Compétences' },
-  { value: 5,  suffix: '',  label: 'Domaines' },
+  { value: 7,  suffix: '',      label: 'Modules' },
+  { value: 21, suffix: '',      label: 'Compétences' },
+  { value: 45, suffix: ' min',  label: 'Évaluation' },
 ];
 
 export default function Hero({ title, subtitle, cta }) {
@@ -45,7 +45,7 @@ export default function Hero({ title, subtitle, cta }) {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 border border-accent/25 mb-8 anim-fade-in delay-0">
               <span className="w-2 h-2 rounded-full bg-accent" style={{animation:'pulse-dot 1.4s ease-in-out infinite'}} />
               <span className="text-accent text-xs font-display font-semibold tracking-widest uppercase">
-                Référentiel de 5 domaines et 16 compétences
+                7 modules · épreuves pratiques sur de vrais fichiers
               </span>
             </div>
 

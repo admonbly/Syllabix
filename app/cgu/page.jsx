@@ -126,8 +126,8 @@ export default function CGUPage() {
           <Section number="5" title="Certification — règles et validité">
             <p>
               Les certifications Syllabix attestent de la maîtrise des compétences numériques évaluées
-              à la date de l'examen. Le référentiel d'évaluation couvre 5 domaines et 16 compétences,
-              aligné sur les cadres de référence internationaux des compétences numériques.
+              à la date de l'examen. L'évaluation couvre 7 modules de compétences numériques,
+              comprenant des questions et des épreuves pratiques.
             </p>
             <p>
               <strong>Les certificats Syllabix ne constituent pas un diplôme d'État</strong> au sens

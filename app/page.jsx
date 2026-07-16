@@ -15,7 +15,6 @@ import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { TESTIMONIALS_SEED } from '@/lib/testimonialsSeed';
-import ReferentielSection from '@/components/home/ReferentielSection';
 import PracticalSection from '@/components/home/PracticalSection';
 import PilotBanner from '@/components/home/PilotBanner';
 
@@ -32,8 +31,8 @@ const STEP_ICONS   = [BookOpen, Target, Zap];
  */
 const bigStats = [
   { value: 7,  suffix: '' },
-  { value: 5,  suffix: '' },
-  { value: 16, suffix: '' },
+  { value: 21, suffix: '' },
+  { value: 32, suffix: '' },
   { value: 45, suffix: ' min' },
 ];
 
@@ -82,7 +81,7 @@ export default function HomePage() {
     { number: '03', icon: STEP_ICONS[2], title: h('howItWorks.step3.title'), desc: h('howItWorks.step3.desc') },
   ];
 
-  const statLabels = [h('stats.modules'), h('stats.domains'), h('stats.competencies'), h('stats.duration')];
+  const statLabels = [h('stats.modules'), h('stats.competencies'), h('stats.questions'), h('stats.duration')];
 
   // Témoignages : source de vérité = Firestore, repli sur le code si injoignable.
   // Le repli est vide tant qu'aucun témoignage RÉEL n'existe — dans ce cas la
@@ -118,15 +117,7 @@ export default function HomePage() {
         subtitle={h('hero.subtitle')}
       />
 
-      {/* ─── 2. Le référentiel — ce qui est réellement évalué ─── */}
-      <ReferentielSection
-        locale={locale}
-        tag={h('referentiel.tag')}
-        title={h('referentiel.title')}
-        subtitle={h('referentiel.subtitle')}
-      />
-
-      {/* ─── 3. Comment ça marche ──────────────────── */}
+      {/* ─── 2. Comment ça marche ──────────────────── */}
       <section className="py-24 bg-white">
         <div className="container-max">
           <SectionHeader

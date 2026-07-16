@@ -24,12 +24,12 @@ export default function PartenariatsPage() {
     ? [
         { icon: KeyRound,        title: 'Un code d\'accès pour vos membres', desc: 'Vous recevez un code à diffuser. Chaque membre le saisit depuis son compte et se rattache à votre organisation — vous n\'avez aucun compte à créer.' },
         { icon: LayoutDashboard, title: 'Un tableau de bord de suivi',       desc: 'Suivez la progression de chaque membre, comparez vos classes, filières ou directions, et repérez celles qui décrochent. Export des données inclus.' },
-        { icon: Target,          title: 'Un reporting par compétence',       desc: 'Les résultats sont restitués sur les 5 domaines et 16 compétences du référentiel : vous savez précisément où porter l\'effort de formation.' },
+        { icon: Target,          title: 'Un reporting par compétence',       desc: 'Les résultats sont restitués module par module et compétence par compétence : vous savez précisément où porter l\'effort de formation.' },
       ]
     : [
         { icon: KeyRound,        title: 'An access code for your members', desc: 'You receive a code to share. Each member enters it from their account and joins your organisation — you have no accounts to create.' },
         { icon: LayoutDashboard, title: 'A progress dashboard',            desc: 'Follow each member\'s progress, compare your classes, programmes or departments, and spot those falling behind. Data export included.' },
-        { icon: Target,          title: 'Competency-level reporting',      desc: 'Results are reported across the 5 domains and 16 competencies of the framework: you know exactly where to focus training.' },
+        { icon: Target,          title: 'Competency-level reporting',      desc: 'Results are reported module by module and competency by competency: you know exactly where to focus training.' },
       ];
 
   const audiences = [
@@ -62,8 +62,8 @@ export default function PartenariatsPage() {
             </h2>
             <p className="text-neutral-600 leading-relaxed max-w-3xl">
               {isFr
-                ? 'Nous ne revendiquons aucune reconnaissance officielle : aucun partenariat institutionnel n\'est signé à ce jour, et nous l\'annoncerons ici dès que ce sera le cas. Ce que nous proposons aujourd\'hui : un référentiel sérieux de 5 domaines et 16 compétences, des épreuves pratiques sur de vrais fichiers, et un outil de suivi pour votre organisation. Les premiers partenaires façonnent le produit avec nous.'
-                : 'We claim no official recognition: no institutional partnership is signed to date, and we will announce it here as soon as one is. What we offer today: a serious framework of 5 domains and 16 competencies, hands-on tasks on real files, and a tracking tool for your organisation. Our first partners shape the product with us.'}
+                ? 'Nous ne revendiquons aucune reconnaissance officielle : aucun partenariat institutionnel n\'est signé à ce jour, et nous l\'annoncerons ici dès que ce sera le cas. Ce que nous proposons aujourd\'hui : 7 modules de compétences numériques, des épreuves pratiques sur de vrais fichiers, et un outil de suivi pour votre organisation. Les premiers partenaires façonnent le produit avec nous.'
+                : 'We claim no official recognition: no institutional partnership is signed to date, and we will announce it here as soon as one is. What we offer today: 7 digital-skills modules, hands-on tasks on real files, and a tracking tool for your organisation. Our first partners shape the product with us.'}
             </p>
           </div>
         </Reveal>

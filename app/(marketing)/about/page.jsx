@@ -7,8 +7,8 @@ import { useLanguage } from '@/lib/LanguageContext';
 // Chiffres STRUCTURELS uniquement — vrais par construction. Les métriques
 // d'usage (apprenants, satisfaction, pays) étaient inventées : la plateforme
 // est en lancement. Elles reviendront quand elles seront mesurées.
-const STAT_VALUES = ['7', '5', '16', '1h45'];
-const STAT_ICONS  = ['📚', '🗂️', '🎯', '⏱️'];
+const STAT_VALUES = ['7', '21', '32', '1h45'];
+const STAT_ICONS  = ['📚', '🎯', '📝', '⏱️'];
 
 export default function AboutPage() {
   const { t } = useLanguage();
@@ -16,8 +16,8 @@ export default function AboutPage() {
 
   const STATS = [
     { value: STAT_VALUES[0], label: ab('stats.modules'),      icon: STAT_ICONS[0] },
-    { value: STAT_VALUES[1], label: ab('stats.domains'),      icon: STAT_ICONS[1] },
-    { value: STAT_VALUES[2], label: ab('stats.competencies'), icon: STAT_ICONS[2] },
+    { value: STAT_VALUES[1], label: ab('stats.competencies'), icon: STAT_ICONS[1] },
+    { value: STAT_VALUES[2], label: ab('stats.questions'),    icon: STAT_ICONS[2] },
     { value: STAT_VALUES[3], label: ab('stats.duration'),     icon: STAT_ICONS[3] },
   ];
 
