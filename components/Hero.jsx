@@ -13,10 +13,15 @@ const moduleProgress = [
   { label: 'Employabilité',           done: false },
 ];
 
+/**
+ * Chiffres STRUCTURELS uniquement — vrais par construction, vérifiables dans le
+ * produit. Aucune métrique d'usage (apprenants, satisfaction) tant qu'elle n'est
+ * pas mesurée : la plateforme est en lancement.
+ */
 const heroStats = [
-  { value: 5000, suffix: '+',   label: 'Apprenants' },
-  { value: 7,    suffix: '',    label: 'Modules' },
-  { value: 98,   suffix: '%',   label: 'Satisfaction' },
+  { value: 7,  suffix: '',  label: 'Modules' },
+  { value: 16, suffix: '',  label: 'Compétences' },
+  { value: 5,  suffix: '',  label: 'Domaines' },
 ];
 
 export default function Hero({ title, subtitle, cta }) {
@@ -40,7 +45,7 @@ export default function Hero({ title, subtitle, cta }) {
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/15 border border-accent/25 mb-8 anim-fade-in delay-0">
               <span className="w-2 h-2 rounded-full bg-accent" style={{animation:'pulse-dot 1.4s ease-in-out infinite'}} />
               <span className="text-accent text-xs font-display font-semibold tracking-widest uppercase">
-                Plateforme leader en Afrique
+                Référentiel de 5 domaines et 16 compétences
               </span>
             </div>
 

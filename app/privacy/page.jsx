@@ -124,9 +124,10 @@ export default function PrivacyPage() {
                 sur les nouveaux modules ou ressources ;
               </li>
               <li>
-                <strong>Statistiques partenariales :</strong> partage de données <em>agrégées et
-                anonymisées</em> avec nos partenaires institutionnels (ministères, agences) à des
-                fins de politique publique numérique — aucune donnée individuelle n'est transmise.
+                <strong>Suivi par votre organisation :</strong> si vous rejoignez une école, une
+                université ou une entreprise en saisissant son code d'accès, celle-ci accède à votre
+                progression et à vos certifications. Ce rattachement est à votre initiative et vous
+                pouvez le retirer à tout moment depuis votre tableau de bord.
               </li>
             </ul>
           </Section>
@@ -194,8 +195,9 @@ export default function PrivacyPage() {
             </ul>
             <p>
               <strong>Aucune donnée personnelle n'est vendue, louée ou cédée à des tiers
-              commerciaux.</strong> Nos partenaires institutionnels (ministères, agences)
-              ne reçoivent que des statistiques agrégées et anonymisées.
+              commerciaux.</strong> Seule l'organisation que vous avez vous-même rejointe, en
+              saisissant son code d'accès, accède à votre progression — et uniquement tant que
+              vous y restez rattaché.
             </p>
           </Section>
 

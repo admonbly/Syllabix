@@ -21,11 +21,17 @@ const MODULE_ICONS = [Monitor, Globe, Mail, FileText, ShieldCheck, Bot, Briefcas
 const MODULE_KEYS  = ['it', 'internet', 'email', 'bureautique', 'cybersec', 'ai', 'emploi'];
 const STEP_ICONS   = [BookOpen, Target, Zap];
 
+/**
+ * Chiffres STRUCTURELS uniquement (vrais par construction). Les métriques
+ * d'usage — nombre d'apprenants, taux de satisfaction — étaient inventées :
+ * elles reviendront quand elles seront réellement mesurées.
+ * La durée d'évaluation suit lib/examService.js (EVALUATION.DURATION = 45 min).
+ */
 const bigStats = [
-  { value: 5000, suffix: '+' },
-  { value: 7,    suffix: '' },
-  { value: 30,   suffix: ' min' },
-  { value: 98,   suffix: '%' },
+  { value: 7,  suffix: '' },
+  { value: 5,  suffix: '' },
+  { value: 16, suffix: '' },
+  { value: 45, suffix: ' min' },
 ];
 
 const blogPosts = [
@@ -73,10 +79,11 @@ export default function HomePage() {
     { number: '03', icon: STEP_ICONS[2], title: h('howItWorks.step3.title'), desc: h('howItWorks.step3.desc') },
   ];
 
-  const statLabels = [h('stats.learners'), h('stats.modules'), h('stats.duration'), h('stats.satisfaction')];
+  const statLabels = [h('stats.modules'), h('stats.domains'), h('stats.competencies'), h('stats.duration')];
 
-  // Témoignages : source de vérité = Firestore, repli sur le code si vide/injoignable
-  // (la section ne doit jamais s'afficher vide).
+  // Témoignages : source de vérité = Firestore, repli sur le code si injoignable.
+  // Le repli est vide tant qu'aucun témoignage RÉEL n'existe — dans ce cas la
+  // section entière est masquée plutôt que de montrer des personnes inventées.
   const [testimonials, setTestimonials] = useState(TESTIMONIALS_SEED);
 
   useEffect(() => {
@@ -196,7 +203,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── 5. Témoignages ────────────────────────── */}
+      {/* ─── 5. Témoignages — masqués tant qu'il n'en existe aucun de réel ── */}
+      {testimonials.length > 0 && (
       <section className="py-24 bg-surface-warm">
         <div className="container-max">
           <SectionHeader
@@ -228,6 +236,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ─── 6. Blog & Actualités ──────────────────── */}
       <section id="actualites" className="py-24 bg-white">

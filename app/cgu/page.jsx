@@ -44,7 +44,7 @@ export default function CGUPage() {
             </p>
             <p>
               Syllabix est une plateforme EdTech proposant : des modules d'entraînement aux compétences
-              numériques, des examens d'évaluation, des certifications officielles, et un blog de
+              numériques, des examens d'évaluation, des certifications Syllabix, et un blog de
               ressources pédagogiques.
             </p>
           </Section>
@@ -126,11 +126,8 @@ export default function CGUPage() {
           <Section number="5" title="Certification — règles et validité">
             <p>
               Les certifications Syllabix attestent de la maîtrise des compétences numériques évaluées
-              à la date de l'examen. Elles sont co-reconnues par les partenaires institutionnels de
-              Syllabix, dont le Ministère de l'Éducation Nationale et de l'Alphabétisation (MENA),
-              le Ministère de l'Enseignement Supérieur et de la Recherche Scientifique (MESRS),
-              le Ministère de la Transition Numérique et de la Digitalisation, et l'Agence Emploi
-              Jeunes de Côte d'Ivoire.
+              à la date de l'examen. Le référentiel d'évaluation couvre 5 domaines et 16 compétences,
+              aligné sur les cadres de référence internationaux des compétences numériques.
             </p>
             <p>
               <strong>Les certificats Syllabix ne constituent pas un diplôme d'État</strong> au sens
@@ -203,9 +200,10 @@ export default function CGUPage() {
               statistiques et de politique publique, sans jamais identifier personnellement un utilisateur.
             </p>
             <p>
-              Les partenaires institutionnels n'ont pas accès aux données personnelles des utilisateurs
-              individuels. Leurs logos figurent sur les certificats Syllabix en signe de reconnaissance
-              institutionnelle.
+              Lorsque vous rejoignez une organisation (école, université, entreprise) en saisissant
+              son code d'accès, celle-ci accède à votre progression et à vos certifications. Vous
+              pouvez quitter cette organisation à tout moment depuis votre tableau de bord : elle
+              perd alors immédiatement tout accès à vos données.
             </p>
           </Section>
 

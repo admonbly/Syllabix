@@ -4,18 +4,21 @@ import Link from 'next/link';
 import CTAButton from '@/components/CTAButton';
 import { useLanguage } from '@/lib/LanguageContext';
 
-const STAT_VALUES = ['5 000+', '7', '98%', '12+'];
-const STAT_ICONS  = ['👥', '📚', '⭐', '🌍'];
+// Chiffres STRUCTURELS uniquement — vrais par construction. Les métriques
+// d'usage (apprenants, satisfaction, pays) étaient inventées : la plateforme
+// est en lancement. Elles reviendront quand elles seront mesurées.
+const STAT_VALUES = ['7', '5', '16', '1h45'];
+const STAT_ICONS  = ['📚', '🗂️', '🎯', '⏱️'];
 
 export default function AboutPage() {
   const { t } = useLanguage();
   const ab = (k) => t(`about.${k}`);
 
   const STATS = [
-    { value: STAT_VALUES[0], label: ab('stats.learners'),     icon: STAT_ICONS[0] },
-    { value: STAT_VALUES[1], label: ab('stats.modules'),      icon: STAT_ICONS[1] },
-    { value: STAT_VALUES[2], label: ab('stats.satisfaction'), icon: STAT_ICONS[2] },
-    { value: STAT_VALUES[3], label: ab('stats.countries'),    icon: STAT_ICONS[3] },
+    { value: STAT_VALUES[0], label: ab('stats.modules'),      icon: STAT_ICONS[0] },
+    { value: STAT_VALUES[1], label: ab('stats.domains'),      icon: STAT_ICONS[1] },
+    { value: STAT_VALUES[2], label: ab('stats.competencies'), icon: STAT_ICONS[2] },
+    { value: STAT_VALUES[3], label: ab('stats.duration'),     icon: STAT_ICONS[3] },
   ];
 
   const TEAM        = ab('team.members');

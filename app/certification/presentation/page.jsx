@@ -133,7 +133,7 @@ export default function PresentationPage() {
             7 modules pour maîtriser<br />les compétences numériques
           </h1>
           <p className="text-white/70 text-lg max-w-2xl mx-auto mb-10">
-            Une certification concrète, vérifiable, reconnue — pensée pour les professionnels et étudiants africains.
+            Une certification concrète et vérifiable en ligne — pensée pour les professionnels et étudiants africains.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
             <CTAButton href="/training/mixed" variant="white">

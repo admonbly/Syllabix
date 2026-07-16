@@ -121,7 +121,7 @@ export async function POST(request) {
           </table>
 
           <p style="color:#555;font-size:15px;margin:0 0 24px;">
-            Votre certificat officiel est disponible en ligne. Vous pouvez le partager sur LinkedIn ou l'imprimer.
+            Votre certificat Syllabix est disponible en ligne. Vous pouvez le partager sur LinkedIn ou le télécharger.
           </p>
 
           <!-- CTA -->
