@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { authFunctions, auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
+import { checkPassword, passwordScore, isPasswordStrong } from '@/lib/passwordPolicy';
 
 const DIAL_CODES = [
   { code: '+225', flag: '🇨🇮' },
@@ -41,7 +42,7 @@ function calculateAge(dateOfBirth) {
 
 export default function SignupPage() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const s = (k) => t(`signup.${k}`);
 
   useEffect(() => {
@@ -69,6 +70,10 @@ export default function SignupPage() {
   const age = dateOfBirth ? calculateAge(dateOfBirth) : null;
   const needsParentalConsent = age !== null && age >= 13 && age < 15;
   const tooYoung = age !== null && age < 13;
+
+  // Politique de mot de passe (12 car., maj., min., chiffre, spécial)
+  const pwChecks = checkPassword(password);
+  const pwScore = passwordScore(password);
 
   const handleGoogleSignup = async () => {
     setError('');
@@ -98,7 +103,7 @@ export default function SignupPage() {
     if (tooYoung)          { setError(s('validation.tooYoung'));   return; }
     if (needsParentalConsent && !parentalConsent) { setError(s('validation.parental')); return; }
     if (password !== confirmPassword) { setError(s('validation.pwMismatch')); return; }
-    if (password.length < 6)          { setError(s('validation.pwTooShort')); return; }
+    if (!isPasswordStrong(password))  { setError(s('validation.pwWeak')); return; }
 
     setIsLoading(true);
 
@@ -391,23 +396,22 @@ export default function SignupPage() {
               {password.length > 0 && (
                 <div className="mt-2 space-y-1.5">
                   <div className="flex gap-1 h-1.5">
-                    {[1,2,3,4].map((level) => (
-                      <div key={level} className={`flex-1 rounded-full transition-all ${
-                        (password.length >= 6 && level <= 1) ||
-                        (password.length >= 8 && /[A-Z]/.test(password) && level <= 2) ||
-                        (password.length >= 8 && /[A-Z]/.test(password) && /[0-9]/.test(password) && level <= 3) ||
-                        (password.length >= 10 && /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password) && level <= 4)
-                          ? level <= 1 ? 'bg-red-400' : level <= 2 ? 'bg-orange-400' : level <= 3 ? 'bg-yellow-400' : 'bg-green-500'
+                    {[0,1,2,3,4].map((i) => (
+                      <div key={i} className={`flex-1 rounded-full transition-all ${
+                        i < pwScore
+                          ? pwScore <= 2 ? 'bg-red-400' : pwScore <= 4 ? 'bg-yellow-400' : 'bg-green-500'
                           : 'bg-neutral-200'
                       }`} />
                     ))}
                   </div>
-                  <p className="text-xs text-neutral-500">
-                    {password.length < 6 ? s('pwStrength.tooShort') :
-                     password.length < 8 ? s('pwStrength.weak') :
-                     /[A-Z]/.test(password) && /[0-9]/.test(password) && /[^a-zA-Z0-9]/.test(password) ? s('pwStrength.strong') :
-                     s('pwStrength.ok')}
-                  </p>
+                  <ul className="space-y-0.5 mt-1.5">
+                    {pwChecks.map((c) => (
+                      <li key={c.id} className={`text-xs flex items-center gap-1.5 ${c.ok ? 'text-secondary' : 'text-neutral-400'}`}>
+                        <span aria-hidden="true">{c.ok ? '✓' : '○'}</span>
+                        {locale === 'en' ? c.en : c.fr}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>

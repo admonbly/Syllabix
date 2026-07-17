@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, ChevronRight, LayoutDashboard, LogOut, User, Globe, Accessibility, Building2, GraduationCap } from 'lucide-react';
+import { Menu, X, ChevronRight, LayoutDashboard, LogOut, User, Globe, Accessibility, Building2, GraduationCap, ShieldCheck } from 'lucide-react';
 import { auth, authFunctions } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
@@ -9,7 +9,7 @@ import { useA11y } from '@/lib/AccessibilityContext';
 import { useOrgRole } from '@/lib/useOrgRole';
 
 export default function Header() {
-  const { isOrgAdmin, orgType } = useOrgRole();
+  const { isOrgAdmin, orgType, isPlatformAdmin } = useOrgRole();
   const [open,        setOpen]        = useState(false);
   const [scrolled,    setScrolled]    = useState(false);
   const [user,        setUser]        = useState(null);
@@ -256,6 +256,13 @@ export default function Header() {
                     <p className="text-xs text-neutral-400 mb-0.5">{t('nav.loggedAs')}</p>
                     <p className="text-sm font-semibold text-primary truncate">{user.email}</p>
                   </div>
+                  {/* Admin plateforme */}
+                  {isPlatformAdmin && (
+                    <Link href="/admin/organizations" onClick={() => setDropOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-accent hover:bg-accent/5 transition-colors">
+                      <ShieldCheck className="w-4 h-4" /> Administration
+                    </Link>
+                  )}
                   {/* Un ORG_ADMIN est aussi un apprenant : il accède aux deux espaces */}
                   {isOrgAdmin && (
                     <Link href="/org" onClick={() => setDropOpen(false)}
@@ -340,6 +347,12 @@ export default function Header() {
           <div className="pt-2 pb-1 space-y-2">
             {user ? (
               <>
+                {isPlatformAdmin && (
+                  <Link href="/admin/organizations" onClick={() => setOpen(false)}
+                    className="flex items-center justify-center gap-2 px-5 py-3 border-2 border-accent text-accent font-display font-semibold rounded-xl text-sm hover:bg-accent/5 transition-colors">
+                    <ShieldCheck className="w-4 h-4" /> Administration
+                  </Link>
+                )}
                 {isOrgAdmin && (
                   <Link href="/org" onClick={() => setOpen(false)}
                     className="flex items-center justify-center gap-2 px-5 py-3 bg-accent text-white font-display font-semibold rounded-xl text-sm hover:bg-accent-dark transition-colors">
