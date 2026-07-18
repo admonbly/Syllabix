@@ -19,9 +19,10 @@ const moduleProgress = [
  * pas mesurée : la plateforme est en lancement.
  */
 const heroStats = [
-  { value: 7,  suffix: '',    label: 'Modules' },
-  { value: 21, suffix: '',    label: 'Compétences' },
-  { display: '1h45',          label: 'Certification' },
+  { value: 7,  suffix: '', label: 'Modules' },
+  { value: 21, suffix: '', label: 'Compétences' },
+  { value: 32, suffix: '', label: 'Questions' },
+  { display: '1h45',       label: 'Durée' },
 ];
 
 export default function Hero({ title, subtitle, cta }) {
@@ -82,7 +83,7 @@ export default function Hero({ title, subtitle, cta }) {
             </div>
 
             {/* Stats row — animated counters */}
-            <div className="grid grid-cols-3 gap-6 pt-8 border-t border-white/10 anim-fade-up delay-400">
+            <div className="grid grid-cols-4 gap-5 pt-8 border-t border-white/10 anim-fade-up delay-400">
               {heroStats.map((s) => (
                 <div key={s.label}>
                   <p className="text-2xl sm:text-3xl font-display font-extrabold text-white">
