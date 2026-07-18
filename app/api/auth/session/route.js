@@ -2,14 +2,21 @@ import { NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
 
-const SESSION_TIMEOUT_S = 3 * 60 * 60; // 3h en secondes
+const SESSION_TIMEOUT_S = 3 * 60 * 60;      // 3h d'inactivité (horloge métier)
+const COOKIE_MAX_AGE_S  = 30 * 24 * 60 * 60; // rétention navigateur : 30 jours
 
+// Le cookie DOIT survivre au-delà des 3h d'inactivité, sinon le navigateur
+// l'efface tout seul et le middleware ne peut plus distinguer « session expirée
+// par inactivité » (→ vraie déconnexion) de « jamais connecté » (→ login muet
+// qui laisserait Firebase re-créer la session indéfiniment). L'expiration réelle
+// est portée par la valeur signée (exp) et par syllabix_last_activity, pas par
+// la durée de vie du cookie.
 const COOKIE_BASE = {
   path: '/',
   sameSite: 'strict',
   secure: true,
   httpOnly: true,
-  maxAge: SESSION_TIMEOUT_S,
+  maxAge: COOKIE_MAX_AGE_S,
 };
 
 /**

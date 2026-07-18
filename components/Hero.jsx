@@ -19,9 +19,9 @@ const moduleProgress = [
  * pas mesurée : la plateforme est en lancement.
  */
 const heroStats = [
-  { value: 7,  suffix: '',      label: 'Modules' },
-  { value: 21, suffix: '',      label: 'Compétences' },
-  { value: 45, suffix: ' min',  label: 'Évaluation' },
+  { value: 7,  suffix: '',    label: 'Modules' },
+  { value: 21, suffix: '',    label: 'Compétences' },
+  { display: '1h45',          label: 'Certification' },
 ];
 
 export default function Hero({ title, subtitle, cta }) {
@@ -86,7 +86,9 @@ export default function Hero({ title, subtitle, cta }) {
               {heroStats.map((s) => (
                 <div key={s.label}>
                   <p className="text-2xl sm:text-3xl font-display font-extrabold text-white">
-                    <CountUp value={s.value} suffix={s.suffix} duration={2400} />
+                    {s.display
+                      ? s.display
+                      : <CountUp value={s.value} suffix={s.suffix} duration={2400} />}
                   </p>
                   <p className="text-xs text-white/40 mt-0.5 uppercase tracking-widest">{s.label}</p>
                 </div>

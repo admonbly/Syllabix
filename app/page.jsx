@@ -27,13 +27,13 @@ const STEP_ICONS   = [BookOpen, Target, Zap];
  * Chiffres STRUCTURELS uniquement (vrais par construction). Les métriques
  * d'usage — nombre d'apprenants, taux de satisfaction — étaient inventées :
  * elles reviendront quand elles seront réellement mesurées.
- * La durée d'évaluation suit lib/examService.js (EVALUATION.DURATION = 45 min).
+ * La durée suit lib/examService.js (CERTIFICATION.DURATION = 1h45, 32 questions).
  */
 const bigStats = [
   { value: 7,  suffix: '' },
   { value: 21, suffix: '' },
   { value: 32, suffix: '' },
-  { value: 45, suffix: ' min' },
+  { display: '1h45' },
 ];
 
 const blogPosts = [
@@ -204,7 +204,9 @@ export default function HomePage() {
             {bigStats.map((s, i) => (
               <Reveal key={i} direction="scale" delay={i * 90} className="text-center">
                 <p className="text-4xl sm:text-5xl font-display font-extrabold text-white mb-2">
-                  <CountUp value={s.value} suffix={s.suffix} duration={2100} />
+                  {s.display
+                    ? s.display
+                    : <CountUp value={s.value} suffix={s.suffix} duration={2100} />}
                 </p>
                 <p className="text-white/45 text-xs uppercase tracking-widest">{statLabels[i]}</p>
               </Reveal>
