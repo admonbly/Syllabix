@@ -3,13 +3,14 @@
 import TrainingQuizComponent from '@/components/TrainingQuizComponent';
 import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
+import { EXAM_CONFIG } from '@/lib/examService';
 
 /**
  * Page d'entraînement mixte
- * 5 questions mélangées de tous les modules
- * 10 minutes
+ * Questions mélangées de tous les modules (voir EXAM_CONFIG.TRAINING)
  */
 export default function TrainingMixedPage() {
+  const count = EXAM_CONFIG.TRAINING.SESSION_SIZE;
   return (
     <section className="py-20 bg-neutral-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-4">
@@ -22,7 +23,7 @@ export default function TrainingMixedPage() {
             🎯 Test Rapide Global
           </h1>
           <p className="text-lg text-neutral-600">
-            5 questions aléatoires de tous les modules mélangés
+            {count} questions aléatoires de tous les modules mélangés
           </p>
         </div>
 
@@ -30,11 +31,11 @@ export default function TrainingMixedPage() {
         <Card className="mb-12 bg-green-50 border-l-4 border-green-500 p-6">
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
-              <p className="text-2xl font-bold text-primary">5</p>
+              <p className="text-2xl font-bold text-primary">{count}</p>
               <p className="text-sm text-neutral-600">Questions</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-primary">10 min</p>
+              <p className="text-2xl font-bold text-primary">~15 min</p>
               <p className="text-sm text-neutral-600">Durée</p>
             </div>
             <div>

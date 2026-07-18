@@ -133,11 +133,13 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     }
   };
 
-  // Choix unique : un clic répond et enchaîne (verrouillé ensuite)
+  // Choix unique : un clic répond et enchaîne après un court délai. On
+  // n'enchaîne qu'UNE fois, mais l'utilisateur peut changer son choix pendant
+  // ce délai (la dernière option cliquée est conservée) — rien n'est verrouillé.
   const handleSingleAnswer = (value) => {
-    if (hasAnswerValue(answers[currentQuestion])) return;
+    const already = hasAnswerValue(answers[currentQuestion]);
     setAnswers((prev) => ({ ...prev, [currentQuestion]: value }));
-    advance(value);
+    if (!already) advance(value);
   };
 
   const toggleFlag = (idx) => {
@@ -450,15 +452,16 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             <div className="space-y-3">
               {(question.options ?? []).map((option, index) => {
                 const isSel = answers[currentQuestion] === option;
-                let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
-                if (answered) {
-                  style = isSel ? 'border-accent bg-accent/10' : 'border-neutral-100 opacity-40';
-                }
+                // Pas de grisage ni de verrouillage : l'option choisie est
+                // simplement mise en évidence, les autres restent lisibles et
+                // cliquables (on peut changer d'avis avant l'enchaînement).
+                const style = isSel
+                  ? 'border-accent bg-accent/10 text-accent'
+                  : 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
                 return (
                   <button
                     key={index}
                     onClick={() => handleSingleAnswer(option)}
-                    disabled={answered}
                     className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
                   >
                     <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
