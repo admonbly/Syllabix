@@ -6,7 +6,8 @@ import CTAButton from '@/components/CTAButton';
 import { shuffleArray, randomizeAnswerOptions, EXAM_CONFIG } from '@/lib/examService';
 import { getModuleById, getAllQuestions } from '@/lib/quizService';
 import { useLanguage } from '@/lib/LanguageContext';
-import { auth, userDB } from '@/lib/firebase';
+import { auth, userDB, authFunctions } from '@/lib/firebase';
+import Link from 'next/link';
 
 const DIFFICULTY_UI = {
   1: { fr: 'Facile',    en: 'Easy',   cls: 'bg-green-100 text-green-700',   dotCls: 'bg-green-500' },
@@ -315,7 +316,7 @@ const ADAPTIVE_STREAK_UP   = 2;
 const ADAPTIVE_STREAK_DOWN = 2;
 const SESSION_SIZE         = EXAM_CONFIG.TRAINING.SESSION_SIZE;
 
-export default function TrainingQuizComponent({ mode = 'module', moduleId = null }) {
+export default function TrainingQuizComponent({ mode = 'module', moduleId = null, challenge = false }) {
   const { locale, t } = useLanguage();
   const q = (k) => t(`quiz.${k}`);
 
@@ -356,6 +357,12 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   // ── Chargement initial : tout le pool en un seul appel Firestore ───────────
   useEffect(() => {
     const load = async () => {
+      // Défi public : ouvrir une session anonyme pour que le score/badge puisse
+      // être mémorisé et conservé lors de la création de compte (linking).
+      if (challenge) {
+        try { await authFunctions.ensureAnonymousSession(); }
+        catch (e) { console.error('anonymous session:', e); }
+      }
       let raw = [];
       if (mode === 'module' && moduleId != null) {
         const mod = await getModuleById(parseInt(moduleId));
@@ -635,7 +642,9 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                   {locale === 'fr' ? "Badge d'apprentissage obtenu !" : 'Learning badge earned!'}
                 </p>
                 <p className="text-xs text-amber-700">
-                  {locale === 'fr' ? 'Retrouve-le sur ton profil.' : 'Find it on your profile.'}
+                  {challenge
+                    ? (locale === 'fr' ? 'Crée ton compte gratuit pour le garder.' : 'Create your free account to keep it.')
+                    : (locale === 'fr' ? 'Retrouve-le sur ton profil.' : 'Find it on your profile.')}
                 </p>
               </div>
             </div>
@@ -701,10 +710,31 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
             </div>
           </Card>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <CTAButton onClick={restart} variant="primary" size="lg">{q('results.restart')}</CTAButton>
-            <CTAButton href="/training" variant="outline" size="lg">{q('previous')}</CTAButton>
-          </div>
+          {challenge ? (
+            <div className="rounded-2xl bg-primary p-6 sm:p-8 text-center text-white">
+              <h3 className="text-xl sm:text-2xl font-heading font-bold mb-2">
+                {locale === 'fr' ? 'Garde ton badge et va plus loin' : 'Keep your badge and go further'}
+              </h3>
+              <p className="text-white/75 text-sm mb-6 max-w-md mx-auto leading-relaxed">
+                {locale === 'fr'
+                  ? 'Crée ton compte gratuit pour conserver ton badge, suivre ta progression et passer la certification Syllabix.'
+                  : 'Create your free account to keep your badge, track your progress and take the Syllabix certification.'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link href="/auth/signup" className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-accent hover:bg-accent-dark text-white font-display font-semibold transition-colors min-h-[44px]">
+                  {locale === 'fr' ? 'Créer mon compte gratuit' : 'Create my free account'}
+                </Link>
+                <button onClick={restart} className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/30 text-white font-display font-semibold hover:bg-white/10 transition-colors min-h-[44px]">
+                  {locale === 'fr' ? 'Refaire le défi' : 'Retry the challenge'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <CTAButton onClick={restart} variant="primary" size="lg">{q('results.restart')}</CTAButton>
+              <CTAButton href="/training" variant="outline" size="lg">{q('previous')}</CTAButton>
+            </div>
+          )}
         </div>
       </section>
     );
