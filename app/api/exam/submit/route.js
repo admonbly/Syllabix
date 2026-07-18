@@ -129,6 +129,19 @@ export async function POST(request) {
           moduleName: MODULE_NAMES[Number(moduleId)] ?? `Module ${moduleId}`,
           score: percentage,
           earnedAt: issuedAt,
+          level: 'module',
+        }),
+      });
+    } else {
+      // Certification GLOBALE réussie → badge de niveau 'global' (cohérence des
+      // 3 niveaux). moduleId:null identifie le badge global.
+      await db.doc(`users/${uid}`).update({
+        badges: FieldValue.arrayUnion({
+          moduleId: null,
+          moduleName: 'Certification globale',
+          score: percentage,
+          earnedAt: issuedAt,
+          level: 'global',
         }),
       });
     }

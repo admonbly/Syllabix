@@ -327,6 +327,7 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
   const [answers,     setAnswers]     = useState({});
   const [showResults, setShowResults] = useState(false);
   const [loading,     setLoading]     = useState(true);
+  const [badgeEarned, setBadgeEarned] = useState(false); // badge d'apprentissage décroché
 
   // Adaptatif
   const [difficulty,  setDifficulty]  = useState(1);
@@ -429,10 +430,28 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
       total: scoreData.total,
       questionsCount: questions.length,
     });
+
+    // Badge d'apprentissage : uniquement pour un entraînement de module réussi.
+    // Le serveur re-vérifie le seuil et gère l'anti-doublon (meilleur score).
+    if (mode === 'module' && moduleId !== null) {
+      try {
+        const token = await user.getIdToken();
+        const res = await fetch('/api/training/badge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ moduleId: Number(moduleId), score: scoreData.percentage }),
+        });
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          if (data.awarded) setBadgeEarned(true);
+        }
+      } catch { /* le badge est un bonus — un échec réseau ne casse pas le résultat */ }
+    }
   };
 
   const restart = () => {
     setAnswers({}); setCurrentIdx(0); setShowResults(false); setShowReview(false);
+    setBadgeEarned(false);
     setDifficulty(1); setStreak(0); setWrongStreak(0);
     setSelectedMulti(new Set()); setInputVal('');
     setFlagged(new Set()); setShowIntro(true);
@@ -460,8 +479,8 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
                 <p className="text-xs text-neutral-500 mt-1">Questions</p>
               </div>
               <div className="bg-primary/10 rounded-xl p-4">
-                <p className="text-2xl font-bold text-primary">∞</p>
-                <p className="text-xs text-neutral-500 mt-1">Temps</p>
+                <p className="text-2xl font-bold text-primary">~15</p>
+                <p className="text-xs text-neutral-500 mt-1">Minutes</p>
               </div>
               <div className="bg-secondary/10 rounded-xl p-4">
                 <p className="text-2xl font-bold text-secondary">✅</p>
@@ -607,6 +626,20 @@ export default function TrainingQuizComponent({ mode = 'module', moduleId = null
             <h2 className="text-4xl font-heading font-bold text-primary mb-2">{q('results.title')}</h2>
             <p className="text-neutral-500">{q('results.train')}</p>
           </div>
+
+          {badgeEarned && (
+            <div className="mb-6 flex items-center gap-3 p-4 rounded-2xl border-2 border-amber-300/60 bg-amber-50">
+              <div className="w-11 h-11 rounded-full bg-amber-400 flex items-center justify-center text-xl flex-shrink-0">🏅</div>
+              <div>
+                <p className="font-heading font-bold text-amber-800 text-sm leading-tight">
+                  {locale === 'fr' ? "Badge d'apprentissage obtenu !" : 'Learning badge earned!'}
+                </p>
+                <p className="text-xs text-amber-700">
+                  {locale === 'fr' ? 'Retrouve-le sur ton profil.' : 'Find it on your profile.'}
+                </p>
+              </div>
+            </div>
+          )}
 
           <Card className="mb-6 text-center">
             <p className="text-6xl font-bold text-accent mb-2">{scoreData.percentage}%</p>
