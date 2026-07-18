@@ -56,7 +56,7 @@ et **publicité payante uniquement comme amplificateur** ponctuel de l'accroche.
 ### 3.1 L'entonnoir, en 4 temps
 
 ```
-1. ACCROCHE   Défi gratuit SANS COMPTE (« Teste ton niveau en 8 min »)
+1. ACCROCHE   Défi gratuit SANS COMPTE (« Teste ton niveau en 15 min »)
       ↓  résultat + envie de prouver
 2. CAPTURE    Voir le score détaillé / obtenir le badge → email (newsletter)
       ↓  contact récupéré (réactivable à vie)
@@ -70,9 +70,9 @@ apprenants). Ensuite la boucle 3→4→1 tourne d'elle-même.
 
 ### 3.2 Ce qu'on RÉUTILISE (déjà en place)
 
-- **Entraînement par module** : 5 questions, ~8 min, niveau adaptatif. C'est le
-  moteur du « défi ». (Durée et nombre de questions pourront être augmentés
-  ultérieurement — hors périmètre de ce spec.)
+- **Entraînement par module** : niveau adaptatif. C'est le moteur du « défi ».
+  **Passe à 10 questions / 15 min** (était 5 questions / ~8 min) dans le cadre de
+  ce lot.
 - Système de **badges par module** (données + affichage profil/dashboard/certif).
 - **Certificat** `/certificate/[id]`.
 - **Newsletter**, **articles de blog** (Mobile Money, cybersécurité PME, IA & emploi
@@ -83,7 +83,7 @@ apprenants). Ensuite la boucle 3→4→1 tourne d'elle-même.
 1. **Mode défi public** : exposer l'entraînement existant **sans authentification**
    (aujourd'hui il exige un compte). Point d'entrée sans friction.
 2. **Écran de résultat partageable** en fin de défi : score + comparaison
-   (« 3/5 — mieux que X% ») + appel à créer un compte (capture email / code promo).
+   (« 7/10 — mieux que X% ») + appel à créer un compte (capture email / code promo).
 3. **Pages publiques** de badge et de certificat, consultables **sans compte**,
    avec mention « Vérifié ✓ ».
 4. **Images d'aperçu dynamiques (Open Graph)** : quand on colle le lien sur
@@ -98,7 +98,7 @@ apprenants). Ensuite la boucle 3→4→1 tourne d'elle-même.
 
 | Niveau | Obtention | Récompense | Couleur |
 |---|---|---|---|
-| **Apprentissage** | Réussir un entraînement / défi (5 q.) | Badge seul | Neutre / bronze |
+| **Apprentissage** | Réussir un entraînement / défi (10 q. / 15 min) | Badge seul | Neutre / bronze |
 | **Certification module** | Valider la certification d'un module (1h45) | Badge **+ certificat** | Accent (orange) |
 | **Certification globale** | Valider les 7 modules (1h45) | Badge **+ certificat** | Primary (bleu) ou or |
 
@@ -106,7 +106,31 @@ Le badge d'apprentissage est **partageable** (carburant viral) mais visuellement
 « plus léger » que ceux de certification — le badge officiel garde toute sa valeur.
 Équilibre viralité / crédibilité.
 
-### 3.5 Badges maison, compatibles Open Badges
+### 3.5 Capture email et conservation de l'historique (anonyme → compte)
+
+**Capture email.** On capture le contact **à l'écran de résultat**, au pic de
+motivation : *« Tu as X/10 ! Pour garder ton badge et voir tes réponses détaillées
+→ crée ton compte gratuit. »* **Décision : création de compte en principal** (c'est
+ce qui construit la vraie base d'utilisateurs) ; créer le compte EST la capture
+d'email.
+
+**Conservation de l'historique — auth anonyme + linking Firebase.** Problème à
+résoudre : l'utilisateur fait le défi sans compte, puis s'inscrit ; il ne doit RIEN
+perdre. Solution native et robuste :
+
+1. À l'arrivée sur le défi, création silencieuse d'une **session anonyme** Firebase
+   (identifiant temporaire, aucune action utilisateur).
+2. Résultat du défi + badge d'apprentissage enregistrés **sous cet identifiant
+   anonyme**.
+3. À la création de compte, on **lie (`linkWithCredential`)** le compte permanent
+   (email / Google / téléphone) à la session anonyme.
+4. L'identifiant (uid) **ne change pas** → badge et historique restent attachés
+   automatiquement, sans recopie ni bricolage.
+
+L'alternative localStorage + « réclamation » à l'inscription est écartée : fragile
+(perdue si changement d'appareil ou vidage du cache).
+
+### 3.6 Badges maison, compatibles Open Badges
 
 **Décision : ne PAS payer Credly / Accredible à ce stade.**
 
@@ -200,6 +224,23 @@ Livrables de cet étage (plus tard, quand les pilotes tourneront) : **dossier
 institutionnel** formel (4-6 pages, .docx) et éventuellement un **deck** dédié.
 
 ---
+
+### 3.7 Surfaces impactées (ce n'est pas que le dashboard)
+
+Ajouter le badge d'apprentissage, le défi public et le passage 10 q / 15 min touche
+plusieurs endroits :
+
+| Surface | Ce qui change |
+|---|---|
+| `lib/examService.js` | Entraînement : 5→**10 questions**, durée → **15 min** |
+| Attribution des badges (`api/exam/submit`) | L'entraînement **donne un badge** (niveau apprentissage) — avant, seule la certif en donnait |
+| Modèle de badge | Ajouter le **niveau** (apprentissage / cert. module / cert. globale) pour les 3 couleurs |
+| `BadgeGrid` + profil + dashboard apprenant + certificat | Afficher les 3 niveaux / couleurs partout |
+| Défi public (nouveau) | Version sans login de l'entraînement + **auth anonyme** |
+| Écran de résultat partageable (nouveau) | Score + capture email + création de compte + linking |
+| Pages publiques badge/certif + OG + boutons de partage (nouveau) | La couche virale |
+| Règles Firestore | Autoriser proprement l'écriture d'une tentative en session anonyme, sans ouvrir de faille |
+| **Dashboard organisation** | **Inchangé** : reporting sur la **certification seulement** (1h45). Les badges d'apprentissage restent côté apprenant / viral. |
 
 ## 6. Périmètre
 
