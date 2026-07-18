@@ -3,6 +3,7 @@
 import { useLanguage } from '@/lib/LanguageContext';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import { badgeLevelOf, badgeStyleOf, badgeLevelLabel, BADGE_LEVELS } from '@/lib/badges';
+import BadgeShareButton from '@/components/BadgeShareButton';
 
 // Priorité d'affichage quand un module a plusieurs badges : la certification
 // prime sur l'apprentissage (on montre le plus haut niveau atteint).
@@ -31,7 +32,7 @@ function formatDate(isoStr, locale) {
  * badges = [{ moduleId, moduleName, score, earnedAt }]
  * compact = true → bandeau horizontal (profil), false → grille complète (dashboard/certification)
  */
-export default function BadgeGrid({ badges = [], compact = false }) {
+export default function BadgeGrid({ badges = [], compact = false, shareable = false }) {
   const { locale } = useLanguage();
 
   // Un badge par module = le plus haut niveau atteint (certif > apprentissage).
@@ -114,6 +115,7 @@ export default function BadgeGrid({ badges = [], compact = false }) {
                 <span className="text-[10px] text-neutral-400 mt-0.5">
                   {formatDate(badge.earnedAt, locale)}
                 </span>
+                {shareable && <BadgeShareButton badge={badge} className="mt-1.5" />}
               </>
             ) : (
               <span className="text-[10px] text-neutral-400">

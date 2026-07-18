@@ -339,7 +339,7 @@ export default function DashboardPage() {
               {badges.length}/{7} {d('badges.earned') || 'obtenus'}
             </span>
           </div>
-          <BadgeGrid badges={badges} />
+          <BadgeGrid badges={badges} shareable />
         </Card>
 
         <Card className="mb-8">

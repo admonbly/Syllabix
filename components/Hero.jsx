@@ -82,6 +82,14 @@ export default function Hero({ title, subtitle, cta }) {
               )}
             </div>
 
+            {/* Accroche défi — entrée sans friction du moteur viral */}
+            {!cta && (
+              <a href="/defi" className="inline-flex items-center gap-1.5 -mt-8 mb-14 text-sm text-white/70 hover:text-accent transition-colors">
+                ⚡ Ou teste ton niveau en 15 min, sans compte
+                <span aria-hidden>→</span>
+              </a>
+            )}
+
             {/* Stats row — animated counters */}
             <div className="grid grid-cols-4 gap-5 pt-8 border-t border-white/10 anim-fade-up delay-400">
               {heroStats.map((s) => (

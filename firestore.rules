@@ -117,6 +117,15 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ─── Collection : publicBadges (badges partagés publiquement) ──
+    // Représentation publique d'un badge, créée à la demande via
+    // /api/badge/share (Admin SDK). Lecture publique pour le partage social ;
+    // aucune écriture client.
+    match /publicBadges/{badgeId} {
+      allow read:  if true;
+      allow write: if false;
+    }
+
     // ─── Collection : organizations (écoles & entreprises) ──────────
     // Aucun accès client : le rattachement et l'administration passent
     // EXCLUSIVEMENT par les API routes en Admin SDK (/api/org/*, /api/admin/*).
