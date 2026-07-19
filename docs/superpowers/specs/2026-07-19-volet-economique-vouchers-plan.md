@@ -97,6 +97,6 @@ push/deploy sans demande explicite.** Déploiement des règles Firestore : diff
 obligatoire contre la prod, ajout seul.
 
 ## Hors de ce plan (Phase 1 — cadrage séparé)
-Agrégateur Mobile Money (CinetPay/PayDunya/Paystack/Flutterwave), lots payants,
-paiement individuel, facturation/reçus, webhook de confirmation, examen de
-renouvellement allégé.
+Agrégateur **Jeko** (https://developer.jeko.africa ; Orange/MTN/Moov/Wave + carte) :
+lots payants, paiement individuel, facturation/reçus, webhook de confirmation.
+À cadrer dès réception de la clé API. Plus tard : examen de renouvellement allégé.

@@ -124,8 +124,12 @@ Diff obligatoire contre la prod live avant déploiement des règles.
 
 **Phase 1 (cadrage séparé — agrégateur Mobile Money) :**
 - Achat de lots payants par les partenaires ; éventuel achat individuel.
-- Agrégateur : **CinetPay / PayDunya / Paystack / Flutterwave** (pas Stripe en CI).
-- Facturation / reçus. Webhook de confirmation → génération des vouchers payés.
+- **Agrégateur retenu : Jeko** (https://developer.jeko.africa) — Orange Money, MTN
+  Money, Moov Money, Wave et carte bancaire. API partenaire (`/partner_api/…`,
+  ex. `/partner_api/stores`) ; guides Authentification (clés API) et Paiements ;
+  index `llms.txt`. Intégration à cadrer **dès réception de la clé API**.
+- Flux cible : init paiement → redirection/collecte → **webhook de confirmation**
+  (vérif signature) → génération des vouchers payés. Facturation / reçus.
 
 ---
 
