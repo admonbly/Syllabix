@@ -84,9 +84,13 @@ export default function Hero({ title, subtitle, cta }) {
 
             {/* Accroche défi — entrée sans friction du moteur viral */}
             {!cta && (
-              <a href="/defi" className="inline-flex items-center gap-1.5 -mt-8 mb-14 text-sm text-white/70 hover:text-accent transition-colors">
-                ⚡ Ou teste ton niveau en 15 min, sans compte
-                <span aria-hidden>→</span>
+              <a
+                href="/defi"
+                className="group inline-flex items-center gap-2 -mt-8 mb-14 px-5 py-2.5 rounded-xl bg-accent/15 border border-accent/40 text-white font-display font-semibold text-sm hover:bg-accent hover:border-accent transition-all"
+              >
+                <span className="text-accent group-hover:text-white transition-colors">⚡</span>
+                Teste ton niveau en 15 min — sans compte
+                <span aria-hidden className="group-hover:translate-x-0.5 transition-transform">→</span>
               </a>
             )}
 

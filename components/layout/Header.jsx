@@ -90,6 +90,13 @@ export default function Header() {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-0.5">
+          {/* Défi — entrée publique mise en avant */}
+          <Link
+            href="/defi"
+            className="mr-1 px-3 py-1.5 rounded-full text-sm font-display font-semibold inline-flex items-center gap-1.5 bg-accent/15 text-accent border border-accent/30 hover:bg-accent hover:text-white transition-all"
+          >
+            ⚡ {locale === 'fr' ? 'Défi' : 'Challenge'}
+          </Link>
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
@@ -317,6 +324,12 @@ export default function Header() {
       {/* Mobile menu */}
       {open && (
         <div className="md:hidden bg-white border-t border-neutral-100 px-4 py-3 shadow-card-hover space-y-0.5">
+          {/* Défi — entrée publique mise en avant */}
+          <Link href="/defi" onClick={() => setOpen(false)}
+            className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-display font-semibold text-accent bg-accent/10 hover:bg-accent/15 transition-colors">
+            ⚡ {locale === 'fr' ? 'Défi — teste ton niveau' : 'Challenge — test your level'}
+            <ChevronRight className="w-4 h-4 text-accent/50" />
+          </Link>
           {navLinks.map(({ href, label }) => (
             <Link key={href} href={href} onClick={() => setOpen(false)}
               className="flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium text-neutral-700 hover:text-accent hover:bg-accent/5 transition-colors">
