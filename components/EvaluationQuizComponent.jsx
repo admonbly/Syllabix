@@ -37,6 +37,16 @@ function LightbulbIcon({ className = 'w-4 h-4' }) {
   return <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="9" y1="18" x2="15" y2="18" /><line x1="10" y1="22" x2="14" y2="22" /><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14" /></svg>;
 }
 
+/** Libellé de la bonne réponse, pour le feedback. */
+function correctAnswerLabel(question) {
+  const type = question.type || 'single';
+  if (type === 'single') return question.options?.[question.correct] ?? '';
+  if (type === 'multi')  return (question.correct ?? []).map((i) => question.options?.[i]).filter(Boolean).join(' + ');
+  if (type === 'input')  return (question.acceptableAnswers ?? [question.correct]).join(' / ');
+  if (type === 'calculation') return `${question.correct}${question.unit ? ' ' + question.unit : ''}`;
+  return '';
+}
+
 /** @param {{ mode?: string, moduleId?: string | number | null }} props */
 export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = null }) {
   const { locale, t } = useLanguage();
@@ -133,13 +143,12 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
     }
   };
 
-  // Choix unique : un clic répond et enchaîne après un court délai. On
-  // n'enchaîne qu'UNE fois, mais l'utilisateur peut changer son choix pendant
-  // ce délai (la dernière option cliquée est conservée) — rien n'est verrouillé.
+  // Choix unique : un clic répond et affiche le feedback (bonne/mauvaise
+  // réponse + explication). Verrouillé ensuite ; l'utilisateur enchaîne avec le
+  // bouton « Suivant » après avoir lu le feedback.
   const handleSingleAnswer = (value) => {
-    const already = hasAnswerValue(answers[currentQuestion]);
+    if (hasAnswerValue(answers[currentQuestion])) return;
     setAnswers((prev) => ({ ...prev, [currentQuestion]: value }));
-    if (!already) advance(value);
   };
 
   const toggleFlag = (idx) => {
@@ -452,22 +461,26 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             <div className="space-y-3">
               {(question.options ?? []).map((option, index) => {
                 const isSel = answers[currentQuestion] === option;
-                // Pas de grisage ni de verrouillage : l'option choisie est
-                // simplement mise en évidence, les autres restent lisibles et
-                // cliquables (on peut changer d'avis avant l'enchaînement).
-                const style = isSel
-                  ? 'border-accent bg-accent/10 text-accent'
-                  : 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
+                const isCorrectOpt = isAnswerCorrectByValue(question, option);
+                let style = 'border-neutral-200 hover:border-accent hover:bg-accent/5 cursor-pointer';
+                if (answered) {
+                  if (isCorrectOpt)      style = 'border-green-500 bg-green-50 text-green-800';
+                  else if (isSel)        style = 'border-red-400 bg-red-50 text-red-800';
+                  else                   style = 'border-neutral-200 opacity-50';
+                }
                 return (
                   <button
                     key={index}
                     onClick={() => handleSingleAnswer(option)}
+                    disabled={answered}
                     className={`w-full p-4 text-left rounded-xl border-2 font-medium transition-all ${style}`}
                   >
                     <span className="inline-block w-7 h-7 rounded-full bg-neutral-100 text-center text-sm font-bold mr-3 leading-7">
                       {String.fromCharCode(65 + index)}
                     </span>
                     {option}
+                    {answered && isCorrectOpt && <CheckIcon className="float-right w-5 h-5 text-green-600 mt-0.5" />}
+                    {answered && isSel && !isCorrectOpt && <XIcon className="float-right w-5 h-5 text-red-500 mt-0.5" />}
                   </button>
                 );
               })}
@@ -481,18 +494,32 @@ export default function EvaluationQuizComponent({ mode = 'mixed', moduleId = nul
             />
           )}
 
-          {/* En mode évaluation : pas d'explication immédiate */}
-          {qType === 'single' && answered && !isLast && (
-            <p className="text-center text-xs text-neutral-400 mt-4">{t('quiz.autoNext')}</p>
-          )}
+          {/* Feedback immédiat après réponse (bonne/mauvaise + explication) */}
+          {answered && (() => {
+            const correct = isAnswerCorrectByValue(question, answers[currentQuestion]);
+            return (
+              <div className={`mt-6 p-4 rounded-xl border ${correct ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'}`}>
+                <p className={`font-bold flex items-center gap-2 ${correct ? 'text-green-700' : 'text-orange-700'}`}>
+                  {correct
+                    ? <><CheckIcon className="w-5 h-5 flex-shrink-0" />{t('quiz.correct')} !</>
+                    : <><XIcon className="w-5 h-5 flex-shrink-0" />{t('quiz.incorrect')} — {t('quiz.correct')} : <span className="font-semibold">{correctAnswerLabel(question)}</span></>}
+                </p>
+                {question.explanation && (
+                  <p className="text-sm text-neutral-700 leading-relaxed mt-2 flex items-start gap-2">
+                    <LightbulbIcon className="w-4 h-4 flex-shrink-0 mt-0.5 text-neutral-500" />
+                    {question.explanation}
+                  </p>
+                )}
+              </div>
+            );
+          })()}
 
-          {/* Types à saisie : bouton explicite pour passer à la suite */}
-          {qType !== 'single' && !isLast && (
+          {/* Navigation — bouton explicite après avoir lu le feedback */}
+          {answered && !isLast && (
             <div className="mt-6 text-right">
               <button
                 onClick={() => advance()}
-                disabled={!answered}
-                className={`px-6 py-3 rounded-xl font-semibold transition-colors ${answered ? 'bg-accent text-white hover:bg-accent/90' : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'}`}
+                className="px-6 py-3 rounded-xl font-semibold bg-accent text-white hover:bg-accent/90 transition-colors"
               >
                 {t('quiz.next')}
               </button>

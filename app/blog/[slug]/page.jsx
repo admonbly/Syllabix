@@ -183,7 +183,7 @@ function ArticleContent({ article }) {
             <CTAButton href="/certification" variant="white">
               Commencer la certification
             </CTAButton>
-            <CTAButton href="/training/mixed" variant="outline-white">
+            <CTAButton href="/evaluation" variant="outline-white">
               S'entraîner d'abord
             </CTAButton>
           </div>

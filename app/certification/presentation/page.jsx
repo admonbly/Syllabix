@@ -136,7 +136,7 @@ export default function PresentationPage() {
             Une certification concrète et vérifiable en ligne — pensée pour les professionnels et étudiants africains.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <CTAButton href="/training/mixed" variant="white">
+            <CTAButton href="/evaluation" variant="white">
               S'entraîner gratuitement
             </CTAButton>
             <CTAButton href="/certification" variant="outline-white">
@@ -233,7 +233,7 @@ export default function PresentationPage() {
             Commencez par vous entraîner gratuitement, passez l'examen quand vous êtes prêt.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <CTAButton href="/training/mixed" variant="white">
+            <CTAButton href="/evaluation" variant="white">
               S'entraîner d'abord
             </CTAButton>
             <CTAButton href="/certification" variant="outline-white">

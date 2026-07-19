@@ -156,7 +156,7 @@ export default function TrainingPage() {
             })}
 
             {/* Mode mixte */}
-            <Link href="/training/mixed" className="group block">
+            <Link href="/evaluation" className="group block">
               <div className="rounded-2xl border-2 border-dashed border-neutral-300 bg-neutral-50 group-hover:border-accent group-hover:bg-orange-50 transition-all overflow-hidden">
                 <div className="flex items-center gap-4 px-6 py-5">
                   <span className="text-3xl flex-shrink-0">🎲</span>

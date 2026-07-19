@@ -435,7 +435,7 @@ export default function DashboardPage() {
         )}
 
         <div className="text-center">
-          <CTAButton href="/training/mixed" size="lg">{d('cta')}</CTAButton>
+          <CTAButton href="/evaluation" size="lg">{d('cta')}</CTAButton>
         </div>
       </div>
     </div>
