@@ -5,6 +5,7 @@ import Card from '@/components/Card';
 import CTAButton from '@/components/CTAButton';
 import BadgeGrid from '@/components/BadgeGrid';
 import OrgPanel from '@/components/OrgPanel';
+import SignupCodeCard from '@/components/dashboard/SignupCodeCard';
 import PageHeader from '@/components/PageHeader';
 import Reveal from '@/components/Reveal';
 import { SkeletonStat, SkeletonCard } from '@/components/SkeletonCard';
@@ -178,6 +179,9 @@ export default function DashboardPage() {
       </PageHeader>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+
+        {/* Code de certification offert (200 premiers) */}
+        <SignupCodeCard />
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

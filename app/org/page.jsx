@@ -57,6 +57,7 @@ export default function OrgDashboardPage() {
   const [query, setQuery]     = useState('');
   const [copied, setCopied]   = useState(false);
   const [openUid, setOpenUid] = useState(null);
+  const [vouchers, setVouchers] = useState(null); // { allocated, used, remaining }
   // Filtre par classe/direction : '' = toutes, '__none__' = sans unité
   const [unitFilter, setUnitFilter] = useState('');
 
@@ -72,6 +73,11 @@ export default function OrgDashboardPage() {
       }
       setData(await res.json());
       setStatus('ok');
+      // Suivi des vouchers (best-effort, ne bloque pas le dashboard)
+      fetch('/api/org/vouchers', { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((v) => v && setVouchers(v))
+        .catch(() => {});
     } catch {
       setStatus('error');
     }
@@ -246,6 +252,21 @@ export default function OrgDashboardPage() {
           <p className="text-sm text-neutral-500 mb-5">{w.moduleIntro}</p>
           <ModuleCoverage modules={data.modules} memberWord={w.members} />
         </section>
+
+        {/* Bloc — Codes de certification (vouchers) */}
+        {vouchers && vouchers.allocated > 0 && (
+          <section className="mb-10">
+            <h2 className="text-lg font-display font-bold text-primary mb-1">Codes de certification</h2>
+            <p className="text-sm text-neutral-500 mb-5">
+              Les codes que la plateforme a mis à disposition de votre {w.entity} et leur consommation.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <StatCard icon={Award} tint="bg-primary/8 text-primary" value={vouchers.allocated} label="Codes alloués" />
+              <StatCard icon={Check} tint="bg-secondary/10 text-secondary" value={vouchers.used} label="Codes utilisés" />
+              <StatCard icon={Activity} tint="bg-accent/10 text-accent" value={vouchers.remaining} label="Codes restants" />
+            </div>
+          </section>
+        )}
 
         {/* Bloc 3 — Membres */}
         <section id="membres">

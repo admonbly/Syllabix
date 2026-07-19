@@ -37,7 +37,8 @@ service cloud.firestore {
         'dateOfBirth', 'parentalConsentGiven', 'parentalConsentAt',
         'role', 'createdAt', 'updatedAt', 'authProvider',
         'profileComplete', 'phoneVerifiedAt', 'emailVerifiedAt',
-        'badges', 'orgId', 'orgType', 'orgJoinedAt', 'orgUnit'
+        'badges', 'orgId', 'orgType', 'orgJoinedAt', 'orgUnit',
+        'signupCodeIssued', 'signupCode', 'foundingNumber'
       ]);
     }
 
@@ -77,7 +78,8 @@ service cloud.firestore {
                     && (!request.resource.data.diff(resource.data).affectedKeys()
                          .hasAny(['role', 'email', 'createdAt', 'authProvider',
                                   'badges', 'orgId', 'orgType', 'orgJoinedAt',
-                                  'orgUnit']));
+                                  'orgUnit', 'signupCodeIssued', 'signupCode',
+                                  'foundingNumber']));
       allow delete: if false;
 
       match /progress/{moduleId} {
