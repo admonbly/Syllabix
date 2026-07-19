@@ -1,0 +1,211 @@
+<title>Syllabix — One-pager partenaire</title>
+<style>
+  :root{
+    --paper:#FBFBFD; --panel:#ffffff; --ink:#14152b; --muted:#5b5f7a;
+    --line:#e7e8f0;
+    --primary:#1A237E; --primary-soft:#eceffc;
+    --accent:#E67E22; --accent-soft:#fdf0e3;
+    --secondary:#27AE60; --secondary-soft:#e8f7ee;
+    --shadow:0 1px 2px rgba(20,22,43,.05), 0 8px 30px rgba(20,22,43,.06);
+    --sans:"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0f1020; --panel:#171933; --ink:#eef0fb; --muted:#a6abcc;
+      --line:#2a2d4f;
+      --primary-soft:#20244a; --accent-soft:#3a2a17; --secondary-soft:#14301f;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0f1020; --panel:#171933; --ink:#eef0fb; --muted:#a6abcc; --line:#2a2d4f;
+    --primary-soft:#20244a; --accent-soft:#3a2a17; --secondary-soft:#14301f;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 34px rgba(0,0,0,.35);
+  }
+  :root[data-theme="light"]{
+    --paper:#FBFBFD; --panel:#ffffff; --ink:#14152b; --muted:#5b5f7a; --line:#e7e8f0;
+    --primary-soft:#eceffc; --accent-soft:#fdf0e3; --secondary-soft:#e8f7ee;
+    --shadow:0 1px 2px rgba(20,22,43,.05), 0 8px 30px rgba(20,22,43,.06);
+  }
+
+  *{box-sizing:border-box}
+  .op{
+    font-family:var(--sans); color:var(--ink); background:var(--paper);
+    max-width:900px; margin:0 auto; padding:40px 34px 30px;
+    line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .op h1,.op h2,.op h3{margin:0; text-wrap:balance; letter-spacing:-.01em}
+  .op p{margin:0}
+
+  /* header */
+  .op-top{display:flex; align-items:flex-start; justify-content:space-between; gap:20px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:12px}
+  .mark{width:44px;height:44px;border-radius:12px;background:var(--primary);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px;flex-shrink:0}
+  .brand .name{font-size:26px;font-weight:800;letter-spacing:-.02em;color:var(--primary)}
+  :root[data-theme="dark"] .brand .name{color:#aab2ff}
+  @media (prefers-color-scheme:dark){.brand .name{color:#aab2ff}}
+  .brand .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .pill{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+    padding:6px 12px;border-radius:999px;background:var(--accent-soft);color:var(--accent);
+    border:1px solid color-mix(in srgb, var(--accent) 30%, transparent); white-space:nowrap}
+
+  /* thesis */
+  .thesis{margin-top:26px; padding-bottom:22px; border-bottom:1px solid var(--line)}
+  .thesis h1{font-size:30px; line-height:1.15; font-weight:800; color:var(--ink)}
+  .thesis h1 .hl{color:var(--accent)}
+  .thesis p{margin-top:10px; font-size:15px; color:var(--muted); max-width:62ch}
+
+  /* stat band */
+  .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:22px 0}
+  .stat{background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:14px 12px; text-align:center; box-shadow:var(--shadow)}
+  .stat .n{font-size:24px; font-weight:800; color:var(--primary); font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+  :root[data-theme="dark"] .stat .n{color:#aab2ff}
+  @media (prefers-color-scheme:dark){.stat .n{color:#aab2ff}}
+  .stat .l{font-size:11px; color:var(--muted); margin-top:3px}
+
+  /* columns */
+  .cols{display:grid; grid-template-columns:1.05fr 1fr; gap:26px; margin-top:6px}
+  .eyebrow{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:var(--accent); margin-bottom:9px}
+  .lead{font-size:14.5px; color:var(--ink)}
+  .lead b{color:var(--ink)}
+  .muted{color:var(--muted)}
+  .flow{display:flex; flex-direction:column; gap:9px; margin-top:12px}
+  .step{display:flex; gap:11px; align-items:flex-start}
+  .step .dot{width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:800;color:#fff;background:var(--primary)}
+  .step .t{font-size:13.5px}
+  .step .t b{color:var(--ink)} .step .t span{color:var(--muted)}
+
+  .edge{display:flex; flex-direction:column; gap:10px; margin-top:12px}
+  .edge .row{display:flex; gap:10px; align-items:flex-start; font-size:13.5px}
+  .edge .k{width:7px;height:7px;border-radius:50%;background:var(--secondary);margin-top:6px;flex-shrink:0}
+  .edge .row b{color:var(--ink)}
+
+  /* referentiel chips */
+  .ref{margin-top:22px; padding-top:20px; border-top:1px solid var(--line)}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:11px}
+  .chip{font-size:12.5px; padding:7px 12px; border-radius:999px; background:var(--primary-soft);
+    color:var(--primary); font-weight:600; border:1px solid color-mix(in srgb, var(--primary) 14%, transparent)}
+  :root[data-theme="dark"] .chip{color:#bfc6ff}
+  @media (prefers-color-scheme:dark){.chip{color:#bfc6ff}}
+
+  /* audiences + cta */
+  .foot{margin-top:22px; padding-top:20px; border-top:1px solid var(--line);
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px}
+  .aud .who{font-size:13.5px; font-weight:800; color:var(--ink); margin-bottom:3px}
+  .aud .do{font-size:12.5px; color:var(--muted)}
+  .cta{margin-top:20px; background:var(--primary); border-radius:16px; padding:20px 22px;
+    display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; color:#fff}
+  .cta .big{font-size:17px; font-weight:800; letter-spacing:-.01em}
+  .cta .small{font-size:12.5px; color:#c9cdf2; margin-top:3px}
+  .cta .links{font-size:13px; text-align:right; line-height:1.7}
+  .cta .links b{color:#fff} .cta .links span{color:#aeb4ea}
+
+  .legal{margin-top:14px; font-size:11px; color:var(--muted); text-align:center}
+
+  @media (max-width:680px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .cols{grid-template-columns:1fr}
+    .foot{grid-template-columns:1fr}
+    .thesis h1{font-size:25px}
+  }
+  @media print{
+    .op{max-width:none; padding:0}
+    .stat,.cta{box-shadow:none}
+    body{background:#fff}
+    *{-webkit-print-color-adjust:exact; print-color-adjust:exact}
+  }
+</style>
+
+<div class="op">
+
+  <div class="op-top">
+    <div class="brand">
+      <div class="mark">S</div>
+      <div>
+        <div class="name">Syllabix</div>
+        <div class="sub">Certification des compétences numériques — Afrique</div>
+      </div>
+    </div>
+    <div class="pill">Projet pilote</div>
+  </div>
+
+  <div class="thesis">
+    <h1>Évaluer et <span class="hl">certifier</span> les compétences numériques,<br>avec des épreuves pratiques sur de vrais fichiers.</h1>
+    <p>Une plateforme pensée pour le contexte ivoirien et africain : Mobile Money, applications locales, employabilité. Gratuite pour l'apprenant au démarrage, avec un certificat vérifiable en ligne.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="n">7</div><div class="l">Modules</div></div>
+    <div class="stat"><div class="n">21</div><div class="l">Compétences</div></div>
+    <div class="stat"><div class="n">32</div><div class="l">Questions</div></div>
+    <div class="stat"><div class="n">1h45</div><div class="l">Certification</div></div>
+    <div class="stat"><div class="n">2 ans</div><div class="l">Validité</div></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="eyebrow">Comment ça marche</div>
+      <p class="lead"><b>Un parcours en trois temps</b>, du test sans engagement au certificat reconnu.</p>
+      <div class="flow">
+        <div class="step"><div class="dot">1</div><div class="t"><b>Teste ton niveau</b> — <span>défi gratuit, 15 min, sans compte.</span></div></div>
+        <div class="step"><div class="dot">2</div><div class="t"><b>Entraîne-toi</b> — <span>7 modules, exercices adaptatifs, feedback immédiat.</span></div></div>
+        <div class="step"><div class="dot">3</div><div class="t"><b>Certifie-toi</b> — <span>certificat vérifiable + badges partageables sur LinkedIn / WhatsApp.</span></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow">Ce qui nous distingue</div>
+      <div class="edge">
+        <div class="row"><span class="k"></span><div><b>Épreuves pratiques</b> sur de vrais fichiers Excel, Word, PDF — pas seulement du QCM.</div></div>
+        <div class="row"><span class="k"></span><div><b>Contexte local</b> : Mobile Money, apps africaines, réalités du terrain.</div></div>
+        <div class="row"><span class="k"></span><div><b>Badges viraux</b> : chaque réussite se partage et fait grandir la communauté.</div></div>
+        <div class="row"><span class="k"></span><div><b>Vérifiable & daté</b> : certificat consultable en ligne, valable 2 ans.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ref">
+    <div class="eyebrow">Le référentiel — 7 domaines</div>
+    <div class="chips">
+      <span class="chip">💻 IT &amp; Ordinateur</span>
+      <span class="chip">🌐 Internet</span>
+      <span class="chip">📧 Email</span>
+      <span class="chip">📊 Bureautique</span>
+      <span class="chip">🔒 Cybersécurité</span>
+      <span class="chip">🤖 Intelligence artificielle</span>
+      <span class="chip">💼 Employabilité</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div class="aud">
+      <div class="who">Écoles &amp; universités</div>
+      <div class="do">Une cohorte pilote, un tableau de bord de suivi, un certificat qui valorise l'établissement.</div>
+    </div>
+    <div class="aud">
+      <div class="who">Entreprises</div>
+      <div class="do">Tester le niveau numérique réel des candidats et employés, avec un reporting par compétence.</div>
+    </div>
+    <div class="aud">
+      <div class="who">Institutions &amp; programmes</div>
+      <div class="do">Un outil pilote mesurable au service de l'employabilité et de l'inclusion numérique.</div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <div>
+      <div class="big">Devenez partenaire pilote</div>
+      <div class="small">Dotation de codes de certification offerts pour démarrer avec une classe ou une équipe.</div>
+    </div>
+    <div class="links">
+      <div><b>syllabix-eight.vercel.app</b></div>
+      <div><span>Partenariats&nbsp;:</span> /partenariats</div>
+      <div><span>Tester le défi&nbsp;:</span> /defi</div>
+    </div>
+  </div>
+
+  <p class="legal">Syllabix est au stade pilote. Nous ne communiquons aucun chiffre d'usage ni caution que nous ne pouvons prouver.</p>
+
+</div>
