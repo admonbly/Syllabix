@@ -39,8 +39,10 @@ technique) ne consomme pas le code.
 
 ### 2.2 Trois sources de codes
 1. **Individuel — newsletter** : l'inscription à la newsletter déclenche l'envoi
-   d'un **code personnel gratuit** par email ; l'utilisateur le **saisit
-   manuellement** sur la page de certification. *Aujourd'hui.*
+   d'un **code personnel gratuit** par email **ET l'affiche directement à l'écran**
+   juste après l'inscription (double livraison, robuste même si l'email tarde ou
+   échoue). L'utilisateur le **saisit manuellement** sur la page de certification.
+   *Aujourd'hui.*
 2. **Partenaire — dotation gratuite** : chaque organisation reçoit un **petit lot
    de vouchers offerts** (ex. 10–20) pour un pilote (classe / équipe). *Aujourd'hui.*
 3. **Partenaire — lots payants** : l'organisation **achète** des lots
@@ -139,17 +141,19 @@ paiement individuel, facturation, examen de renouvellement allégé.
 
 ---
 
-## 7. Points ouverts / dépendances
+## 7. Décisions verrouillées / dépendances
 
-- **Envoi d'email (Resend)** : nécessaire pour livrer les codes newsletter. Dépend
-  de la **vérification du domaine** (déjà signalée). Repli : afficher le code
-  directement à l'écran après inscription, en plus de l'email.
-- **Politique de reprise** : 1 code = 1 tentative (réussite ou échec) ; cooldown
-  24 h déjà en place. À confirmer si un échec « technique » doit être distingué.
-- **Migration** : les certificats déjà émis restent valides ; le gating par code ne
-  s'applique qu'aux **nouvelles** certifications. Prévoir un `expiresAt` par défaut
-  (ou « illimité ») pour les certificats antérieurs afin de ne pas les périmer
-  rétroactivement.
+- **Livraison des codes newsletter (décidé)** : **double livraison** — par email
+  (Resend) **et** affichage à l'écran juste après l'inscription. L'affichage écran
+  garantit le code même si l'email tarde/échoue ; l'envoi email dépend de la
+  vérification du domaine Resend (déjà signalée) mais **n'est plus bloquant**.
+- **Politique de reprise (décidé)** : **1 code = 1 tentative** (réussite OU échec).
+  Une reprise nécessite un nouveau code ; cooldown 24 h déjà en place. Une session
+  non soumise (souci technique) ne consomme pas le code.
+- **Validité & migration (décidé)** : **toutes les certifications ont une validité
+  de 2 ans**, sans exception. Les certificats déjà émis sont des **données de démo**
+  — aucun traitement particulier requis ; la règle des 2 ans s'applique
+  uniformément (`expiresAt = issuedAt + 2 ans`, calculable à l'affichage).
 - **Revenu Phase 0 = 0** (tout est gratuit) : ce spec construit la **machinerie** ;
   le revenu démarre en Phase 1.
 
