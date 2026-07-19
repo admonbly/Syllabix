@@ -7,6 +7,7 @@ import { auth } from '@/lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { useLanguage } from '@/lib/LanguageContext';
 import { ExamPracticalBlock, ExamAnswerInput, hasAnswerValue } from '@/components/ExamAnswerInput';
+import PaymentSoon from '@/components/PaymentSoon';
 import {
   isPassing,
   formatTime,
@@ -379,6 +380,8 @@ export default function CertificationQuizComponent({
               </a>
             </div>
           </Card>
+
+          <PaymentSoon locale={locale} className="mt-5" />
         </div>
       </section>
     );

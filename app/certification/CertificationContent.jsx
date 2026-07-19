@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import CTAButton from '@/components/CTAButton';
 import CertificationUserPanel from '@/components/CertificationUserPanel';
+import PaymentSoon from '@/components/PaymentSoon';
 import { useLanguage } from '@/lib/LanguageContext';
 import RequireAuth from '@/components/RequireAuth';
 import Reveal from '@/components/Reveal';
@@ -18,7 +19,7 @@ const MODULE_DATA = [
 ];
 
 export default function CertificationContent() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const c = (k) => t(`certification.${k}`);
 
   const MODULES = MODULE_DATA.map((m) => ({
@@ -140,6 +141,7 @@ export default function CertificationContent() {
                   <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-sm text-amber-800">
                     💡 <strong>{c('global.tip')}</strong> {c('global.tipText')}
                   </div>
+                  <PaymentSoon locale={locale} />
                 </div>
               </div>
             </div>
