@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebaseAdmin';
+import { SITE_URL as ORIGIN } from '@/lib/siteUrl';
 
 /**
  * GET /api/badge/[id]/assertion
@@ -9,7 +10,6 @@ import { getAdminDb } from '@/lib/firebaseAdmin';
  * Vie privée : on n'expose PAS l'email. L'identité du récipiendaire est le nom
  * public déjà affiché sur la page /b/[id].
  */
-const ORIGIN = 'https://syllabix-eight.vercel.app';
 
 export async function GET(_request, { params }) {
   const { id } = params;

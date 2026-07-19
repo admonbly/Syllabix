@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb, getAdminAuth } from '@/lib/firebaseAdmin';
 import { getModuleName } from '@/lib/moduleNames';
+import { SITE_URL } from '@/lib/siteUrl';
 
 // Échappe le HTML pour empêcher toute injection dans le corps de l'email
 function escapeHtml(str) {
@@ -17,6 +18,7 @@ export async function POST(request) {
   const origin = request.headers.get('origin') || '';
   const allowedOrigins = [
     process.env.NEXT_PUBLIC_APP_URL,
+    SITE_URL,
     'https://syllabix.com',
     'https://syllabix-eight.vercel.app',
     'http://localhost:3000',

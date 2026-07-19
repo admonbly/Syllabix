@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { SITE_HOST } from '@/lib/siteUrl';
 
 // Edge runtime : évite le bug Windows de @vercel/og (chargement de police) et
 // n'utilise pas firebase-admin (incompatible edge). Les données sont lues via
@@ -64,7 +65,7 @@ export default async function Image({ params }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', fontSize: 26, color: 'rgba(255,255,255,0.7)' }}>
-          Badge verifie · syllabix-eight.vercel.app
+          Badge verifie · {SITE_HOST}
         </div>
       </div>
     ),

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getAdminDb } from '@/lib/firebaseAdmin';
 import ShareButtons from '@/components/ShareButtons';
+import { SITE_URL } from '@/lib/siteUrl';
 
 export const dynamic = 'force-dynamic';
 
@@ -79,7 +80,7 @@ export default async function PublicBadgePage({ params }) {
             <div className="border-t border-neutral-100 pt-6">
               <p className="text-xs text-neutral-400 uppercase tracking-widest font-semibold mb-3">Partager</p>
               <div className="flex justify-center">
-                <ShareButtons url={`https://syllabix-eight.vercel.app/b/${params.id}`} text={shareText} />
+                <ShareButtons url={`${SITE_URL}/b/${params.id}`} text={shareText} />
               </div>
             </div>
           </div>

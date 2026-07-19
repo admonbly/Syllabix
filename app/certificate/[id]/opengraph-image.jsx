@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { MODULE_NAMES } from '@/lib/moduleNames';
+import { SITE_HOST } from '@/lib/siteUrl';
 
 // Edge runtime (voir b/[id]/opengraph-image.jsx). Données via REST Firestore :
 // la collection certificates est en lecture publique.
@@ -55,7 +56,7 @@ export default async function Image({ params }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', fontSize: 26, color: '#64748b' }}>
-            Verifiable en ligne · syllabix-eight.vercel.app
+            Verifiable en ligne · {SITE_HOST}
           </div>
         </div>
       </div>
