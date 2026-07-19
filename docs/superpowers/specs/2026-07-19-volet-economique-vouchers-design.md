@@ -37,16 +37,20 @@ qui **débloque UNE tentative de certification**. Si réussie → certificat val
 OU échec) ; une reprise nécessite un nouveau code. La tentative non soumise (souci
 technique) ne consomme pas le code.
 
-### 2.2 Trois sources de codes
-1. **Individuel — newsletter** : l'inscription à la newsletter déclenche l'envoi
-   d'un **code personnel gratuit** par email **ET l'affiche directement à l'écran**
-   juste après l'inscription (double livraison, robuste même si l'email tarde ou
-   échoue). L'utilisateur le **saisit manuellement** sur la page de certification.
-   *Aujourd'hui.*
+### 2.2 Sources de codes
+1. **Individuel — code offert à l'inscription (200 premiers)** : à la création de
+   compte, l'utilisateur reçoit **1 code gratuit**, mais **uniquement tant qu'un
+   compteur global de codes offerts est < 200**. Au-delà de 200 → plus de code
+   automatique. Le code s'**affiche dans son espace** (dashboard) ; il le **saisit
+   manuellement** sur la page de certification. Effet « membres fondateurs » +
+   urgence. *Remplace l'ancien mécanisme newsletter.*
 2. **Partenaire — dotation gratuite** : chaque organisation reçoit un **petit lot
-   de vouchers offerts** (ex. 10–20) pour un pilote (classe / équipe). *Aujourd'hui.*
-3. **Partenaire — lots payants** : l'organisation **achète** des lots
-   supplémentaires (Mobile Money). *Phase 1 — agrégateur.*
+   de vouchers offerts** (ex. 10–20) pour un pilote (classe / équipe), via
+   l'admin. *Aujourd'hui.*
+3. **Codes promo / jeux-concours** : lots créés par l'admin et distribués via les
+   campagnes marketing (tirage, concours…) après épuisement des 200. *Aujourd'hui.*
+4. **Partenaire / individuel — lots payants** : achat via l'agrégateur.
+   *Phase 1 — Jeko.*
 
 ### 2.3 Gating de la certification (décision : code obligatoire, saisie manuelle)
 Avant de lancer la certification, l'apprenant **saisit un code**. Validation
@@ -54,8 +58,9 @@ Avant de lancer la certification, l'apprenant **saisit un code**. Validation
 `active` (non utilisé), non expiré. À la validation → le code passe `redeemed`
 (lié à l'uid + horodatage) et l'examen peut démarrer.
 
-Effet de bord assumé : léger frein au volume de certifiés, compensé par la capture
-d'email (newsletter) et la préparation du modèle payant.
+Effet de bord assumé : léger frein au volume de certifiés, compensé par la rareté
+maîtrisée des codes (200 offerts, puis promo/payant) et la préparation du modèle
+payant.
 
 ### 2.4 Validité 2 ans + renouvellement
 - Le certificat reçoit `expiresAt = issuedAt + 2 ans`.
@@ -77,12 +82,16 @@ la collection `vouchers` (anti-énumération).
 
 - `vouchers/{code}` :
   `{ code, status: 'active'|'redeemed'|'revoked', source:
-  'newsletter'|'partner_free'|'partner_paid'|'admin', orgId: string|null,
+  'signup_free'|'partner_free'|'promo'|'partner_paid'|'admin', orgId: string|null,
   batchId: string|null, createdAt, createdBy, redeemedBy: uid|null,
   redeemedAt: string|null, expiresAt: string|null }`
 - `voucherBatches/{batchId}` :
   `{ orgId, source, count, redeemedCount, label, createdAt, createdBy }`
+- `counters/foundingCodes` : `{ issued: number }` — compteur global des codes
+  offerts à l'inscription ; l'attribution s'arrête à **200** (transaction).
 - `certificates/{id}` (existant) : ajout de `expiresAt` et `voucherCode`.
+- `users/{uid}` (existant) : ajout de `signupCodeIssued: bool` (1 code offert max
+  par compte).
 
 **Règles Firestore (ADDITIF seulement, jamais de remplacement) :**
 ```
@@ -105,6 +114,23 @@ Diff obligatoire contre la prod live avant déploiement des règles.
   une session soumise.
 - Aucune donnée de voucher exposée au client.
 
+### 4.1 Anti-abus (résistance au farming de codes)
+La rareté des codes règle l'essentiel : plus de robinet self-service infini, cadeau
+**plafonné à 200**, puis codes uniquement via admin (promo/partenaire) ou payant.
+La rareté protège aussi l'**intégrité du certificat** (on ne peut plus « mitrailler »
+l'examen jusqu'à passer par chance). Ceinture de sécurité complémentaire :
+
+- **1 code offert par compte** (`users/{uid}.signupCodeIssued`), jamais deux.
+- **Compteur global des 200** en transaction : au-delà, plus d'attribution auto.
+- **Email vérifié** exigé avant que le code offert soit utilisable.
+- **Blocklist des domaines d'email jetables** (yopmail, mailinator, 10minutemail…).
+- **Rate-limit par IP** à la création de compte / réclamation du code.
+- **Limite de tentatives par compte** (défense en profondeur) : après un échec, un
+  cooldown s'applique même avec un nouveau code (réutilise le cooldown 24 h existant,
+  allongeable si abus constaté).
+- **SMS en réserve** : vérification téléphone (l'app gère déjà l'auth téléphone),
+  activée seulement si un abus réel est observé.
+
 ---
 
 ## 5. API & flux
@@ -112,9 +138,10 @@ Diff obligatoire contre la prod live avant déploiement des règles.
 **Phase 0 (buildable maintenant, sans agrégateur) :**
 - `POST /api/voucher/redeem` — valide + réserve un code pour l'uid courant
   (transaction). Retourne l'autorisation de démarrer la certification.
-- Génération newsletter : à l'inscription, le serveur crée un code
-  `source:'newsletter'` et l'envoie par email (Resend — dépend de la vérification
-  du domaine, cf. §7).
+- Code offert à l'inscription : à la création de compte, le serveur tente
+  d'attribuer un code `source:'signup_free'` **en transaction** (compteur global
+  < 200, `signupCodeIssued` false, email vérifié). Le code est affiché dans le
+  dashboard de l'utilisateur.
 - **Admin** : `POST /api/admin/voucher/batch` — crée un lot (free) pour une org ;
   `GET /api/admin/voucher/list` — suivi. UI back-office minimale.
 - **Certification** : ajout d'une **étape « saisir votre code »** avant le démarrage.
@@ -147,10 +174,11 @@ paiement individuel, facturation, examen de renouvellement allégé.
 
 ## 7. Décisions verrouillées / dépendances
 
-- **Livraison des codes newsletter (décidé)** : **double livraison** — par email
-  (Resend) **et** affichage à l'écran juste après l'inscription. L'affichage écran
-  garantit le code même si l'email tarde/échoue ; l'envoi email dépend de la
-  vérification du domaine Resend (déjà signalée) mais **n'est plus bloquant**.
+- **Distribution des codes gratuits (décidé)** : **plus de mécanisme newsletter**.
+  Un **code offert à la création de compte** (1 par compte), plafonné aux **200
+  premiers comptes** (compteur global). Au-delà, les codes gratuits passent par des
+  **campagnes marketing / jeux-concours** (lots créés par l'admin). Ce choix règle
+  à la fois le farming de codes ET l'intégrité du certificat (rareté des codes).
 - **Politique de reprise (décidé)** : **1 code = 1 tentative** (réussite OU échec).
   Une reprise nécessite un nouveau code ; cooldown 24 h déjà en place. Une session
   non soumise (souci technique) ne consomme pas le code.
@@ -166,8 +194,9 @@ paiement individuel, facturation, examen de renouvellement allégé.
 ## 8. Critères de succès (Phase 0)
 
 - Un apprenant ne peut lancer la certification **que** muni d'un code valide.
-- L'inscription newsletter délivre un code utilisable.
-- Un admin crée un lot de vouchers gratuits pour une org ; l'org voit la
+- Les 200 premiers comptes reçoivent un code offert ; le 201ᵉ n'en reçoit pas.
+- Un même compte ne peut obtenir qu'un seul code offert (anti-farming).
+- Un admin crée un lot de vouchers gratuits/promo pour une org ; l'org voit la
   consommation dans son dashboard.
 - Un certificat émis porte une **date d'expiration à 2 ans** et l'affiche
   publiquement.

@@ -72,21 +72,29 @@ plus de 2 ans s'affiche « expiré ».
 
 ---
 
-## Lot 3 — Codes en libre-service (newsletter) + suivi org
+## Lot 3 — Code offert à l'inscription (200 premiers) + suivi org
 
-Objectif : l'individu obtient un code seul via la newsletter ; l'org suit sa
-consommation.
+Objectif : les 200 premiers comptes reçoivent un code offert ; l'org suit sa
+consommation. **Plus de mécanisme newsletter.**
 
-**3.1 Newsletter → code personnel** : à l'inscription newsletter, le serveur crée un
-voucher `source:'newsletter'`, l'**affiche à l'écran** immédiatement, et l'**envoie
-par email** (Resend ; l'affichage écran rend l'email non bloquant).
+**3.1 Code offert à l'inscription** : à la création de compte, le serveur tente
+d'attribuer un voucher `source:'signup_free'` **en transaction** —
+`counters/foundingCodes.issued < 200`, `users/{uid}.signupCodeIssued` false, **email
+vérifié**. Le code s'affiche dans le **dashboard** de l'utilisateur (bloc « Ton code
+de certification offert »). Au-delà de 200 → message « offre des 200 premiers
+épuisée », pas de code.
 
-**3.2 Suivi côté organisation** : endpoint + bloc dans le dashboard `/org` —
+**3.2 Ceinture anti-abus** : blocklist des domaines d'email jetables + rate-limit IP
+à la création de compte / réclamation ; 1 code offert max par compte ; limite de
+tentatives par compte (cooldown existant).
+
+**3.3 Suivi côté organisation** : endpoint + bloc dans le dashboard `/org` —
 vouchers **alloués / utilisés / restants**, et qui les a consommés (réutilise le
-reporting org et le batptahage existants).
+reporting org existant).
 
-**Vérif Lot 3** : s'inscrire à la newsletter fournit un code utilisable
-immédiatement (écran + email) ; l'org voit sa dotation et sa consommation à jour.
+**Vérif Lot 3** : le compte n°200 reçoit un code, le n°201 non ; un même compte n'a
+qu'un code ; un email jetable est refusé ; l'org voit sa dotation et sa consommation
+à jour.
 
 ---
 
