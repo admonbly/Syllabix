@@ -34,6 +34,18 @@ export async function POST(request) {
 
   const db = getAdminDb();
 
+  // 2.b Gating par voucher : l'utilisateur doit avoir activé un code (redeem)
+  // non encore consommé. Le code est lié à la session et brûlé à la soumission.
+  const vSnap = await db.collection('vouchers').where('redeemedBy', '==', uid).get();
+  const claimed = vSnap.docs
+    .map((d) => d.data())
+    .filter((v) => v.status === 'redeemed')
+    .sort((a, b) => String(a.redeemedAt || '').localeCompare(String(b.redeemedAt || '')));
+  if (claimed.length === 0) {
+    return NextResponse.json({ error: 'voucher_required' }, { status: 403 });
+  }
+  const voucherCode = claimed[0].code;
+
   // 3. Cooldown vérifié dès la création de session
   const examKey = moduleId !== null ? `certification_module_${moduleId}` : 'certification_global';
   const attemptSnap = await db.doc(`users/${uid}/examAttempts/${examKey}`).get();
@@ -71,6 +83,7 @@ export async function POST(request) {
     createdAt: new Date(now).toISOString(),
     expiresAt: new Date(now + (durationS + EXAM.SESSION_GRACE_S) * 1000).toISOString(),
     submitted: false,
+    voucherCode, // code lié à cette tentative, brûlé à la soumission
   });
 
   return NextResponse.json({

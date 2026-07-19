@@ -62,7 +62,7 @@ export async function POST(request) {
     return NextResponse.json({ error: msg }, { status });
   }
 
-  const { moduleId, examType, questionKeys } = session;
+  const { moduleId, examType, questionKeys, voucherCode } = session;
 
   // 4. Rechargement des questions côté serveur
   const moduleIds = [...new Set(questionKeys.map((k) => parseInt(k.split(':')[0], 10)))];
@@ -92,6 +92,19 @@ export async function POST(request) {
     lastAttemptAt: new Date().toISOString(),
   });
 
+  // 6.b Consomme le code lié à cette tentative — 1 code = 1 tentative, que
+  // l'examen soit réussi OU échoué. Le code devient inutilisable.
+  if (voucherCode) {
+    try {
+      await db.doc(`vouchers/${voucherCode}`).update({
+        status: 'consumed',
+        consumedAt: new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('voucher consume:', e);
+    }
+  }
+
   // 7. Certificat si réussi
   let certId = null;
   if (passed) {
@@ -101,7 +114,13 @@ export async function POST(request) {
 
     const certRef = db.collection(`users/${uid}/certificates`).doc();
     certId = certRef.id;
-    const issuedAt = new Date().toISOString();
+    const issuedDate = new Date();
+    const issuedAt = issuedDate.toISOString();
+    // Validité : 2 ans à compter de l'émission (toutes les certifications).
+    const expiresAt = new Date(
+      issuedDate.getFullYear() + 2, issuedDate.getMonth(), issuedDate.getDate(),
+      issuedDate.getHours(), issuedDate.getMinutes(), issuedDate.getSeconds(),
+    ).toISOString();
 
     const certData = {
       displayName,
@@ -109,6 +128,8 @@ export async function POST(request) {
       examType: examType || (moduleId !== null ? 'MODULE' : 'GLOBAL'),
       score: percentage,
       issuedAt,
+      expiresAt,
+      voucherCode: voucherCode ?? null,
       userId: uid,
       createdAt: issuedAt,
     };

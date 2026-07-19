@@ -23,6 +23,18 @@ function formatDate(isoStr) {
   });
 }
 
+/**
+ * Validité 2 ans. Utilise cert.expiresAt s'il existe, sinon la calcule à partir
+ * de issuedAt (+2 ans) pour les certificats antérieurs sans champ expiresAt.
+ */
+function validityInfo(cert) {
+  const issued = cert?.issuedAt ? new Date(cert.issuedAt) : null;
+  let exp = cert?.expiresAt ? new Date(cert.expiresAt) : null;
+  if (!exp && issued) { exp = new Date(issued); exp.setFullYear(exp.getFullYear() + 2); }
+  const expired = exp ? exp.getTime() < Date.now() : false;
+  return { exp, expired };
+}
+
 function getLevel(score) {
   if (score >= 80) return { label: 'Avancé', color: '#27AE60', bg: '#e8f7ee' };
   if (score >= 60) return { label: 'Intermédiaire', color: '#E67E22', bg: '#fdf0e3' };
@@ -319,6 +331,17 @@ export default function CertificatePage() {
             <div className="relative mt-auto pt-4 flex items-end justify-between gap-6">
               <div>
                 <p className="text-[13px] text-neutral-600">Fait le {formatDate(cert.issuedAt)}</p>
+                {(() => {
+                  const { exp, expired } = validityInfo(cert);
+                  if (!exp) return null;
+                  return (
+                    <p className={`text-[12px] font-medium ${expired ? 'text-red-600' : 'text-neutral-500'}`}>
+                      {expired
+                        ? `Expiré le ${formatDate(exp.toISOString())}`
+                        : `Valable jusqu'au ${formatDate(exp.toISOString())}`}
+                    </p>
+                  );
+                })()}
                 <p className={greatVibes.className} style={{ fontSize: 34, color: '#1a2a6c', transform: 'rotate(-4deg)', width: 'fit-content', margin: '4px 0 -4px 6px' }}>
                   Syllabix
                 </p>

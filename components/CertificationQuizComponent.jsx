@@ -53,6 +53,11 @@ export default function CertificationQuizComponent({
   const [submitError, setSubmitError] = useState(null);
   const [scoreData, setScoreData] = useState(null);
   const [cooldownRemaining, setCooldownRemaining] = useState(null);
+  // Gating par code (voucher)
+  const [needsVoucher, setNeedsVoucher] = useState(false);
+  const [voucherInput, setVoucherInput] = useState('');
+  const [voucherError, setVoucherError] = useState('');
+  const [voucherBusy,  setVoucherBusy]  = useState(false);
   const { t, locale } = useLanguage();
   const ct = (k) => t(`quiz.cert.${k}`);
   const qt = (k) => t(`quiz.results.${k}`);
@@ -228,6 +233,11 @@ export default function CertificationQuizComponent({
       });
       const data = await res.json();
 
+      if (res.status === 403 && data.error === 'voucher_required') {
+        setNeedsVoucher(true);
+        setLoading(false);
+        return;
+      }
       if (res.status === 429) {
         setCooldownRemaining(data.remaining ?? null);
         setLoading(false);
@@ -253,6 +263,37 @@ export default function CertificationQuizComponent({
     setShowInstructions(false);
     setTimerStarted(true);
     setStartTime(Date.now());
+  };
+
+  // Valide un code de certification puis relance le chargement de l'examen.
+  const submitVoucher = async (e) => {
+    e.preventDefault();
+    setVoucherError('');
+    const user = await waitForUser();
+    if (!user) return;
+    setVoucherBusy(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/voucher/redeem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ code: voucherInput }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setVoucherError(data.error || (locale === 'fr' ? 'Code invalide' : 'Invalid code'));
+        setVoucherBusy(false);
+        return;
+      }
+      setNeedsVoucher(false);
+      setVoucherInput('');
+      setVoucherBusy(false);
+      setLoading(true);
+      loadQuestions();
+    } catch {
+      setVoucherError(locale === 'fr' ? 'Erreur réseau' : 'Network error');
+      setVoucherBusy(false);
+    }
   };
 
   const handleNext = () => {
@@ -291,6 +332,54 @@ export default function CertificationQuizComponent({
     return (
       <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
         <p className="text-lg text-neutral-600">{t('quiz.loading')}</p>
+      </section>
+    );
+  }
+
+  // Gating par code : l'examen exige un code de certification valide.
+  if (needsVoucher) {
+    return (
+      <section className="py-20 bg-neutral-50 min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto px-4 w-full">
+          <Card className="p-8">
+            <div className="text-5xl mb-4 text-center">🎫</div>
+            <h2 className="text-2xl font-heading font-bold text-primary mb-2 text-center">
+              {locale === 'fr' ? 'Un code est requis' : 'A code is required'}
+            </h2>
+            <p className="text-sm text-neutral-600 text-center mb-6 leading-relaxed">
+              {locale === 'fr'
+                ? 'La certification se débloque avec un code. Saisis le tien (offert à l\'inscription, reçu de ton établissement/entreprise, ou via une campagne Syllabix).'
+                : 'The certification unlocks with a code. Enter yours (given at sign-up, from your school/company, or a Syllabix campaign).'}
+            </p>
+            <form onSubmit={submitVoucher} className="space-y-3">
+              <input
+                type="text"
+                value={voucherInput}
+                onChange={(e) => setVoucherInput(e.target.value)}
+                placeholder="SYX-XXXX-XXXX"
+                autoFocus
+                className="w-full px-4 py-3 border-2 border-neutral-200 rounded-xl focus:border-accent outline-none text-center font-mono tracking-wider uppercase"
+              />
+              {voucherError && (
+                <p className="text-sm text-red-600 text-center">❌ {voucherError}</p>
+              )}
+              <button
+                type="submit"
+                disabled={voucherBusy || !voucherInput.trim()}
+                className="w-full px-5 py-3 rounded-xl bg-accent text-white font-display font-semibold hover:bg-accent-dark transition-colors disabled:opacity-50"
+              >
+                {voucherBusy
+                  ? (locale === 'fr' ? 'Vérification…' : 'Checking…')
+                  : (locale === 'fr' ? 'Débloquer la certification' : 'Unlock certification')}
+              </button>
+            </form>
+            <div className="mt-5 text-center">
+              <a href="/certification" className="text-sm text-neutral-400 hover:text-accent underline">
+                {locale === 'fr' ? 'Retour' : 'Back'}
+              </a>
+            </div>
+          </Card>
+        </div>
       </section>
     );
   }
