@@ -154,22 +154,6 @@ export default function TrainingPage() {
                 </Reveal>
               );
             })}
-
-            {/* Mode mixte */}
-            <Link href="/evaluation" className="group block">
-              <div className="rounded-2xl border-2 border-dashed border-neutral-300 bg-neutral-50 group-hover:border-accent group-hover:bg-orange-50 transition-all overflow-hidden">
-                <div className="flex items-center gap-4 px-6 py-5">
-                  <span className="text-3xl flex-shrink-0">🎲</span>
-                  <div className="flex-1">
-                    <p className="font-heading font-bold text-primary">{tr('modules.mixed.title')}</p>
-                    <p className="text-xs text-neutral-500">{tr('modules.mixed.subtitle')}</p>
-                  </div>
-                  <span className="flex-shrink-0 text-xs font-bold px-5 py-2.5 rounded-xl bg-accent/10 text-accent group-hover:bg-accent group-hover:text-white transition-colors">
-                    {tr('modules.mixed.cta')} →
-                  </span>
-                </div>
-              </div>
-            </Link>
           </div>
 
           <p className="text-center text-xs text-neutral-400 mt-10">
