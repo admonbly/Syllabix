@@ -126,6 +126,14 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ─── Collections : vouchers & voucherBatches (codes de certification) ──
+    // Codes qui débloquent une certification. Générés, validés et consommés
+    // EXCLUSIVEMENT par l'Admin SDK (/api/voucher/*, /api/admin/voucher/*).
+    // Aucun accès client (anti-énumération / anti-forge).
+    match /vouchers/{code}       { allow read, write: if false; }
+    match /voucherBatches/{id}   { allow read, write: if false; }
+    match /counters/{docId}      { allow read, write: if false; }
+
     // ─── Collection : organizations (écoles & entreprises) ──────────
     // Aucun accès client : le rattachement et l'administration passent
     // EXCLUSIVEMENT par les API routes en Admin SDK (/api/org/*, /api/admin/*).

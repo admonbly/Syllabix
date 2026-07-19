@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { Building2, Newspaper, Mail, Quote, ShieldCheck, Handshake } from 'lucide-react';
+import { Building2, Newspaper, Mail, Quote, ShieldCheck, Handshake, Ticket } from 'lucide-react';
 import { auth } from '@/lib/firebase';
 
 const TABS = [
   { href: '/admin/organizations', label: 'Organisations', icon: Building2 },
+  { href: '/admin/vouchers',      label: 'Vouchers',      icon: Ticket },
   { href: '/admin/partenaires',   label: 'Demandes',      icon: Handshake },
   { href: '/admin/blog',          label: 'Blog',          icon: Newspaper },
   { href: '/admin/newsletter',    label: 'Newsletter',    icon: Mail },
