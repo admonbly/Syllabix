@@ -19,8 +19,8 @@ export default function MentionsLegalesPage() {
             </p>
             <p className="text-neutral-600 mt-2">
               Email de contact :{' '}
-              <a href="mailto:contact@syllabix.com" className="text-accent hover:underline">
-                contact@syllabix.com
+              <a href="mailto:contact@syllabix.net" className="text-accent hover:underline">
+                contact@syllabix.net
               </a>
             </p>
           </section>

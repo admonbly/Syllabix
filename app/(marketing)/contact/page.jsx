@@ -34,7 +34,7 @@ export default function ContactPage() {
         <p className="section-subtitle">{ct('subtitle')}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <Card icon="📧" title={ct('cards.email')} description="contact@syllabix.com" />
+          <Card icon="📧" title={ct('cards.email')} description="contact@syllabix.net" />
           <Card icon="💼" title={ct('cards.linkedin')} description={<a href="https://www.linkedin.com/company/syllabix" target="_blank" rel="noopener noreferrer" className="text-accent hover:underline">linkedin.com/company/syllabix</a>} />
           <Card icon="🕐" title={ct('cards.hours')} description={ct('cards.hoursVal')} />
         </div>

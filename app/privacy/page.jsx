@@ -43,7 +43,7 @@ export default function PrivacyPage() {
               <p><strong>Syllabix</strong></p>
               <p>Plateforme EdTech de certification des compétences numériques</p>
               <p>Abidjan, Côte d'Ivoire</p>
-              <p>Email : <strong>contact@syllabix.com</strong></p>
+              <p>Email : <strong>contact@syllabix.net</strong></p>
               <p>Site : <strong>syllabix.net</strong></p>
             </div>
           </Section>
@@ -170,7 +170,7 @@ export default function PrivacyPage() {
             </p>
             <p>
               Les parents ou tuteurs légaux peuvent demander la suppression du compte d'un
-              mineur en nous contactant à <strong>contact@syllabix.com</strong> avec une
+              mineur en nous contactant à <strong>contact@syllabix.net</strong> avec une
               preuve de leur lien de parenté.
             </p>
           </Section>
@@ -282,7 +282,7 @@ export default function PrivacyPage() {
             <p>
               Pour exercer ces droits, contactez-nous via la page{' '}
               <Link href="/contact" className="text-accent hover:underline">Contact</Link> ou
-              par email à <strong>contact@syllabix.com</strong>. Nous répondons dans un délai
+              par email à <strong>contact@syllabix.net</strong>. Nous répondons dans un délai
               maximum de <strong>30 jours</strong>.
             </p>
           </Section>
@@ -344,7 +344,7 @@ export default function PrivacyPage() {
                 Via la page{' '}
                 <Link href="/contact" className="text-accent hover:underline">Contact</Link> ;
               </li>
-              <li>Par email : <strong>contact@syllabix.com</strong> ;</li>
+              <li>Par email : <strong>contact@syllabix.net</strong> ;</li>
               <li>Par courrier : Syllabix, Abidjan, Côte d'Ivoire.</li>
             </ul>
             <p className="mt-3">

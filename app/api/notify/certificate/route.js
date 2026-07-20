@@ -164,7 +164,7 @@ export async function POST(request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM_EMAIL || 'certifications@syllabix.com',
+        from: process.env.RESEND_FROM_EMAIL || 'certifications@syllabix.net',
         to: [email],
         subject: `🏆 Vous avez obtenu votre certificat ${certTitle} — Syllabix`,
         html,

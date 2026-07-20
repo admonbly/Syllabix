@@ -275,7 +275,7 @@ export default function CGUPage() {
             </p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Via la page <Link href="/contact" className="text-accent hover:underline">Contact</Link> de la plateforme ;</li>
-              <li>Par email : <strong>contact@syllabix.com</strong> ;</li>
+              <li>Par email : <strong>contact@syllabix.net</strong> ;</li>
               <li>Par courrier : Syllabix, Abidjan, Côte d'Ivoire.</li>
             </ul>
           </Section>
