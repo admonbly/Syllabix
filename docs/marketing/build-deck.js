@@ -33,7 +33,7 @@ s.addText('avec des épreuves pratiques sur de vrais fichiers.',{x:M,y:4.15,w:9.
 s.addText('Adaptée au contexte ivoirien et africain. Gratuite pour l’apprenant au démarrage.',{x:M,y:5.15,w:8.6,h:0.5,fontFace:BF,color:'C6CAF0',fontSize:15,margin:0});
 s.addShape(p.ShapeType.roundRect,{x:M,y:6.05,w:2.15,h:0.5,rectRadius:0.25,fill:{color:'23297E'},line:{color:ORANGE,width:1}});
 s.addText('PROJET PILOTE',{x:M,y:6.05,w:2.15,h:0.5,align:'center',valign:'middle',fontFace:HF,bold:true,color:ORANGE,fontSize:12,charSpacing:2,margin:0});
-s.addText('syllabix-eight.vercel.app',{x:9.4,y:6.15,w:3.2,h:0.4,align:'right',fontFace:BF,color:'B9BEE8',fontSize:13,margin:0});
+s.addText('syllabix.net',{x:9.4,y:6.15,w:3.2,h:0.4,align:'right',fontFace:BF,color:'B9BEE8',fontSize:13,margin:0});
 s.addNotes('Ouverture. Syllabix certifie les compétences numériques par des épreuves pratiques sur de vrais fichiers, dans le contexte africain. Stade pilote assumé.');
 
 // ---------- 2. LE CONSTAT ----------
@@ -191,7 +191,7 @@ s.addText('S',{x:M,y:1.6,w:0.8,h:0.8,align:'center',valign:'middle',fontFace:HF,
 s.addText('Faisons grandir la communauté\ndes certifiés numériques.',{x:M,y:2.7,w:11,h:1.8,fontFace:HF,bold:true,color:WHITE,fontSize:38,lineSpacing:44,margin:0});
 s.addText('Tester le défi, découvrir les modules, ou devenir partenaire :',{x:M,y:4.7,w:11,h:0.5,fontFace:BF,color:'C6CAF0',fontSize:16,margin:0});
 s.addText([
-  {text:'syllabix-eight.vercel.app',options:{color:WHITE,bold:true,breakLine:true}},
+  {text:'syllabix.net',options:{color:WHITE,bold:true,breakLine:true}},
   {text:'Partenariats : /partenariats     ·     Défi : /defi',options:{color:'A8ADE0'}},
 ],{x:M,y:5.35,w:11,h:0.9,fontFace:BF,fontSize:17,lineSpacing:26,margin:0});
 s.addText('Projet pilote — nous n’affirmons rien que nous ne puissions prouver.',{x:M,y:6.7,w:11,h:0.4,fontFace:BF,italic:true,color:'7C82C0',fontSize:12,margin:0});
