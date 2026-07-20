@@ -44,7 +44,7 @@ export default function PrivacyPage() {
               <p>Plateforme EdTech de certification des compétences numériques</p>
               <p>Abidjan, Côte d'Ivoire</p>
               <p>Email : <strong>contact@syllabix.com</strong></p>
-              <p>Site : <strong>syllabix.com</strong></p>
+              <p>Site : <strong>syllabix.net</strong></p>
             </div>
           </Section>
 

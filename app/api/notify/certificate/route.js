@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminDb, getAdminAuth } from '@/lib/firebaseAdmin';
 import { getModuleName } from '@/lib/moduleNames';
-import { SITE_URL } from '@/lib/siteUrl';
+import { SITE_URL, SITE_HOST } from '@/lib/siteUrl';
 
 // Échappe le HTML pour empêcher toute injection dans le corps de l'email
 function escapeHtml(str) {
@@ -83,7 +83,7 @@ export async function POST(request) {
     ? getModuleName(moduleId)
     : 'Certificat de Compétences Numériques';
 
-  const certUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://syllabix.com'}/certificate/${certId}`;
+  const certUrl = `${SITE_URL}/certificate/${certId}`;
   const name = escapeHtml(displayName || email.split('@')[0]);
 
   const html = `
@@ -146,7 +146,7 @@ export async function POST(request) {
         <tr><td style="background:#f8f9ff;padding:20px 40px;text-align:center;border-top:1px solid #e8ecff;">
           <p style="margin:0;color:#999;font-size:12px;">
             Syllabix — Plateforme de certification numérique<br>
-            <a href="https://syllabix.com" style="color:#1A237E;">syllabix.com</a>
+            <a href="${SITE_URL}" style="color:#1A237E;">${SITE_HOST}</a>
           </p>
         </td></tr>
 

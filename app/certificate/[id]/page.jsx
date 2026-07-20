@@ -12,6 +12,7 @@ import { useLanguage } from '@/lib/LanguageContext';
 import { PARTNERS_ON_CERTIFICATE } from '@/lib/partners';
 import { MODULE_COMPETENCIES } from '@/lib/moduleCompetencies';
 import { getModuleName } from '@/lib/moduleNames';
+import { SITE_HOST } from '@/lib/siteUrl';
 
 // Police calligraphique — nom du lauréat et signature manuscrite
 const greatVibes = Great_Vibes({ subsets: ['latin'], weight: '400', display: 'swap' });
@@ -464,7 +465,7 @@ export default function CertificatePage() {
               <div className="text-left">
                 <p className="text-[11px] font-bold text-white">Certificat vérifiable</p>
                 <p className="text-[10px] leading-snug" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                  Scannez ce code ou saisissez<br />l'identifiant sur syllabix.com
+                  Scannez ce code ou saisissez<br />l'identifiant sur {SITE_HOST}
                 </p>
               </div>
             </div>

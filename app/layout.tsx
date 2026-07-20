@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import CookieConsent from '@/components/CookieConsent';
 import { LanguageProvider } from '@/lib/LanguageContext';
 import { A11yProvider } from '@/lib/AccessibilityContext';
+import { SITE_URL } from '@/lib/siteUrl';
 import './globals.css';
 
 const jakarta = Plus_Jakarta_Sans({
@@ -23,6 +24,7 @@ const dm = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'Syllabix — Certification des Compétences Numériques en Afrique',
   description: 'Évaluez et certifiez vos compétences numériques avec Syllabix. 7 modules, résultats en moins de 30 minutes.',
   keywords: ['certification', 'compétences numériques', 'Afrique', 'formation digitale', 'e-learning', 'pan-africain'],
@@ -31,6 +33,7 @@ export const metadata: Metadata = {
     description: 'La plateforme de certification des compétences numériques en Afrique',
     type: 'website',
     locale: 'fr_FR',
+    url: SITE_URL,
     images: [
       {
         url: '/syllabix-logo-with-name.png',

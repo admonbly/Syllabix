@@ -2,13 +2,15 @@
  * Composant JSON-LD pour les données structurées Schema.org
  * Aide les moteurs de recherche et le chatbot à comprendre le contenu.
  */
+import { SITE_URL } from '@/lib/siteUrl';
+
 export function OrganizationJsonLd() {
   const data = {
     '@context': 'https://schema.org',
     '@type': 'EducationalOrganization',
     name: 'Syllabix',
     description: 'Plateforme de certification des compétences numériques en Afrique',
-    url: 'https://syllabix.vercel.app',
+    url: SITE_URL,
     areaServed: 'Africa',
     inLanguage: 'fr',
     offers: {

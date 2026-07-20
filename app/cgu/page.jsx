@@ -35,7 +35,7 @@ export default function CGUPage() {
               Les présentes Conditions Générales d'Utilisation (ci-après « CGU ») régissent l'accès et
               l'utilisation de la plateforme Syllabix, éditée par <strong>Syllabix</strong>, société
               spécialisée dans la formation et la certification des compétences numériques en Afrique,
-              accessible à l'adresse <strong>syllabix.com</strong> et ses sous-domaines.
+              accessible à l'adresse <strong>syllabix.net</strong> et ses sous-domaines.
             </p>
             <p>
               En créant un compte ou en utilisant les services de Syllabix, vous reconnaissez avoir lu,
