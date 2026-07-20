@@ -1,43 +1,78 @@
 import { NextResponse } from 'next/server';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 /**
- * POST /api/webhooks/jeko  — Récepteur de webhook Jeko (Phase 1, paiement).
+ * POST /api/webhooks/jeko — Récepteur de webhook Jeko (paiement Mobile Money / carte).
  *
- * ⚠️ ÉTAPE 1 (débloquer l'enregistrement Jeko) : ce endpoint ACCUSE RÉCEPTION
- * (200) et journalise l'événement. Il ne génère PAS encore de voucher.
+ * SÉCURITÉ (fait) : chaque webhook Jeko est signé. On vérifie l'en-tête
+ * `Jeko-Signature` = HMAC-SHA256 du CORPS BRUT (raw body) avec le webhook secret
+ * (env JEKO_WEBHOOK_SECRET, obtenu dans le Cockpit Jeko). Comparaison à temps
+ * constant. On répond 200 en < 5 s (sinon Jeko réessaie).
  *
- * ÉTAPE 2 (à venir, après lecture de la doc webhook Jeko) :
- *   - vérifier la SIGNATURE de la requête (secret partagé JEKO_WEBHOOK_SECRET)
- *     pour n'accepter QUE les appels authentiques de Jeko ;
- *   - selon l'événement (paiement confirmé), générer le(s) voucher(s) payé(s)
- *     via l'Admin SDK et les rattacher au partenaire / à l'acheteur ;
- *   - rester idempotent (un même événement peut être renvoyé plusieurs fois).
+ * FULFILLMENT (à venir — cadrage Phase 1) : sur `event: transaction.completed`
+ * avec `data.status === 'success'`, générer le(s) voucher(s) payé(s) et les
+ * rattacher à la commande identifiée par `data.transactionDetails.reference`.
+ * Nécessite d'abord : grille de prix + parcours d'achat + modèle de commande
+ * (paymentOrders). Idempotence obligatoire (un même événement peut être renvoyé).
  *
- * Le webhook DOIT répondre vite (2xx) sinon Jeko réessaie. On acquitte donc
- * immédiatement et on traitera l'événement de façon asynchrone une fois la
- * logique en place.
+ * Format d'un événement (extrait) :
+ *   { event, data: { id, amount:{amount,currency}, status:'success'|'error',
+ *     transactionType:'payment'|'transfer',
+ *     transactionDetails:{ id, reference, paymentLinkId } }, timestamp }
  */
 
+function verifySignature(rawBody, signature, secret) {
+  if (!signature) return false;
+  const expected = createHmac('sha256', secret).update(rawBody, 'utf8').digest('hex');
+  const a = Buffer.from(signature, 'utf8');
+  const b = Buffer.from(expected, 'utf8');
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 export async function POST(request) {
-  let payload = null;
-  try {
-    payload = await request.json();
-  } catch {
-    // Certains webhooks envoient du texte/urlencoded ; on ne bloque pas.
-    try { payload = await request.text(); } catch { payload = null; }
+  // 1. Corps BRUT (indispensable pour la signature — ne pas parser avant).
+  const rawBody = await request.text();
+  const signature = request.headers.get('jeko-signature') || request.headers.get('Jeko-Signature');
+  const secret = process.env.JEKO_WEBHOOK_SECRET;
+
+  // 2. Vérification de signature.
+  if (secret) {
+    if (!verifySignature(rawBody, signature, secret)) {
+      console.warn('[jeko webhook] signature invalide — rejeté');
+      return NextResponse.json({ error: 'invalid signature' }, { status: 401 });
+    }
+  } else {
+    // Secret non configuré : on n'ouvre pas de faille silencieuse, mais on ne
+    // casse pas la config Jeko pendant la mise en place — on journalise.
+    console.warn('[jeko webhook] JEKO_WEBHOOK_SECRET absent — signature non vérifiée');
   }
 
-  // Journalisation temporaire (visible dans les logs Vercel) pour inspecter le
-  // format réel des événements Jeko et construire la vérification de signature.
-  console.log('[jeko webhook] event reçu:', JSON.stringify(payload)?.slice(0, 2000));
+  // 3. Parsing après vérification.
+  let payload = null;
+  try { payload = JSON.parse(rawBody); } catch { payload = null; }
 
-  // TODO Phase 1 : vérifier la signature + générer les vouchers payés.
+  const event = payload?.event;
+  const data = payload?.data || {};
 
-  // Acquittement immédiat.
+  if (event === 'transaction.completed' && data.status === 'success' && data.transactionType === 'payment') {
+    // Paiement authentique confirmé.
+    console.log('[jeko webhook] paiement confirmé:', JSON.stringify({
+      txId: data.id,
+      reference: data.transactionDetails?.reference,
+      amount: data.amount,
+      method: data.paymentMethod,
+    }));
+    // TODO Phase 1 : retrouver la commande via reference → générer les vouchers
+    // payés (Admin SDK) → marquer la commande payée (idempotent).
+  } else {
+    console.log('[jeko webhook] événement reçu (non traité):', event, data.status);
+  }
+
+  // 4. Acquittement immédiat.
   return NextResponse.json({ received: true });
 }
 
-// Certaines plateformes testent l'URL par un GET lors de l'enregistrement.
+// Test d'URL par GET lors de l'enregistrement dans Jeko.
 export async function GET() {
   return NextResponse.json({ ok: true, endpoint: 'jeko-webhook' });
 }
